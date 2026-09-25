@@ -38,6 +38,8 @@ JOURNAL = [
      "lecon": "+7,8 %/an, chute -12,6 %, réussit sans crypto ; échoue d'un cheveu aux frais x3."},
     {"code": "EXP-006", "titre": "v2 + budget de risque + zone tampon (v3)", "score": "10/10", "statut": "base à battre",
      "lecon": "+7,8 %/an, chute -11,7 %, frais 0,48 %/an : validée, devient la v3."},
+    {"code": "EXP-007", "titre": "Croisement H1 filtré weekly, stop et stop suiveur", "score": "0/10", "statut": "échec",
+     "lecon": "+5,0 %/an, chute -26 %, frais 2,1 %/an ; entrées au hasard font mieux dans 72 % des cas."},
 ]
 
 

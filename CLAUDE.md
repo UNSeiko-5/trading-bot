@@ -65,7 +65,7 @@
   Jamais de clé dans le code.
 - La fusion des pull requests est faite par l'utilisateur.
 
-## État du projet (25/09/2026)
+## État du projet (26/09/2026)
 
 - **EXP-001** (v1, moyenne 200 jours sur SPY) : 4/5, non jugée solide (trop dépendante du réglage).
 - **EXP-002** (v2, tendance multi-actifs pilotée par le risque) : **7/8, non validée.**
@@ -83,7 +83,12 @@
 - **EXP-006** (EXP-005 + zone tampon de Carver) : **10/10, validée.** +7,8 %/an, chute -11,7 %, note 0,67,
   frais 0,48 %/an, +5,1 % sans crypto, frais x3 OK. Prudence : 6e expérience sur le même passé.
 - **La v3 = v2 + `budget=BUDGET_RISQUE` + `tampon=TAMPON` est la nouvelle base à battre.** Prochaine étape :
-  la brancher au robot en argent fictif. Proposé à l'utilisateur : EXP-007 moteur de décision, EXP-008 apprentissage walk-forward.
+  branchée au robot en argent fictif (PR #4 fusionnée, premiers ordres le 25/09/2026).
+- **EXP-007** (croisement EMA 20/50 en H1, filtre weekly 10/40, stop 2 ATR, suiveur 3 ATR, idée de l'utilisateur) :
+  **0/10, échec net.** Sur 2016-2026 : +5,0 %/an, chute -26 % contre +10,6 % et -11,7 % pour la v3. 33 % de gagnants,
+  facteur de profit 0,74, frais 2,1 %/an, et des entrées au hasard font mieux dans 72 % des cas (R5). Code gardé, non branché.
+- Toujours proposé : moteur de décision, apprentissage walk-forward.
+- Point ouvert avant le réel : sur un compte cash, les ventes doivent être exécutées avant les achats.
 
 ## Prochaines étapes (choisies par l'utilisateur)
 

@@ -743,3 +743,50 @@ Battre la v3 est possible mais incertain.
 trade, frais par an, part investie moyenne.
 
 **Verdict prévu :** la stratégie remplace la v3 seulement si **les 10 critères** sont réussis.
+
+**Résultats** (lancement GitHub du 25/09/2026, `python experience_007.py`, bougies H1 Alpaca flux SIP,
+ETF du 04/01/2016 au 23/09/2026, crypto depuis le 01/01/2021 seulement, période jugée 2016-02-03 → 2026-09-22,
+10,6 ans, frais compris) :
+
+| | Rendement/an | Pire chute | Note R/R |
+|---|---|---|---|
+| **H1 filtrée weekly** | **+5,0 %** | **-26,0 %** | **0,19** |
+| v3 (base à battre, même période) | +10,6 % | -11,7 % | 0,91 |
+| Acheter et garder SPY | +16,0 % | -33,7 % | 0,47 |
+| 60/40 (SPY/IEF) | +9,9 % | -21,2 % | 0,47 |
+| v1 (200 jours sur SPY) | +11,2 % | -19,5 % | 0,57 |
+| Même panier sans signaux | +10,2 % | -20,0 % | 0,51 |
+
+*Pour information :* 390 trades fermés (37 par an), **33 % de gagnants**, **facteur de profit 0,74**
+(les pertes dépassent les gains), durée moyenne 3,5 jours, **frais 2,08 %/an**, investi à 78 % en moyenne.
+
+| # | Résultat | Verdict |
+|---|---|---|
+| M1 | +5,0 % contre +10,6 % : -5,63 points | ❌ |
+| M2 | 0,19 contre 0,91 | ❌ |
+| P1 / P2 / P3 | -26,0 % · +5,0 % · 0,19 (battue par les 4 références) | ❌ ❌ ❌ |
+| R1 | 1 variante sur 10 réussie (risque 0,25 %). Meilleure : filtre weekly 5/20, +6,5 %/an, chute -21,4 % | ❌ |
+| R2 | 2016-2019 : -1,0 %/an · 2019-2023 : -0,9 %/an · 2023-2026 : +18,1 %/an | ❌ |
+| R3 | Frais x3 : +2,6 %/an, perte de 2,40 points, chute -38,9 % | ❌ |
+| R4 | Sans la crypto : +5,5 %/an, chute -20,6 %, note 0,27 (60/40 : 0,47) | ❌ |
+| R5 | Meilleure que seulement **28 %** des 500 versions aux entrées tirées au hasard (médiane du hasard : 0,25) | ❌ |
+
+**Conclusion :**
+
+- **Verdict officiel : 0/10. La v3 reste la base à battre.**
+- **Le point clé est R5 :** acheter à des moments tirés au hasard, avec les mêmes stops, fait **mieux** que
+  le croisement H1 dans 72 % des cas. Le croisement 20/50 en H1 n'apporte donc aucune information utile sur
+  la suite du prix : ce sont le filtre, les stops et la hausse générale des marchés qui font le peu de gain.
+- Ce qu'on craignait avant le test s'est produit : en H1, le stop de 2 ATR est touché par le bruit normal
+  d'une journée (trades de 3,5 jours en moyenne, 2 sur 3 perdants), et les allers-retours coûtent 2 %/an de frais.
+- Le dernier tiers (2023-2026 : +18 %/an) montre que la stratégie marche bien **dans un marché qui monte
+  fort et régulièrement** ; elle perd de l'argent dans les 7 années précédentes. Juger sur ces 3 ans seulement
+  aurait été un piège.
+- La variante « filtre weekly 5/20 » fait un peu mieux (+6,5 %) : on ne la choisit **pas** après coup, et
+  elle resterait loin de la v3.
+- Biais signalé : la crypto n'est disponible en H1 qu'à partir de 2021 chez Alpaca (la v3 l'a sur toute la
+  période). Sans effet sur le verdict : sans crypto du tout (R4), la stratégie H1 fait +5,5 %/an avec une note de 0,27, sous le simple 60/40 (0,47).
+
+**Décision :** code gardé (`robot/h1.py`, `experience_007.py`), non branché. La v3 reste en argent fictif.
+
+---
