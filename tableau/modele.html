@@ -1,0 +1,920 @@
+<title>Robot tendance v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  color-scheme: light;
+  --page: #f1f2ee;
+  --surface: #fcfcfb;
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --muted: #7d7b75;
+  --grid: #e4e3dc;
+  --axis: #c3c2b7;
+  --ring: rgba(11, 11, 11, 0.10);
+  --s1: #2a78d6;
+  --s2: #eb6834;
+  --s3: #1baf7a;
+  --s4: #eda100;
+  --accent: #2a78d6;
+  --accent-ink: #1c5cab;
+  --wash-1: rgba(42, 120, 214, 0.10);
+  --wash-2: rgba(235, 104, 52, 0.10);
+  --band-out: rgba(42, 120, 214, 0.12);
+  --band-in: rgba(42, 120, 214, 0.26);
+  --path: rgba(82, 81, 78, 0.16);
+  --good: #0ca30c;
+  --good-ink: #006300;
+  --warning: #fab219;
+  --warning-ink: #8a5a00;
+  --critical: #d03b3b;
+  --critical-ink: #b02a2a;
+  --node-root: #0b0b0b;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --ink: #ffffff;
+    --ink-2: #c3c2b7;
+    --muted: #97958e;
+    --grid: #2c2c2a;
+    --axis: #45443f;
+    --ring: rgba(255, 255, 255, 0.10);
+    --s1: #3987e5;
+    --s2: #d95926;
+    --s3: #199e70;
+    --s4: #c98500;
+    --accent: #3987e5;
+    --accent-ink: #86b6ef;
+    --wash-1: rgba(57, 135, 229, 0.14);
+    --wash-2: rgba(217, 89, 38, 0.14);
+    --band-out: rgba(57, 135, 229, 0.16);
+    --band-in: rgba(57, 135, 229, 0.32);
+    --path: rgba(195, 194, 183, 0.14);
+    --good-ink: #0ca30c;
+    --warning-ink: #fab219;
+    --critical-ink: #e66767;
+    --node-root: #ffffff;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface: #1a1a19;
+  --ink: #ffffff;
+  --ink-2: #c3c2b7;
+  --muted: #97958e;
+  --grid: #2c2c2a;
+  --axis: #45443f;
+  --ring: rgba(255, 255, 255, 0.10);
+  --s1: #3987e5;
+  --s2: #d95926;
+  --s3: #199e70;
+  --s4: #c98500;
+  --accent: #3987e5;
+  --accent-ink: #86b6ef;
+  --wash-1: rgba(57, 135, 229, 0.14);
+  --wash-2: rgba(217, 89, 38, 0.14);
+  --band-out: rgba(57, 135, 229, 0.16);
+  --band-in: rgba(57, 135, 229, 0.32);
+  --path: rgba(195, 194, 183, 0.14);
+  --good-ink: #0ca30c;
+  --warning-ink: #fab219;
+  --critical-ink: #e66767;
+  --node-root: #ffffff;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.55;
+}
+.wrap { max-width: 1080px; margin: 0 auto; padding-inline: 16px; padding-block: 0 72px; }
+h1, h2, h3 { text-wrap: balance; margin: 0; }
+h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 21px; font-weight: 600; letter-spacing: -0.005em; }
+h3 { font-size: 15px; font-weight: 600; }
+p { margin: 0; max-width: 68ch; }
+.muted { color: var(--ink-2); }
+.small { font-size: 13px; }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+/* En-tête et navigation */
+.top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: color-mix(in srgb, var(--page) 88%, transparent);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--ring);
+}
+.top .wrap { padding-block: 10px; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.top a {
+  flex: none; font-size: 13px; font-weight: 500; color: var(--ink-2); text-decoration: none;
+  padding: 5px 11px; border-radius: 999px; border: 1px solid var(--ring); background: var(--surface);
+}
+.top a:hover, .top a:focus-visible { color: var(--ink); border-color: var(--accent); outline: none; }
+header.intro { display: grid; gap: 10px; padding-block: 28px 8px; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 500;
+  padding: 3px 10px; border-radius: 999px; border: 1px solid var(--ring); background: var(--surface); color: var(--ink-2);
+}
+.chip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.chip.warn .dot { background: var(--warning); }
+.chip.good .dot { background: var(--good); }
+.chip.crit .dot { background: var(--critical); }
+
+section { display: grid; gap: 16px; padding-top: 40px; scroll-margin-top: 64px; }
+.section-head { display: grid; gap: 6px; }
+
+.card { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 16px; display: grid; gap: 12px; min-width: 0; }
+.card-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 16px; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 760px) { .grid-2 { grid-template-columns: minmax(0, 1fr); } }
+
+/* Tuiles */
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 760px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.tile { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 14px; display: grid; gap: 4px; align-content: start; }
+.tile .label { font-size: 12.5px; color: var(--ink-2); }
+.tile .value { font-size: 26px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; }
+.tile .note { font-size: 12.5px; color: var(--muted); }
+.tile .flag { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; }
+.flag.good { color: var(--good-ink); }
+.flag.warn { color: var(--warning-ink); }
+.flag.crit { color: var(--critical-ink); }
+
+/* Graphiques */
+.chart { width: 100%; min-height: 120px; position: relative; }
+.chart svg { display: block; overflow: visible; }
+.chart text { font-family: var(--mono); font-size: 11px; fill: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 7px; }
+.legend i { width: 16px; height: 2px; border-radius: 2px; display: inline-block; }
+.legend i.box { height: 10px; width: 10px; border-radius: 2px; }
+.explain { font-size: 13.5px; color: var(--ink-2); }
+.explain strong { color: var(--ink); font-weight: 600; }
+
+#bulle {
+  position: fixed; z-index: 20; pointer-events: none; min-width: 150px; max-width: 260px;
+  background: var(--surface); color: var(--ink); border: 1px solid var(--ring); border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.14); padding: 8px 10px; font-size: 12.5px; display: grid; gap: 3px;
+}
+#bulle .t { font-family: var(--mono); font-size: 11.5px; color: var(--muted); }
+#bulle .r { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+#bulle .r b { font-family: var(--mono); font-weight: 500; font-variant-numeric: tabular-nums; }
+#bulle .r span { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); }
+#bulle .r i { width: 12px; height: 2px; border-radius: 2px; display: inline-block; }
+
+/* Actifs du jour */
+.actifs { display: grid; gap: 2px; }
+.actif { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) 64px; gap: 12px; align-items: center; padding-block: 7px; border-bottom: 1px solid var(--grid); }
+.actif:last-child { border-bottom: 0; }
+.actif .nom { display: grid; line-height: 1.3; min-width: 0; }
+.actif .nom b { font-weight: 500; font-size: 14px; }
+.actif .nom span { font-size: 12px; color: var(--muted); font-family: var(--mono); }
+.jauge { height: 8px; border-radius: 4px; background: var(--grid); position: relative; overflow: hidden; }
+.jauge > i { position: absolute; inset: 0 auto 0 0; border-radius: 4px; background: var(--accent); }
+.actif .part { font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; font-size: 13.5px; }
+.actif-head { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) 64px; gap: 12px; font-size: 12px; color: var(--muted); }
+.actif-head span:last-child { text-align: right; }
+
+/* Tableaux */
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th, td { text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { font-weight: 500; color: var(--ink-2); font-size: 12.5px; }
+td { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+td:first-child { font-family: var(--sans); }
+tr.base td { font-weight: 600; }
+
+/* Journal des expériences */
+.journal { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 760px) { .journal { grid-template-columns: minmax(0, 1fr); } }
+.exp { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 14px; display: grid; gap: 6px; align-content: start; }
+.exp .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.exp .code { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.exp h3 { font-size: 14.5px; }
+.exp p { font-size: 13.5px; color: var(--ink-2); }
+
+/* Cerveau */
+.cerveau { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 16px; }
+@media (max-width: 760px) { .cerveau { grid-template-columns: minmax(0, 1fr); } }
+#graphe { height: 520px; touch-action: none; }
+@media (max-width: 760px) { #graphe { height: 440px; } }
+#graphe .pale text { display: none; }
+#graphe .noeud { cursor: pointer; }
+#graphe .noeud circle { stroke: var(--surface); stroke-width: 2px; }
+#graphe .noeud text { font-family: var(--sans); font-size: 11px; fill: var(--ink-2); paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
+#graphe .noeud.actif text { fill: var(--ink); font-weight: 600; }
+#graphe .noeud:focus-visible circle { stroke: var(--accent); stroke-width: 3px; }
+#graphe line { stroke: var(--axis); stroke-width: 1px; }
+#graphe .pale { opacity: 0.18; }
+.fiche { display: grid; gap: 10px; align-content: start; }
+.fiche .groupe { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.fiche h3 { font-size: 18px; }
+.fiche .texte { white-space: pre-line; font-size: 14px; color: var(--ink-2); }
+.voisins { display: flex; flex-wrap: wrap; gap: 6px; }
+.voisins button {
+  font: inherit; font-size: 12.5px; cursor: pointer; color: var(--ink); background: var(--page);
+  border: 1px solid var(--ring); border-radius: 999px; padding: 3px 10px;
+}
+.voisins button:hover, .voisins button:focus-visible { border-color: var(--accent); outline: none; }
+
+footer { padding-top: 48px; font-size: 12.5px; color: var(--muted); display: grid; gap: 6px; }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<nav class="top" aria-label="Sections">
+  <div class="wrap">
+    <a href="#aujourdhui">Aujourd'hui</a>
+    <a href="#backtest">Backtest</a>
+    <a href="#quotidien">Jour par jour</a>
+    <a href="#montecarlo">Monte Carlo</a>
+    <a href="#experiences">Expériences</a>
+    <a href="#cerveau">Cerveau</a>
+  </div>
+</nav>
+
+<main class="wrap">
+  <header class="intro">
+    <div class="eyebrow" id="entete-periode">Backtest</div>
+    <h1>Robot tendance v2</h1>
+    <p class="muted">Suivi de tendance sur 10 actifs, une décision chaque soir, exécution le lendemain matin.
+      Tout ce qui suit est une simulation sur le passé, frais compris : elle ne garantit rien pour l'avenir.</p>
+    <div class="chips">
+      <span class="chip warn"><span class="dot"></span>En recherche : pas encore branchée au robot</span>
+      <span class="chip"><span class="dot"></span><span id="entete-donnees">Données Yahoo</span></span>
+    </div>
+  </header>
+
+  <section id="aujourdhui">
+    <div class="section-head">
+      <h2>Aujourd'hui</h2>
+      <p class="muted" id="auj-sous-titre">Ce que la v2 voudrait détenir après la dernière clôture.</p>
+    </div>
+    <div class="tiles" id="auj-tuiles"></div>
+    <div class="card">
+      <div class="card-head">
+        <h3>Note de tendance et part visée, actif par actif</h3>
+        <span class="small muted">note de 0 (cash) à 20 (tendance très forte)</span>
+      </div>
+      <div class="actif-head"><span>Actif</span><span>Note de tendance</span><span>Part</span></div>
+      <div class="actifs" id="auj-actifs"></div>
+    </div>
+  </section>
+
+  <section id="backtest">
+    <div class="section-head">
+      <h2>Backtest</h2>
+      <p class="muted" id="bt-sous-titre">Ce que serait devenu 1 € placé au départ.</p>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <h3>Valeur de 1 € placé au départ</h3>
+        <span class="small muted">échelle où +100 % a toujours la même hauteur</span>
+      </div>
+      <div class="legend" id="bt-legende"></div>
+      <div class="chart" id="bt-courbes"></div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head"><h3>Chute depuis le plus haut</h3></div>
+        <div class="legend" id="bt-legende-chutes"></div>
+        <div class="chart" id="bt-chutes"></div>
+        <p class="explain">Les lignes marquent <strong>-20 %</strong> (marge de sécurité) et <strong>-25 %</strong>
+          (ta limite). La v2 ne les a jamais approchées ; le S&amp;P 500 est descendu à -55 % en 2009.</p>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Part du capital investie</h3></div>
+        <div class="chart" id="bt-investi"></div>
+        <p class="explain" id="bt-investi-texte"></p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Les chiffres</h3></div>
+      <div class="table-wrap"><table id="bt-table"></table></div>
+    </div>
+  </section>
+
+  <section id="quotidien">
+    <div class="section-head">
+      <h2>Jour par jour</h2>
+      <p class="muted">Le robot décide chaque jour. Mais un seul jour dit presque tout sur le hasard et presque rien sur la stratégie.</p>
+    </div>
+    <div class="tiles" id="q-tuiles"></div>
+    <div class="card">
+      <div class="card-head">
+        <h3>Combien la v2 gagne ou perd en une journée</h3>
+        <span class="small muted" id="q-nb"></span>
+      </div>
+      <div class="chart" id="q-histo"></div>
+      <p class="explain" id="q-texte"></p>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Année par année</h3></div>
+      <div class="legend" id="q-legende-annees"></div>
+      <div class="chart" id="q-annees"></div>
+    </div>
+  </section>
+
+  <section id="montecarlo">
+    <div class="section-head">
+      <h2>Monte Carlo : 2 000 avenirs possibles</h2>
+      <p class="muted" id="mc-sous-titre"></p>
+    </div>
+    <div class="tiles" id="mc-tuiles"></div>
+    <div class="card">
+      <div class="card-head">
+        <h3>Valeur de 1 € sur les 10 prochaines années</h3>
+        <span class="small muted">ligne : avenir médian · bandes : 50 % et 90 % des avenirs</span>
+      </div>
+      <div class="legend" id="mc-legende"></div>
+      <div class="chart" id="mc-eventail"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Pire chute rencontrée dans chaque avenir</h3></div>
+      <div class="chart" id="mc-chutes"></div>
+      <p class="explain">Hypothèse forte : l'avenir ressemble au passé, boom de la crypto compris. C'est un ordre de grandeur,
+        pas une prévision. Le passé réel de la v2 (-10 %) n'est qu'un des avenirs possibles.</p>
+    </div>
+  </section>
+
+  <section id="experiences">
+    <div class="section-head">
+      <h2>Expériences</h2>
+      <p class="muted">Chaque idée est testée avec des critères écrits avant les tests. Les échecs sont gardés : ils évitent de refaire les mêmes erreurs.</p>
+    </div>
+    <div class="journal" id="exp-journal"></div>
+    <div class="card">
+      <div class="card-head">
+        <h3>La v2 comparée aux idées testées</h3>
+        <span class="small muted">valeur de 1 € placé au départ</span>
+      </div>
+      <div class="legend" id="exp-legende"></div>
+      <div class="chart" id="exp-courbes"></div>
+      <div class="table-wrap"><table id="exp-table"></table></div>
+    </div>
+  </section>
+
+  <section id="cerveau">
+    <div class="section-head">
+      <h2>Cerveau</h2>
+      <p class="muted">Les notes du dossier <span class="mono">cerveau/</span>, reliées comme dans Obsidian. Touche un point pour lire la note.</p>
+    </div>
+    <div class="cerveau">
+      <div class="card">
+        <div class="legend" id="cerveau-legende"></div>
+        <div class="chart" id="graphe"></div>
+      </div>
+      <div class="card fiche" id="fiche" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <footer>
+    <span id="pied-donnees"></span>
+    <span>Décision à la clôture, exécution à l'ouverture suivante, frais de 0,10 % (ETF) et 0,50 % (crypto) par transaction.</span>
+  </footer>
+</main>
+
+<div id="bulle" hidden></div>
+
+<script id="donnees" type="application/json">/*DONNEES*/</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script>
+(function () {
+  "use strict";
+  const D = JSON.parse(document.getElementById("donnees").textContent);
+  const parse = d3.utcParse("%Y-%m-%d");
+  const X = D.dates.map(parse);
+  const moisFr = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
+  const dateFr = (d) => `${d.getUTCDate()} ${moisFr[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+  const nb = (v, dec = 1) => v.toFixed(dec).replace(".", ",").replace("-", "−");
+  const pct = (v, dec = 1, signe = false) => v == null ? "—" : (signe && v > 0 ? "+" : "") + nb(v * 100, dec) + " %";
+  const fois = (v) => "×" + String(v).replace(".", ",");
+  const reduit = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function el(tag, attrs = {}, texte) {
+    const e = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    if (texte != null) e.textContent = texte;
+    return e;
+  }
+
+  // --- Bulle d'information ---------------------------------------------------------------------
+  const bulle = document.getElementById("bulle");
+  function montrerBulle(evt, titre, lignes) {
+    bulle.replaceChildren(el("div", { class: "t" }, titre));
+    for (const l of lignes) {
+      const r = el("div", { class: "r" });
+      const s = el("span");
+      if (l.couleur) { const i = el("i"); i.style.background = l.couleur; s.append(i); }
+      s.append(document.createTextNode(l.nom));
+      r.append(s, el("b", {}, l.valeur));
+      bulle.append(r);
+    }
+    bulle.hidden = false;
+    const w = bulle.offsetWidth, h = bulle.offsetHeight;
+    let x = evt.clientX + 14, y = evt.clientY + 14;
+    if (x + w > window.innerWidth - 8) x = evt.clientX - w - 14;
+    if (y + h > window.innerHeight - 8) y = evt.clientY - h - 14;
+    bulle.style.left = Math.max(8, x) + "px";
+    bulle.style.top = Math.max(8, y) + "px";
+  }
+  const cacherBulle = () => { bulle.hidden = true; };
+
+  function legende(id, series, boite = false) {
+    const zone = document.getElementById(id);
+    zone.replaceChildren(...series.map((s) => {
+      const span = el("span");
+      const i = el("i", boite ? { class: "box" } : {});
+      i.style.background = s.couleur;
+      span.append(i, document.createTextNode(s.nom));
+      return span;
+    }));
+  }
+
+  function tuiles(id, liste) {
+    document.getElementById(id).replaceChildren(...liste.map((t) => {
+      const d = el("div", { class: "tile" });
+      d.append(el("div", { class: "label" }, t.label), el("div", { class: "value" }, t.valeur));
+      if (t.drapeau) d.append(el("div", { class: "flag " + t.drapeau[0] }, t.drapeau[1]));
+      if (t.note) d.append(el("div", { class: "note" }, t.note));
+      return d;
+    }));
+  }
+
+  // --- Graphique en lignes, avec réticule -------------------------------------------------------
+  function courbes(id, o) {
+    const zone = document.getElementById(id);
+    zone.replaceChildren();
+    const W = zone.clientWidth, H = o.hauteur || 300;
+    const m = { t: 10, r: o.etiquettesFin ? 70 : 14, b: 26, l: o.gauche || 48 };
+    const svg = d3.select(zone).append("svg").attr("width", W).attr("height", H).attr("viewBox", `0 0 ${W} ${H}`)
+      .attr("role", "img").attr("aria-label", o.titre);
+    const xs = o.x;
+    const x = (o.xEchelle || d3.scaleUtc()).domain(d3.extent(xs)).range([m.l, W - m.r]);
+    const valeurs = [...o.series.flatMap((s) => s.valeurs), ...(o.bandes || []).flatMap((b) => [...b.bas, ...b.haut]),
+      ...(o.chemins || []).flat()].filter((v) => v != null);
+    const dom = o.yDomaine || d3.extent(valeurs);
+    const y = (o.log ? d3.scaleLog() : d3.scaleLinear()).domain(dom).range([H - m.b, m.t]);
+    if (!o.log && !o.yDomaine) y.nice();
+    const ticksY = o.ticksY ? o.ticksY.filter((t) => t >= y.domain()[0] && t <= y.domain()[1]) : y.ticks(5);
+
+    const g = svg.append("g");
+    g.selectAll("line.grille").data(ticksY).join("line")
+      .attr("x1", m.l).attr("x2", W - m.r).attr("y1", (t) => y(t)).attr("y2", (t) => y(t))
+      .style("stroke", "var(--grid)").style("stroke-width", 1);
+    g.selectAll("text.ty").data(ticksY).join("text")
+      .attr("x", m.l - 8).attr("y", (t) => y(t)).attr("dy", "0.32em").attr("text-anchor", "end")
+      .text(o.formatY || ((t) => t));
+    const ticksX = o.ticksX ? o.ticksX(x) : x.ticks(Math.max(2, Math.floor(W / 110)));
+    g.selectAll("text.tx").data(ticksX).join("text")
+      .attr("x", (t) => x(t)).attr("y", H - 6).attr("text-anchor", "middle")
+      .text(o.formatX || ((t) => t.getUTCFullYear()));
+    g.append("line").attr("x1", m.l).attr("x2", W - m.r).attr("y1", H - m.b).attr("y2", H - m.b).style("stroke", "var(--axis)");
+
+    for (const ref of o.references || []) {
+      if (ref.y < y.domain()[0] || ref.y > y.domain()[1]) continue;
+      g.append("line").attr("x1", m.l).attr("x2", W - m.r).attr("y1", y(ref.y)).attr("y2", y(ref.y))
+        .style("stroke", ref.couleur).style("stroke-width", 1.5).style("stroke-dasharray", "0");
+      g.append("text").attr("x", W - m.r - 4).attr("y", y(ref.y) - 5).attr("text-anchor", "end")
+        .style("fill", "var(--ink-2)").text(ref.nom);
+    }
+
+    for (const b of o.bandes || []) {
+      const aire = d3.area().x((_, i) => x(xs[i])).y0((_, i) => y(b.bas[i])).y1((_, i) => y(b.haut[i]));
+      g.append("path").attr("d", aire(xs)).style("fill", b.couleur);
+    }
+    for (const c of o.chemins || []) {
+      const ligne = d3.line().x((_, i) => x(xs[i])).y((v) => y(v));
+      g.append("path").attr("d", ligne(c)).style("fill", "none").style("stroke", "var(--path)").style("stroke-width", 1);
+    }
+    const defini = (v) => v != null;
+    for (const s of o.series) {
+      if (s.aire) {
+        const aire = d3.area().defined(defini).x((_, i) => x(xs[i])).y0(y(0)).y1((v) => y(v));
+        g.append("path").attr("d", aire(s.valeurs)).style("fill", s.lavis);
+      }
+      const ligne = d3.line().defined(defini).x((_, i) => x(xs[i])).y((v) => y(v));
+      g.append("path").attr("d", ligne(s.valeurs)).style("fill", "none").style("stroke", s.couleur)
+        .style("stroke-width", s.epaisseur || 2).style("stroke-linejoin", "round").style("stroke-linecap", "round");
+    }
+    if (o.etiquettesFin) {
+      const fins = o.series.map((s) => ({ s, v: s.valeurs[s.valeurs.length - 1] })).filter((f) => f.v != null);
+      fins.sort((a, b) => y(a.v) - y(b.v));
+      let dernier = -Infinity;
+      for (const f of fins) {
+        const yy = Math.max(y(f.v), dernier + 13);
+        dernier = yy;
+        g.append("circle").attr("cx", x(xs[xs.length - 1])).attr("cy", y(f.v)).attr("r", 4)
+          .style("fill", f.s.couleur).style("stroke", "var(--surface)").style("stroke-width", 2);
+        g.append("text").attr("x", W - m.r + 8).attr("y", yy).attr("dy", "0.32em").style("fill", "var(--ink-2)")
+          .text(o.formatFin ? o.formatFin(f.v) : f.v);
+      }
+    }
+
+    // Réticule
+    const reticule = g.append("line").attr("y1", m.t).attr("y2", H - m.b).style("stroke", "var(--axis)").style("opacity", 0);
+    const points = g.selectAll("circle.p").data(o.series).join("circle").attr("r", 4)
+      .style("fill", (s) => s.couleur).style("stroke", "var(--surface)").style("stroke-width", 2).style("opacity", 0);
+    const trouver = d3.bisector((d) => d).center;
+    svg.append("rect").attr("x", m.l).attr("y", m.t).attr("width", Math.max(0, W - m.l - m.r)).attr("height", H - m.t - m.b)
+      .style("fill", "transparent").style("cursor", "crosshair")
+      .on("pointermove", (evt) => {
+        const [px] = d3.pointer(evt);
+        const i = trouver(xs, x.invert(px));
+        const xx = x(xs[i]);
+        reticule.attr("x1", xx).attr("x2", xx).style("opacity", 1);
+        points.attr("cx", xx).attr("cy", (s) => s.valeurs[i] == null ? -99 : y(s.valeurs[i]))
+          .style("opacity", (s) => s.valeurs[i] == null ? 0 : 1);
+        const lignes = o.series.filter((s) => s.valeurs[i] != null)
+          .map((s) => ({ nom: s.nom, valeur: (o.formatBulle || o.formatY)(s.valeurs[i]), couleur: s.couleur }));
+        for (const b of o.bandesBulle || []) lignes.push({ nom: b.nom, valeur: b.texte(i) });
+        montrerBulle(evt, o.titreBulle ? o.titreBulle(xs[i]) : dateFr(xs[i]), lignes);
+      })
+      .on("pointerleave", () => { reticule.style("opacity", 0); points.style("opacity", 0); cacherBulle(); });
+  }
+
+  // --- Barres (histogrammes et années) ---------------------------------------------------------
+  function barre(x0, y0, largeur, y1, r) {
+    // Barre arrondie du côté de la donnée, carrée sur la ligne de base
+    const h = Math.abs(y1 - y0);
+    const rr = Math.min(r, h, largeur / 2);
+    if (y1 <= y0) {
+      return `M${x0},${y0}V${y1 + rr}Q${x0},${y1} ${x0 + rr},${y1}H${x0 + largeur - rr}Q${x0 + largeur},${y1} ${x0 + largeur},${y1 + rr}V${y0}Z`;
+    }
+    return `M${x0},${y0}V${y1 - rr}Q${x0},${y1} ${x0 + rr},${y1}H${x0 + largeur - rr}Q${x0 + largeur},${y1} ${x0 + largeur},${y1 - rr}V${y0}Z`;
+  }
+
+  function histogramme(id, o) {
+    const zone = document.getElementById(id);
+    zone.replaceChildren();
+    const W = zone.clientWidth, H = o.hauteur || 240;
+    const m = { t: 18, r: 14, b: 26, l: 46 };
+    const svg = d3.select(zone).append("svg").attr("width", W).attr("height", H).attr("viewBox", `0 0 ${W} ${H}`)
+      .attr("role", "img").attr("aria-label", o.titre);
+    const bords = o.bords, compte = o.compte;
+    const x = d3.scaleLinear().domain([bords[0], bords[bords.length - 1]]).range([m.l, W - m.r]);
+    const y = d3.scaleLinear().domain([0, d3.max(compte)]).nice().range([H - m.b, m.t]);
+    const g = svg.append("g");
+    g.selectAll("line.g").data(y.ticks(4)).join("line").attr("x1", m.l).attr("x2", W - m.r)
+      .attr("y1", (t) => y(t)).attr("y2", (t) => y(t)).style("stroke", "var(--grid)");
+    g.selectAll("text.ty").data(y.ticks(4)).join("text").attr("x", m.l - 8).attr("y", (t) => y(t)).attr("dy", "0.32em")
+      .attr("text-anchor", "end").text((t) => t.toLocaleString("fr-FR"));
+    g.selectAll("text.tx").data(o.ticksX).join("text").attr("x", (t) => x(t)).attr("y", H - 6).attr("text-anchor", "middle")
+      .text(o.formatX);
+    for (const ref of o.references || []) {
+      g.append("line").attr("x1", x(ref.x)).attr("x2", x(ref.x)).attr("y1", m.t - 4).attr("y2", H - m.b)
+        .style("stroke", ref.couleur).style("stroke-width", 1.5);
+      g.append("text").attr("x", x(ref.x) + (ref.gauche ? -5 : 5)).attr("y", m.t + 6).attr("text-anchor", ref.gauche ? "end" : "start")
+        .style("fill", "var(--ink-2)").text(ref.nom);
+    }
+    const largeur = Math.max(1, x(bords[1]) - x(bords[0]) - 2);
+    const barres = g.selectAll("path.b").data(compte.map((c, i) => ({ c, i }))).join("path")
+      .attr("d", (d) => barre(x(bords[d.i]) + 1, y(0), largeur, y(d.c), 4))
+      .style("fill", (d) => o.couleur(bords[d.i], bords[d.i + 1]));
+    g.append("line").attr("x1", m.l).attr("x2", W - m.r).attr("y1", y(0)).attr("y2", y(0)).style("stroke", "var(--axis)");
+    // Zones de survol plus larges que les barres
+    g.selectAll("rect.h").data(compte.map((c, i) => ({ c, i }))).join("rect")
+      .attr("x", (d) => x(bords[d.i])).attr("y", m.t).attr("width", Math.max(1, x(bords[1]) - x(bords[0])))
+      .attr("height", H - m.t - m.b).style("fill", "transparent")
+      .on("pointermove", (evt, d) => {
+        barres.style("opacity", (b) => (b.i === d.i ? 1 : 0.55));
+        montrerBulle(evt, o.titreBulle(bords[d.i], bords[d.i + 1]), [{ nom: o.unite, valeur: d.c.toLocaleString("fr-FR") }]);
+      })
+      .on("pointerleave", () => { barres.style("opacity", 1); cacherBulle(); });
+  }
+
+  function barresGroupees(id, o) {
+    const zone = document.getElementById(id);
+    zone.replaceChildren();
+    const W = zone.clientWidth, H = o.hauteur || 260;
+    const m = { t: 10, r: 10, b: 26, l: 46 };
+    const svg = d3.select(zone).append("svg").attr("width", W).attr("height", H).attr("viewBox", `0 0 ${W} ${H}`)
+      .attr("role", "img").attr("aria-label", o.titre);
+    const x = d3.scaleBand().domain(o.categories).range([m.l, W - m.r]).paddingInner(0.25).paddingOuter(0.1);
+    const xi = d3.scaleBand().domain(o.series.map((s) => s.nom)).range([0, x.bandwidth()]).paddingInner(0.08);
+    const toutes = o.series.flatMap((s) => s.valeurs);
+    const y = d3.scaleLinear().domain([Math.min(0, d3.min(toutes)), Math.max(0, d3.max(toutes))]).nice().range([H - m.b, m.t]);
+    const g = svg.append("g");
+    g.selectAll("line.g").data(y.ticks(5)).join("line").attr("x1", m.l).attr("x2", W - m.r)
+      .attr("y1", (t) => y(t)).attr("y2", (t) => y(t)).style("stroke", "var(--grid)");
+    g.selectAll("text.ty").data(y.ticks(5)).join("text").attr("x", m.l - 8).attr("y", (t) => y(t)).attr("dy", "0.32em")
+      .attr("text-anchor", "end").text((t) => pct(t, 0));
+    const pasX = Math.ceil(o.categories.length / Math.max(2, Math.floor(W / 52)));
+    g.selectAll("text.tx").data(o.categories.filter((_, i) => i % pasX === 0)).join("text")
+      .attr("x", (c) => x(c) + x.bandwidth() / 2).attr("y", H - 6).attr("text-anchor", "middle").text((c) => c);
+    const largeur = Math.min(24, xi.bandwidth());
+    const decal = (xi.bandwidth() - largeur) / 2;
+    o.series.forEach((s) => {
+      g.selectAll(null).data(s.valeurs.map((v, i) => ({ v, i }))).join("path")
+        .attr("d", (d) => barre(x(o.categories[d.i]) + xi(s.nom) + decal, y(0), largeur, y(d.v), 3))
+        .style("fill", s.couleur);
+    });
+    g.append("line").attr("x1", m.l).attr("x2", W - m.r).attr("y1", y(0)).attr("y2", y(0)).style("stroke", "var(--axis)");
+    g.selectAll("rect.h").data(o.categories).join("rect")
+      .attr("x", (c) => x(c) - x.step() * x.paddingInner() / 2).attr("y", m.t).attr("width", x.step())
+      .attr("height", H - m.t - m.b).style("fill", "transparent")
+      .on("pointermove", (evt, c) => {
+        const i = o.categories.indexOf(c);
+        montrerBulle(evt, String(c), o.series.map((s) => ({ nom: s.nom, valeur: pct(s.valeurs[i], 1, true), couleur: s.couleur })));
+      })
+      .on("pointerleave", cacherBulle);
+  }
+
+  // --- En-tête et pied --------------------------------------------------------------------------
+  const debut = parse(D.periode.debut), fin = parse(D.periode.fin);
+  document.getElementById("entete-periode").textContent =
+    `Backtest ${debut.getUTCFullYear()}–${fin.getUTCFullYear()} · ${nb(D.periode.annees)} ans · mis à jour le ${dateFr(fin)}`;
+  document.getElementById("entete-donnees").textContent = `Données Yahoo · empreinte ${D.empreinte || "—"}`;
+  document.getElementById("pied-donnees").textContent =
+    `Calculé par GitHub Actions (tableau_de_bord.py) sur les données du ${dateFr(debut)} au ${dateFr(fin)}.`;
+
+  // --- Aujourd'hui ------------------------------------------------------------------------------
+  const A = D.aujourdhui, M = D.mesures.v2;
+  document.getElementById("auj-sous-titre").textContent =
+    `Ce que la v2 voudrait détenir après la clôture du ${dateFr(parse(A.date))}. Rien n'est encore acheté pour de vrai.`;
+  const chuteActuelle = A.chute_actuelle;
+  tuiles("auj-tuiles", [
+    { label: "Part investie visée", valeur: pct(A.investi, 0), note: "le reste attend en cash" },
+    { label: "Chute actuelle depuis le plus haut", valeur: pct(chuteActuelle, 1),
+      drapeau: chuteActuelle > -0.1 ? ["good", "● Loin des limites"] : chuteActuelle > -0.2 ? ["warn", "▲ À surveiller"] : ["crit", "■ Proche de la limite"] },
+    { label: "Rendement par an (backtest)", valeur: pct(M.rendement_annuel, 1, true), note: "frais compris" },
+    { label: "Pire chute (backtest)", valeur: pct(M.pire_chute, 1),
+      drapeau: M.pire_chute > -0.2 ? ["good", "● Dans ta limite de -25 %"] : ["crit", "■ Au-delà de -20 %"] },
+  ]);
+  const zoneActifs = document.getElementById("auj-actifs");
+  zoneActifs.replaceChildren(...A.actifs.map((a) => {
+    const ligne = el("div", { class: "actif" });
+    const nom = el("div", { class: "nom" });
+    nom.append(el("b", {}, a.nom), el("span", {}, `${a.symbole} · ${a.classe}`));
+    const jauge = el("div", { class: "jauge", role: "meter", "aria-valuemin": "0", "aria-valuemax": "20",
+      "aria-valuenow": String(a.note ?? 0), "aria-label": `Note de ${a.nom}` });
+    const i = el("i");
+    i.style.width = `${Math.max(0, Math.min(20, a.note ?? 0)) / 20 * 100}%`;
+    jauge.append(i);
+    const note = el("div");
+    note.style.display = "grid"; note.style.gap = "3px";
+    note.append(jauge, el("span", { class: "small muted mono" }, a.note == null ? "pas assez d'historique" : a.note === 0 ? "0 · cash" : nb(a.note)));
+    ligne.append(nom, note, el("div", { class: "part" }, pct(a.part, 1)));
+    return ligne;
+  }));
+
+  // --- Backtest ---------------------------------------------------------------------------------
+  const couleurs = { "v2": "var(--s1)", "Acheter et garder SPY": "var(--s2)", "60/40 (SPY/IEF)": "var(--s3)", "Même panier sans signaux": "var(--s4)" };
+  const nomsLisibles = { "v2": "Stratégie v2", "Acheter et garder SPY": "Acheter et garder le S&P 500", "60/40 (SPY/IEF)": "60/40 (actions/obligations)", "Même panier sans signaux": "Même panier, sans signaux" };
+  const seriesBt = Object.entries(D.courbes).map(([nom, valeurs]) => ({ nom: nomsLisibles[nom] || nom, valeurs, couleur: couleurs[nom] }));
+  document.getElementById("bt-sous-titre").textContent =
+    `Ce que serait devenu 1 € placé le ${dateFr(debut)}, frais compris, comparé à trois placements de référence.`;
+  legende("bt-legende", seriesBt);
+  legende("bt-legende-chutes", [{ nom: "Stratégie v2", couleur: "var(--s1)" }, { nom: "Acheter et garder le S&P 500", couleur: "var(--s2)" }]);
+  const investiMoyen = d3.mean(D.investi);
+  document.getElementById("bt-investi-texte").innerHTML = "";
+  const texteInvesti = document.getElementById("bt-investi-texte");
+  texteInvesti.append("En moyenne, la v2 n'est investie qu'à ", el("strong", {}, pct(investiMoyen, 0)),
+    " : elle n'utilise qu'une partie du risque que tu acceptes. C'est son principal point faible.");
+
+  const ordreBt = ["Stratégie v2", "Acheter et garder le S&P 500", "60/40 (actions/obligations)", "Même panier, sans signaux"];
+  const table = document.getElementById("bt-table");
+  const tete = el("tr");
+  for (const t of ["", "Rendement/an", "Pire chute", "Note rendement/risque", "Agitation/an", "Plus longue chute"]) tete.append(el("th", {}, t));
+  const lignesTable = Object.entries(D.mesures).map(([nom, m]) => {
+    const tr = el("tr", nom === "v2" ? { class: "base" } : {});
+    tr.append(el("td", {}, nomsLisibles[nom] || nom), el("td", {}, pct(m.rendement_annuel, 1, true)), el("td", {}, pct(m.pire_chute, 1)),
+      el("td", {}, nb(m.note_rendement_risque, 2)), el("td", {}, pct(m.agitation, 1)), el("td", {}, nb(m.plus_longue_chute_annees, 1) + " ans"));
+    return tr;
+  });
+  table.replaceChildren(el("thead"), el("tbody"));
+  table.tHead.append(tete);
+  table.tBodies[0].append(...lignesTable);
+
+  // --- Jour par jour ----------------------------------------------------------------------------
+  const Q = D.quotidien;
+  const bruit = Q.ecart_type / Math.abs(Q.moyenne);
+  tuiles("q-tuiles", [
+    { label: "Jours gagnants", valeur: pct(Q.jours_positifs, 0), note: `jours perdants : ${pct(Q.jours_negatifs, 0)}` },
+    { label: "Gain moyen par jour", valeur: pct(Q.moyenne, 3, true), note: "la vraie force de la stratégie" },
+    { label: "Mouvement habituel d'un jour", valeur: "±" + pct(Q.ecart_type, 2).replace("−", ""), note: "le bruit du marché" },
+    { label: "Pire jour", valeur: pct(Q.pire.valeur, 1), note: `le ${dateFr(parse(Q.pire.date))} · meilleur : ${pct(Q.meilleur.valeur, 1, true)}` },
+  ]);
+  document.getElementById("q-nb").textContent = `${Q.nb_jours.toLocaleString("fr-FR")} jours de bourse`;
+  const tq = document.getElementById("q-texte");
+  tq.append("Un jour habituel bouge d'environ ", el("strong", {}, "±" + pct(Q.ecart_type, 2).replace("−", "")),
+    ", mais le gain moyen n'est que de ", el("strong", {}, pct(Q.moyenne, 3, true)),
+    `. Le hasard est donc environ ${Math.round(bruit)} fois plus fort que la stratégie sur une seule journée. C'est pour ça qu'on juge un robot sur des années, pas sur un jour ou une semaine.`);
+
+  // --- Monte Carlo ------------------------------------------------------------------------------
+  const MC = D.monte_carlo;
+  const mois = MC.mois;
+  const pc = MC.centiles;
+  document.getElementById("mc-sous-titre").textContent =
+    `${MC.tirages.toLocaleString("fr-FR")} avenirs de ${MC.annees} ans, fabriqués en recollant au hasard des mois du passé de la v2. On regarde l'éventail, pas une seule ligne.`;
+  const chutesMC = MC.pires_chutes;
+  tuiles("mc-tuiles", [
+    { label: `Rendement par an, avenir médian`, valeur: pct(MC.rendement_annuel_centiles["50"], 1, true),
+      note: `90 % des avenirs entre ${pct(MC.rendement_annuel_centiles["5"], 1, true)} et ${pct(MC.rendement_annuel_centiles["95"], 1, true)}` },
+    { label: "Pire chute, avenir médian", valeur: pct(d3.median(chutesMC), 1), note: `sur ${MC.annees} ans` },
+    { label: "Risque de dépasser -20 %", valeur: pct(MC.proba_chute["20"], 1),
+      drapeau: MC.proba_chute["20"] < 0.05 ? ["good", "● Rare"] : ["warn", "▲ À prendre au sérieux"] },
+    { label: `Risque de perdre de l'argent sur ${MC.annees} ans`, valeur: pct(MC.proba_perte, 1),
+      note: `-25 % dépassé dans ${pct(MC.proba_chute["25"], 1)} des avenirs` },
+  ]);
+  legende("mc-legende", [{ nom: "Avenir médian", couleur: "var(--s1)" }, { nom: "Quelques avenirs tirés au hasard", couleur: "var(--path)" }]);
+
+  // --- Expériences ------------------------------------------------------------------------------
+  const statuts = { "base à battre": "good", "échec": "crit", "non solide": "warn" };
+  document.getElementById("exp-journal").replaceChildren(...D.journal.map((e) => {
+    const c = el("article", { class: "exp" });
+    const r = el("div", { class: "row" });
+    r.append(el("span", { class: "code" }, e.code));
+    const chip = el("span", { class: "chip " + (statuts[e.statut] || "") });
+    chip.append(el("span", { class: "dot" }), document.createTextNode(`${e.score} · ${e.statut}`));
+    r.append(chip);
+    c.append(r, el("h3", {}, e.titre), el("p", {}, e.lecon));
+    return c;
+  }));
+  const couleursExp = ["var(--s1)", "var(--s2)", "var(--s3)"];
+  const nomsExp = { "v2": "Stratégie v2", "v2 + cassures (EXP-003)": "v2 + cassures (EXP-003)", "v2 + retour à la moyenne (EXP-004)": "v2 + retour à la moyenne (EXP-004)" };
+  const seriesExp = Object.entries(D.experiences.courbes).map(([nom, valeurs], i) => ({ nom: nomsExp[nom] || nom, valeurs, couleur: couleursExp[i] }));
+  legende("exp-legende", seriesExp);
+  const tableExp = document.getElementById("exp-table");
+  const teteExp = el("tr");
+  for (const t of ["", "Rendement/an", "Pire chute", "Note R/R", "Investi en moyenne", "Frais/an"]) teteExp.append(el("th", {}, t));
+  tableExp.replaceChildren(el("thead"), el("tbody"));
+  tableExp.tHead.append(teteExp);
+  tableExp.tBodies[0].append(...Object.entries(D.experiences.mesures).map(([nom, m]) => {
+    const tr = el("tr", nom === "v2" ? { class: "base" } : {});
+    tr.append(el("td", {}, nomsExp[nom] || nom), el("td", {}, pct(m.rendement_annuel, 1, true)), el("td", {}, pct(m.pire_chute, 1)),
+      el("td", {}, nb(m.note_rendement_risque, 2)), el("td", {}, pct(m.investi, 0)), el("td", {}, pct(m.frais_par_an, 2)));
+    return tr;
+  }));
+
+  // --- Dessin des graphiques (redessinés si la largeur change) ----------------------------------
+  const ticksMultiples = [0.5, 0.75, 1, 1.5, 2, 3, 4, 5, 6, 8, 10, 15, 20, 30];
+  function dessiner() {
+    courbes("bt-courbes", {
+      titre: "Valeur de 1 € placé au départ", x: X, series: seriesBt, log: true, hauteur: 320,
+      ticksY: ticksMultiples, formatY: fois, formatBulle: (v) => nb(v, 2) + " €", etiquettesFin: true, formatFin: (v) => nb(v, 2) + " €",
+    });
+    courbes("bt-chutes", {
+      titre: "Chute depuis le plus haut", x: X, hauteur: 240, yDomaine: [-0.6, 0], formatY: (t) => pct(t, 0),
+      formatBulle: (v) => pct(v, 1),
+      series: [
+        { nom: "Acheter et garder le S&P 500", valeurs: D.chutes["Acheter et garder SPY"], couleur: "var(--s2)", aire: true, lavis: "var(--wash-2)" },
+        { nom: "Stratégie v2", valeurs: D.chutes.v2, couleur: "var(--s1)", aire: true, lavis: "var(--wash-1)" },
+      ],
+      references: [{ y: -0.2, nom: "-20 %", couleur: "var(--warning)" }, { y: -0.25, nom: "-25 % : ta limite", couleur: "var(--critical)" }],
+    });
+    courbes("bt-investi", {
+      titre: "Part du capital investie", x: X, hauteur: 240, yDomaine: [0, 1], formatY: (t) => pct(t, 0), formatBulle: (v) => pct(v, 0),
+      series: [{ nom: "Investi", valeurs: D.investi, couleur: "var(--s1)", aire: true, lavis: "var(--wash-1)", epaisseur: 1.5 }],
+      references: [{ y: investiMoyen, nom: `moyenne ${pct(investiMoyen, 0)}`, couleur: "var(--axis)" }],
+    });
+    histogramme("q-histo", {
+      titre: "Répartition des gains et pertes d'une journée", bords: Q.histogramme.bords, compte: Q.histogramme.compte, hauteur: 250,
+      ticksX: [-3, -2, -1, 0, 1, 2, 3], formatX: (t) => (t > 0 ? "+" : "") + nb(t, 0) + " %",
+      couleur: (a, b) => (b <= 0 ? "var(--s2)" : "var(--s1)"), unite: "jours",
+      titreBulle: (a, b) => `entre ${a > 0 ? "+" : ""}${nb(a, 1)} % et ${b > 0 ? "+" : ""}${nb(b, 1)} %`,
+      references: [{ x: Q.moyenne * 100, nom: `moyenne ${pct(Q.moyenne, 3, true)}`, couleur: "var(--ink-2)" }],
+    });
+    const serieAnnees = [
+      { nom: "Stratégie v2", valeurs: D.annees.v2, couleur: "var(--s1)" },
+      { nom: "Acheter et garder le S&P 500", valeurs: D.annees["Acheter et garder SPY"], couleur: "var(--s2)" },
+    ];
+    legende("q-legende-annees", serieAnnees, true);
+    barresGroupees("q-annees", { titre: "Rendement année par année", categories: D.annees.annee, series: serieAnnees, hauteur: 260 });
+
+    const xm = d3.scaleLinear();
+    courbes("mc-eventail", {
+      titre: "Éventail des avenirs possibles", x: mois, xEchelle: xm, hauteur: 320, log: true,
+      ticksY: ticksMultiples, formatY: fois, formatBulle: (v) => nb(v, 2) + " €",
+      ticksX: (x) => d3.range(0, MC.annees * 12 + 1, 24), formatX: (t) => t === 0 ? "aujourd'hui" : `${t / 12} ans`,
+      titreBulle: (m) => m === 0 ? "Aujourd'hui" : `Dans ${Math.floor(m / 12) ? Math.floor(m / 12) + " an" + (Math.floor(m / 12) > 1 ? "s" : "") : ""}${m % 12 ? " " + (m % 12) + " mois" : ""}`,
+      chemins: MC.exemples,
+      bandes: [{ bas: pc["5"], haut: pc["95"], couleur: "var(--band-out)" }, { bas: pc["25"], haut: pc["75"], couleur: "var(--band-in)" }],
+      series: [{ nom: "Avenir médian", valeurs: pc["50"], couleur: "var(--s1)" }],
+      bandesBulle: [
+        { nom: "50 % des avenirs", texte: (i) => `${nb(pc["25"][i], 2)} à ${nb(pc["75"][i], 2)} €` },
+        { nom: "90 % des avenirs", texte: (i) => `${nb(pc["5"][i], 2)} à ${nb(pc["95"][i], 2)} €` },
+      ],
+    });
+    const pasChute = 0.01;
+    const minChute = Math.floor(d3.min(chutesMC) / pasChute) * pasChute;
+    const bordsChutes = d3.range(minChute, 0.00001, pasChute).map((v) => Math.round(v * 100) / 100);
+    const compteChutes = bordsChutes.slice(0, -1).map((a, i) => chutesMC.filter((c) => c >= a && c < bordsChutes[i + 1]).length);
+    histogramme("mc-chutes", {
+      titre: "Pire chute de chaque avenir", bords: bordsChutes.map((v) => v * 100), compte: compteChutes, hauteur: 230,
+      ticksX: d3.range(Math.ceil(minChute * 20) * 5, 1, 5), formatX: (t) => nb(t, 0) + " %",
+      couleur: (a) => (a < -25 ? "var(--critical)" : a < -20 ? "var(--warning)" : "var(--s1)"), unite: "avenirs",
+      titreBulle: (a, b) => `pire chute entre ${nb(a, 0)} % et ${nb(b, 0)} %`,
+      references: [{ x: -20, nom: "-20 %", couleur: "var(--warning)", gauche: true }, { x: -25, nom: "-25 %", couleur: "var(--critical)", gauche: true }]
+        .filter((r) => r.x > minChute * 100),
+    });
+    courbes("exp-courbes", {
+      titre: "La v2 comparée aux idées testées", x: X, series: seriesExp, log: true, hauteur: 300,
+      ticksY: ticksMultiples, formatY: fois, formatBulle: (v) => nb(v, 2) + " €", etiquettesFin: true, formatFin: (v) => nb(v, 2) + " €",
+    });
+  }
+  dessiner();
+  let minuterie;
+  let largeurAvant = document.querySelector("main").clientWidth;
+  window.addEventListener("resize", () => {
+    clearTimeout(minuterie);
+    minuterie = setTimeout(() => {
+      const l = document.querySelector("main").clientWidth;
+      if (l !== largeurAvant) { largeurAvant = l; dessiner(); dessinerGraphe(); }
+    }, 150);
+  });
+
+  // --- Cerveau : graphe des notes ---------------------------------------------------------------
+  const C = D.cerveau;
+  const groupes = { "Accueil": { nom: "Point de départ", couleur: "var(--node-root)" }, "Expériences": { nom: "Expériences", couleur: "var(--s1)" },
+    "Concepts": { nom: "Concepts", couleur: "var(--s2)" }, "Leçons": { nom: "Leçons", couleur: "var(--s3)" } };
+  legende("cerveau-legende", Object.values(groupes), true);
+  const voisins = new Map(C.noeuds.map((n) => [n.id, new Set()]));
+  for (const l of C.liens) { voisins.get(l.source).add(l.target); voisins.get(l.target).add(l.source); }
+  let selection = "Accueil";
+  let simulation;
+
+  function afficherFiche(id) {
+    selection = id;
+    const n = C.noeuds.find((k) => k.id === id);
+    const fiche = document.getElementById("fiche");
+    const liste = el("div", { class: "voisins" });
+    for (const v of [...voisins.get(id)].sort((a, b) => a.localeCompare(b, "fr"))) {
+      const b = el("button", { type: "button" }, v);
+      b.addEventListener("click", () => { afficherFiche(v); surligner(); });
+      liste.append(b);
+    }
+    fiche.replaceChildren(el("div", { class: "groupe" }, (groupes[n.groupe] || { nom: n.groupe }).nom),
+      el("h3", {}, n.id), el("div", { class: "texte" }, n.texte), el("div", { class: "small muted" }, "Notes liées"), liste);
+  }
+  function surligner() {
+    const proches = voisins.get(selection);
+    d3.selectAll("#graphe .noeud").classed("pale", (d) => d.id !== selection && !proches.has(d.id)).classed("actif", (d) => d.id === selection);
+    d3.selectAll("#graphe line").classed("pale", (l) => l.source.id !== selection && l.target.id !== selection);
+  }
+
+  // Étiquettes courtes : « EXP-003 », « Leçon : le robot est trop… »
+  function court(d) {
+    let t = d.id;
+    if (t.startsWith("EXP-")) t = t.split(" — ")[0];
+    else if (t.startsWith("Leçon — ")) t = "Leçon : " + t.slice(8);
+    return t.length > 24 ? t.slice(0, 23) + "…" : t;
+  }
+
+  function dessinerGraphe() {
+    if (simulation) simulation.stop();
+    const zone = document.getElementById("graphe");
+    zone.replaceChildren();
+    const W = zone.clientWidth, H = zone.clientHeight || 520;
+    const noeuds = C.noeuds.map((n) => ({ ...n }));
+    const liens = C.liens.map((l) => ({ ...l }));
+    const rayon = (d) => 5 + Math.sqrt(voisins.get(d.id).size) * 2.6;
+    const svg = d3.select(zone).append("svg").attr("width", W).attr("height", H).attr("viewBox", `0 0 ${W} ${H}`)
+      .attr("role", "img").attr("aria-label", "Graphe des notes du cerveau");
+    const traits = svg.append("g").selectAll("line").data(liens).join("line");
+    const points = svg.append("g").selectAll("g").data(noeuds).join("g").attr("class", "noeud").attr("tabindex", 0)
+      .attr("role", "button").attr("aria-label", (d) => d.id);
+    points.append("circle").attr("r", rayon).style("fill", (d) => (groupes[d.groupe] || groupes.Concepts).couleur);
+    points.append("text").attr("y", (d) => rayon(d) + 12).attr("text-anchor", "middle").text(court);
+    const choisir = (d) => { afficherFiche(d.id); surligner(); };
+    points.on("click", (evt, d) => choisir(d)).on("keydown", (evt, d) => { if (evt.key === "Enter" || evt.key === " ") { evt.preventDefault(); choisir(d); } });
+
+    simulation = d3.forceSimulation(noeuds)
+      .force("lien", d3.forceLink(liens).id((d) => d.id).distance(W < 500 ? 70 : 105).strength(0.35))
+      .force("charge", d3.forceManyBody().strength(W < 500 ? -320 : -620))
+      .force("centre", d3.forceCenter(W / 2, H / 2))
+      .force("x", d3.forceX(W / 2).strength(0.06)).force("y", d3.forceY(H / 2).strength(0.09))
+      .force("collision", d3.forceCollide((d) => rayon(d) + (W < 500 ? 14 : 22)));
+    const bord = 24;
+    const placer = () => {
+      for (const n of noeuds) { n.x = Math.max(bord, Math.min(W - bord, n.x)); n.y = Math.max(bord, Math.min(H - bord - 14, n.y)); }
+      traits.attr("x1", (l) => l.source.x).attr("y1", (l) => l.source.y).attr("x2", (l) => l.target.x).attr("y2", (l) => l.target.y);
+      points.attr("transform", (d) => `translate(${d.x},${d.y})`);
+    };
+    // Le graphe est calculé jusqu'au repos avant d'être montré ; il ne bouge ensuite que si on le tire
+    simulation.stop();
+    simulation.tick(400);
+    placer();
+    simulation.on("tick", placer);
+    points.call(d3.drag()
+      .on("start", (evt, d) => { if (!evt.active && !reduit) simulation.alphaTarget(0.2).restart(); d.fx = d.x; d.fy = d.y; })
+      .on("drag", (evt, d) => { d.fx = evt.x; d.fy = evt.y; if (reduit) { d.x = evt.x; d.y = evt.y; placer(); } })
+      .on("end", (evt, d) => { if (!evt.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; }));
+    surligner();
+  }
+  afficherFiche(selection);
+  dessinerGraphe();
+})();
+</script>

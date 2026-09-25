@@ -1,10 +1,8 @@
-name: Execution Quotidienne du Bot
+name: Robot v1 (arrêté, remplacé par la v3)
 
+# Remplacé par le robot v3 (trading_v3.yml) sur le même compte fictif : plus de lancement automatique.
+# Reste lançable à la main depuis l'onglet Actions.
 on:
-  schedule:
-    # 22h30 UTC du lundi au vendredi = après la clôture de New York toute l'année
-    # (18h30 à New York en été, 17h30 en hiver). Les ordres partent à l'ouverture suivante.
-    - cron: '30 22 * * 1-5'
   workflow_dispatch:
 
 # Jamais deux robots en même temps (évite les ordres en double)

@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Testeur de stratégie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Thème unique, sombre, façon terminal de trading */
+:root {
+  color-scheme: dark;
+  --fond: #0e1014;
+  --panneau: #161920;
+  --panneau-2: #1c2029;
+  --trait: #262a34;
+  --grille: #20242d;
+  --texte: #e9e7e2;
+  --texte-2: #b3b6bd;
+  --discret: #7f848e;
+  --bleu: #3987e5;
+  --bleu-lavis: rgba(57, 135, 229, 0.14);
+  --orange: #d95926;
+  --vert: #22b35e;
+  --vert-texte: #3ccf7a;
+  --rouge: #e66767;
+  --jaune: #fab219;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--fond); color: var(--texte); font-family: var(--sans); font-size: 14px; }
+button { font: inherit; }
+.page { max-width: 1500px; margin: 0 auto; padding: 14px 16px 40px; display: grid; gap: 12px; }
+
+/* Barre du haut */
+.barre { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; background: var(--panneau); border: 1px solid var(--trait); border-radius: 8px; padding: 10px 14px; }
+.titre { display: grid; gap: 1px; margin-right: auto; min-width: 0; }
+.titre b { font-size: 16px; font-weight: 600; }
+.titre span { font-family: var(--mono); font-size: 11.5px; color: var(--discret); }
+.commandes { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.bouton { background: var(--panneau-2); color: var(--texte); border: 1px solid var(--trait); border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+.bouton:hover, .bouton:focus-visible { border-color: var(--bleu); outline: none; }
+.bouton.principal { background: var(--bleu); border-color: var(--bleu); color: #fff; font-weight: 600; min-width: 132px; }
+.vitesses { display: inline-flex; border: 1px solid var(--trait); border-radius: 6px; overflow: hidden; }
+.vitesses button { background: var(--panneau-2); color: var(--texte-2); border: 0; border-right: 1px solid var(--trait); padding: 6px 10px; cursor: pointer; font-size: 12.5px; }
+.vitesses button:last-child { border-right: 0; }
+.vitesses button[aria-pressed="true"] { background: #243247; color: #fff; }
+.chrono { display: flex; align-items: center; gap: 10px; background: var(--panneau); border: 1px solid var(--trait); border-radius: 8px; padding: 8px 14px; }
+.chrono input { flex: 1; accent-color: var(--bleu); min-width: 0; }
+.chrono .date { font-family: var(--mono); font-size: 13px; min-width: 116px; text-align: right; }
+
+/* Grille principale */
+.corps { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 12px; }
+@media (max-width: 1000px) { .corps { grid-template-columns: minmax(0, 1fr); } }
+.panneau { background: var(--panneau); border: 1px solid var(--trait); border-radius: 8px; padding: 12px 14px; min-width: 0; display: grid; gap: 8px; align-content: start; }
+.panneau h2 { margin: 0; font-size: 13px; font-weight: 600; color: var(--texte-2); letter-spacing: 0.02em; }
+.entete { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.legende { display: flex; gap: 14px; font-size: 12px; color: var(--texte-2); }
+.legende i { display: inline-block; width: 14px; height: 2px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+canvas { display: block; width: 100%; }
+.survol { font-family: var(--mono); font-size: 11.5px; color: var(--discret); min-height: 16px; }
+
+/* Chiffres en direct */
+.chiffres { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.chiffre { background: var(--panneau-2); border-radius: 6px; padding: 8px 10px; display: grid; gap: 2px; }
+.chiffre span { font-size: 11.5px; color: var(--discret); }
+.chiffre b { font-family: var(--mono); font-weight: 500; font-size: 16px; font-variant-numeric: tabular-nums; }
+.pos { color: var(--vert-texte); }
+.neg { color: var(--rouge); }
+
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+th { text-align: right; font-weight: 500; color: var(--discret); padding: 5px 6px; border-bottom: 1px solid var(--trait); white-space: nowrap; }
+td { text-align: right; padding: 5px 6px; border-bottom: 1px solid var(--grille); font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+td:first-child { font-family: var(--sans); }
+.vide { color: var(--discret); font-size: 12.5px; padding: 6px 0; }
+
+/* Onglets du bas */
+.onglets { display: flex; gap: 2px; border-bottom: 1px solid var(--trait); overflow-x: auto; }
+.onglets button { background: none; border: 0; border-bottom: 2px solid transparent; color: var(--texte-2); padding: 8px 14px; cursor: pointer; white-space: nowrap; }
+.onglets button[aria-selected="true"] { color: var(--texte); border-bottom-color: var(--bleu); }
+.zone-onglet { max-height: 420px; overflow: auto; }
+.journal td:nth-child(2), .journal th:nth-child(2), .journal td:nth-child(3), .journal th:nth-child(3) { text-align: left; }
+
+/* Rapport façon MT5 */
+.rapport { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 28px; }
+@media (max-width: 1000px) { .rapport { grid-template-columns: minmax(0, 1fr); } }
+.ligne { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; border-bottom: 1px solid var(--grille); font-size: 13px; }
+.ligne span { color: var(--texte-2); }
+.ligne b { font-family: var(--mono); font-weight: 500; font-variant-numeric: tabular-nums; text-align: right; }
+.graphes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 1000px) { .graphes { grid-template-columns: minmax(0, 1fr); } }
+.graphe h3 { margin: 0 0 6px; font-size: 12.5px; font-weight: 500; color: var(--texte-2); }
+.graphe svg { display: block; width: 100%; height: auto; }
+.graphe text { font-family: var(--mono); font-size: 10.5px; fill: var(--discret); }
+.note { font-size: 12px; color: var(--discret); max-width: 90ch; line-height: 1.5; }
+.bandeau { background: #16301f; border: 1px solid #25553a; color: var(--vert-texte); border-radius: 8px; padding: 8px 14px; font-size: 13px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="barre">
+    <div class="titre"><b id="titre">Testeur de stratégie</b><span id="sous-titre"></span></div>
+    <div class="commandes">
+      <button class="bouton" id="debut" type="button" title="Revenir au début">⏮ Début</button>
+      <button class="bouton principal" id="lecture" type="button">▶ Lancer</button>
+      <div class="vitesses" role="group" aria-label="Vitesse">
+        <button type="button" data-v="5">1 semaine/s</button>
+        <button type="button" data-v="21" aria-pressed="true">1 mois/s</button>
+        <button type="button" data-v="63">3 mois/s</button>
+        <button type="button" data-v="252">1 an/s</button>
+      </div>
+      <button class="bouton" id="fin" type="button" title="Aller directement à la fin">Fin ⏭</button>
+    </div>
+  </header>
+
+  <div class="chrono">
+    <label for="curseur" class="note">Avancer à la main</label>
+    <input type="range" id="curseur" min="0" value="0">
+    <span class="date" id="date-courante"></span>
+  </div>
+
+  <div class="bandeau" id="bandeau" hidden>Backtest terminé. Le rapport complet est dans l'onglet « Rapport ».</div>
+
+  <div class="corps">
+    <div class="panneau">
+      <div class="entete">
+        <h2>Valeur du compte</h2>
+        <div class="legende"><span><i style="background:var(--bleu)"></i><span id="nom-courbe">Stratégie</span></span><span><i style="background:var(--orange)"></i>Acheter et garder le S&amp;P 500</span></div>
+      </div>
+      <canvas id="courbe" data-hauteur="340" aria-label="Valeur du compte au fil du temps"></canvas>
+      <div class="entete"><h2>Chute depuis le plus haut</h2><span class="note">lignes : -20 % et -25 % (ta limite)</span></div>
+      <canvas id="chute" data-hauteur="120" aria-label="Chute depuis le plus haut"></canvas>
+      <div class="survol" id="survol">Passe la souris sur la courbe pour lire une date.</div>
+    </div>
+
+    <div class="panneau">
+      <h2>En direct</h2>
+      <div class="chiffres" id="chiffres"></div>
+      <h2>Positions ouvertes</h2>
+      <div id="positions"></div>
+    </div>
+  </div>
+
+  <div class="panneau">
+    <div class="onglets" role="tablist">
+      <button role="tab" aria-selected="true" data-onglet="journal" type="button">Journal des ordres</button>
+      <button role="tab" aria-selected="false" data-onglet="trades" type="button">Trades fermés</button>
+      <button role="tab" aria-selected="false" data-onglet="rapport" type="button">Rapport</button>
+      <button role="tab" aria-selected="false" data-onglet="graphiques" type="button">Graphiques</button>
+    </div>
+    <div class="zone-onglet" id="onglet-journal"></div>
+    <div class="zone-onglet" id="onglet-trades" hidden></div>
+    <div id="onglet-rapport" hidden></div>
+    <div id="onglet-graphiques" hidden></div>
+  </div>
+
+  <p class="note">Simulation sur le passé, frais compris : décision à la clôture, exécution à l'ouverture suivante, sans levier.
+    Un « trade » = une position sur un actif, de son achat à sa vente complète. Ce rejeu ne garantit rien pour l'avenir.</p>
+</div>
+
+<script id="donnees" type="application/json">/*DONNEES*/</script>
+<script>
+(function () {
+  "use strict";
+  const D = JSON.parse(document.getElementById("donnees").textContent);
+  const N = D.dates.length, K = D.symboles.length, R = D.rapport;
+  const moisFr = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
+  const dateFr = (s) => { const [a, m, j] = s.split("-").map(Number); return `${j} ${moisFr[m - 1]} ${a}`; };
+  const euro0 = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
+  const euro2 = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const eur = (v, dec = 0) => v == null ? "—" : (dec ? euro2 : euro0).format(v);
+  const eurSigne = (v, dec = 0) => v == null ? "—" : (v > 0 ? "+" : "") + eur(v, dec);
+  const pct = (v, dec = 1, signe = false) => v == null ? "—" : (signe && v > 0 ? "+" : "") + (v * 100).toFixed(dec).replace(".", ",") + " %";
+  const nb = (v, dec = 2) => v == null ? "—" : v.toFixed(dec).replace(".", ",");
+  const classe = (v) => (v > 0 ? "pos" : v < 0 ? "neg" : "");
+  const reduit = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function el(tag, attrs = {}, texte) {
+    const e = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    if (texte != null) e.textContent = texte;
+    return e;
+  }
+
+  // --- Préparation ------------------------------------------------------------------------------
+  const V = D.valeur, S = D.spy;
+  const chute = new Array(N), chuteMaxJusque = new Array(N);
+  let sommet = -Infinity, pire = 0;
+  for (let t = 0; t < N; t++) {
+    sommet = Math.max(sommet, V[t]);
+    chute[t] = V[t] / sommet - 1;
+    pire = Math.min(pire, chute[t]);
+    chuteMaxJusque[t] = pire;
+  }
+  // Début de la position tenue, pour chaque actif et chaque jour (-1 si rien)
+  const entree = D.poids.map((p) => {
+    const e = new Int32Array(N).fill(-1);
+    for (let t = 0; t < N; t++) e[t] = p[t] > 0 ? (t > 0 && p[t - 1] > 0 ? e[t - 1] : t) : -1;
+    return e;
+  });
+  const ordresJour = D.ordres.map((o) => o[0]);
+  const fermes = D.trades.filter((t) => t[4] === 1).sort((a, b) => a[2] - b[2]);
+  const sortieFermes = fermes.map((t) => t[2]);
+  const cumulGagnants = [0], cumulGains = [0], cumulPertes = [0];
+  for (const t of fermes) {
+    cumulGagnants.push(cumulGagnants.at(-1) + (t[3] > 0 ? 1 : 0));
+    cumulGains.push(cumulGains.at(-1) + Math.max(0, t[3]));
+    cumulPertes.push(cumulPertes.at(-1) + Math.min(0, t[3]));
+  }
+  // Nombre d'éléments dont le jour est <= t (recherche dichotomique)
+  function combien(tableau, t) {
+    let bas = 0, haut = tableau.length;
+    while (bas < haut) { const m = (bas + haut) >> 1; if (tableau[m] <= t) bas = m + 1; else haut = m; }
+    return bas;
+  }
+
+  document.getElementById("titre").textContent = `Testeur de stratégie · ${D.nom}`;
+  document.getElementById("nom-courbe").textContent = D.nom;
+  document.getElementById("sous-titre").textContent =
+    `${dateFr(D.dates[0])} → ${dateFr(D.dates[N - 1])} · ${N.toLocaleString("fr-FR")} jours de bourse · dépôt ${eur(D.capital)} · données ${D.empreinte || "—"}`;
+  document.title = `Testeur · ${D.nom}`;
+
+  // --- Graphiques en direct (canvas) --------------------------------------------------------------
+  const cCourbe = document.getElementById("courbe"), cChute = document.getElementById("chute");
+  const yMin = Math.min(...V, ...S), yMax = Math.max(...V, ...S);
+  const style = getComputedStyle(document.documentElement);
+  const couleur = (n) => style.getPropertyValue(n).trim();
+
+  function preparer(canvas) {
+    const r = window.devicePixelRatio || 1;
+    // La hauteur voulue est lue dans data-hauteur, jamais dans canvas.height (qui vaut hauteur x densité de l'écran)
+    const largeur = canvas.clientWidth, hauteur = Number(canvas.dataset.hauteur);
+    canvas.width = largeur * r; canvas.height = hauteur * r;
+    canvas.style.height = hauteur + "px";
+    const ctx = canvas.getContext("2d");
+    ctx.setTransform(r, 0, 0, r, 0, 0);
+    return { ctx, largeur, hauteur };
+  }
+  const marge = { g: 70, d: 12, h: 10, b: 22 };
+
+  function axeX(ctx, largeur, hauteur) {
+    ctx.fillStyle = couleur("--discret");
+    ctx.font = "10.5px " + couleur("--mono");
+    ctx.textAlign = "center";
+    const a0 = Number(D.dates[0].slice(0, 4)), a1 = Number(D.dates[N - 1].slice(0, 4));
+    const pas = Math.max(1, Math.ceil((a1 - a0) / Math.max(2, Math.floor((largeur - marge.g) / 70))));
+    for (let a = a0 + 1; a <= a1; a += pas) {
+      const t = D.dates.findIndex((d) => d.startsWith(String(a)));
+      if (t < 0) continue;
+      const x = marge.g + (t / (N - 1)) * (largeur - marge.g - marge.d);
+      ctx.fillText(String(a), x, hauteur - 6);
+    }
+  }
+
+  function dessinerCourbe(i) {
+    const { ctx, largeur, hauteur } = preparer(cCourbe);
+    const x = (t) => marge.g + (t / (N - 1)) * (largeur - marge.g - marge.d);
+    const ly0 = Math.log(yMin * 0.95), ly1 = Math.log(yMax * 1.05);
+    const y = (v) => hauteur - marge.b - ((Math.log(v) - ly0) / (ly1 - ly0)) * (hauteur - marge.h - marge.b);
+    ctx.clearRect(0, 0, largeur, hauteur);
+    // Grille en euros (échelle où +100 % a toujours la même hauteur)
+    ctx.strokeStyle = couleur("--grille"); ctx.lineWidth = 1;
+    ctx.fillStyle = couleur("--discret"); ctx.font = "10.5px " + couleur("--mono"); ctx.textAlign = "right";
+    const paliers = [0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4, 5, 6, 8, 10, 15, 20].map((m) => m * D.capital).filter((v) => v >= yMin * 0.95 && v <= yMax * 1.05);
+    for (const v of paliers) {
+      ctx.beginPath(); ctx.moveTo(marge.g, y(v)); ctx.lineTo(largeur - marge.d, y(v)); ctx.stroke();
+      ctx.fillText(eur(v), marge.g - 6, y(v) + 3.5);
+    }
+    ctx.strokeStyle = couleur("--trait");
+    ctx.beginPath(); ctx.moveTo(marge.g, y(D.capital)); ctx.lineTo(largeur - marge.d, y(D.capital)); ctx.stroke();
+    axeX(ctx, largeur, hauteur);
+    const tracer = (serie, trait, epaisseur) => {
+      ctx.strokeStyle = trait; ctx.lineWidth = epaisseur; ctx.lineJoin = "round"; ctx.beginPath();
+      for (let t = 0; t <= i; t++) { const px = x(t), py = y(serie[t]); if (t === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py); }
+      ctx.stroke();
+    };
+    tracer(S, couleur("--orange"), 1.5);
+    // Lavis sous la courbe de la stratégie
+    ctx.fillStyle = couleur("--bleu-lavis"); ctx.beginPath(); ctx.moveTo(x(0), hauteur - marge.b);
+    for (let t = 0; t <= i; t++) ctx.lineTo(x(t), y(V[t]));
+    ctx.lineTo(x(i), hauteur - marge.b); ctx.closePath(); ctx.fill();
+    tracer(V, couleur("--bleu"), 2);
+    // Curseur du jour
+    ctx.strokeStyle = couleur("--discret"); ctx.setLineDash([2, 3]);
+    ctx.beginPath(); ctx.moveTo(x(i), marge.h); ctx.lineTo(x(i), hauteur - marge.b); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = couleur("--bleu"); ctx.strokeStyle = couleur("--panneau"); ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(x(i), y(V[i]), 4.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    return { x, y };
+  }
+
+  function dessinerChute(i) {
+    const { ctx, largeur, hauteur } = preparer(cChute);
+    const bas = Math.min(-0.3, Math.min(...chute) * 1.1);
+    const x = (t) => marge.g + (t / (N - 1)) * (largeur - marge.g - marge.d);
+    const y = (v) => marge.h + (v / bas) * (hauteur - marge.h - marge.b);
+    ctx.clearRect(0, 0, largeur, hauteur);
+    ctx.font = "10.5px " + couleur("--mono"); ctx.textAlign = "right"; ctx.fillStyle = couleur("--discret");
+    for (const [v, c] of [[0, "--trait"], [-0.2, "--jaune"], [-0.25, "--rouge"]]) {
+      ctx.strokeStyle = couleur(c); ctx.lineWidth = v === 0 ? 1 : 1.2;
+      ctx.beginPath(); ctx.moveTo(marge.g, y(v)); ctx.lineTo(largeur - marge.d, y(v)); ctx.stroke();
+      ctx.fillText(pct(v, 0), marge.g - 6, y(v) + 3.5);
+    }
+    axeX(ctx, largeur, hauteur);
+    ctx.fillStyle = "rgba(230, 103, 103, 0.22)"; ctx.strokeStyle = couleur("--rouge"); ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(x(0), y(0));
+    for (let t = 0; t <= i; t++) ctx.lineTo(x(t), y(chute[t]));
+    ctx.lineTo(x(i), y(0)); ctx.closePath(); ctx.fill();
+    ctx.beginPath();
+    for (let t = 0; t <= i; t++) { if (t === 0) ctx.moveTo(x(t), y(chute[t])); else ctx.lineTo(x(t), y(chute[t])); }
+    ctx.stroke();
+  }
+
+  // --- Panneau « En direct » ----------------------------------------------------------------------
+  function chiffresDirect(i) {
+    const n = combien(sortieFermes, i);
+    const gagnes = cumulGagnants[n], gains = cumulGains[n], pertes = cumulPertes[n];
+    const investi = D.poids.reduce((s, p) => s + p[i], 0);
+    const liste = [
+      ["Valeur du compte", eur(V[i], 0), ""],
+      ["Profit depuis le début", eurSigne(V[i] - D.capital), classe(V[i] - D.capital)],
+      ["Chute actuelle", pct(chute[i]), chute[i] < -0.2 ? "neg" : ""],
+      ["Pire chute jusqu'ici", pct(chuteMaxJusque[i]), chuteMaxJusque[i] < -0.2 ? "neg" : ""],
+      ["Part investie", pct(investi, 0), ""],
+      ["S&P 500 (même dépôt)", eur(S[i]), ""],
+      ["Trades fermés", String(n), ""],
+      ["Trades gagnants", n ? pct(gagnes / n, 0) : "—", ""],
+      ["Facteur de profit", pertes < 0 ? nb(gains / -pertes) : "—", ""],
+      ["Ordres exécutés", String(combien(ordresJour, i)), ""],
+    ];
+    document.getElementById("chiffres").replaceChildren(...liste.map(([l, v, c]) => {
+      const d = el("div", { class: "chiffre" });
+      d.append(el("span", {}, l), el("b", c ? { class: c } : {}, v));
+      return d;
+    }));
+  }
+
+  function positions(i) {
+    const lignes = [];
+    for (let k = 0; k < K; k++) {
+      if (!(D.poids[k][i] > 0)) continue;
+      const e = entree[k][i];
+      const latent = D.cumul[k][i] - (e > 0 ? D.cumul[k][e - 1] : 0);
+      lignes.push({ k, part: D.poids[k][i], montant: D.poids[k][i] * V[i], latent, depuis: e });
+    }
+    const zone = document.getElementById("positions");
+    if (!lignes.length) { zone.replaceChildren(el("div", { class: "vide" }, "Aucune position : tout est en cash.")); return; }
+    lignes.sort((a, b) => b.part - a.part);
+    const table = el("table");
+    const tete = el("tr");
+    for (const t of ["Actif", "Part", "Montant", "Gain latent"]) tete.append(el("th", {}, t));
+    table.append(tete);
+    for (const l of lignes) {
+      const tr = el("tr", { title: `${D.noms[l.k]} · tenu depuis le ${dateFr(D.dates[l.depuis])}` });
+      tr.append(el("td", {}, D.symboles[l.k]), el("td", {}, pct(l.part)), el("td", {}, eur(l.montant)),
+        el("td", { class: classe(l.latent) }, eurSigne(l.latent)));
+      table.append(tr);
+    }
+    zone.replaceChildren(table);
+  }
+
+  function journal(i) {
+    const n = combien(ordresJour, i);
+    const zone = document.getElementById("onglet-journal");
+    if (!n) { zone.replaceChildren(el("div", { class: "vide" }, "Aucun ordre pour l'instant. Lance le backtest.")); return; }
+    const table = el("table", { class: "journal" });
+    const tete = el("tr");
+    for (const t of ["Date (ouverture)", "Actif", "Ordre", "Montant", "Prix", "Frais"]) tete.append(el("th", {}, t));
+    table.append(tete);
+    for (let j = n - 1; j >= Math.max(0, n - 80); j--) {
+      const [t, k, achat, montant, prix, frais] = D.ordres[j];
+      const tr = el("tr");
+      tr.append(el("td", {}, dateFr(D.dates[t])), el("td", {}, D.symboles[k]),
+        el("td", { class: achat ? "pos" : "neg" }, achat ? "achat" : "vente"),
+        el("td", {}, eur(montant, 2)), el("td", {}, prix.toLocaleString("fr-FR", { maximumFractionDigits: 2 })), el("td", {}, eur(frais, 2)));
+      table.append(tr);
+    }
+    zone.replaceChildren(table, el("div", { class: "vide" }, `${n.toLocaleString("fr-FR")} ordres au total · les 80 derniers sont affichés`));
+  }
+
+  function tradesFermes(i) {
+    const n = combien(sortieFermes, i);
+    const zone = document.getElementById("onglet-trades");
+    if (!n) { zone.replaceChildren(el("div", { class: "vide" }, "Aucun trade fermé pour l'instant.")); return; }
+    const table = el("table");
+    const tete = el("tr");
+    for (const t of ["Actif", "Acheté le", "Vendu le", "Durée", "Résultat"]) tete.append(el("th", {}, t));
+    table.append(tete);
+    for (let j = n - 1; j >= Math.max(0, n - 80); j--) {
+      const [k, e, s, res] = fermes[j];
+      const tr = el("tr");
+      tr.append(el("td", {}, `${D.symboles[k]} · ${D.noms[k]}`), el("td", {}, dateFr(D.dates[e])), el("td", {}, dateFr(D.dates[s])),
+        el("td", {}, `${s - e} j`), el("td", { class: classe(res) }, eurSigne(res, 2)));
+      table.append(tr);
+    }
+    zone.replaceChildren(table);
+  }
+
+  // --- Rapport (toute la période) ------------------------------------------------------------------
+  function rapport() {
+    const g = R.gains_consecutifs, p = R.pertes_consecutives;
+    const colonnes = [
+      [["Dépôt initial", eur(R.capital, 2)], ["Profit total net", eurSigne(R.profit_net, 2)], ["Valeur finale", eur(R.valeur_finale, 2)],
+        ["Rendement par an", pct(R.rendement_annuel, 1, true)], ["Profit brut", eur(R.profit_brut, 2)], ["Perte brute", eur(R.perte_brute, 2)],
+        ["Frais payés", eur(R.frais_total, 2)]],
+      [["Facteur de profit", nb(R.facteur_profit)], ["Gain attendu par trade", eurSigne(R.gain_attendu, 2)],
+        ["Facteur de récupération", nb(R.facteur_recuperation)], ["Ratio de Sharpe (annuel)", nb(R.sharpe_annuel)],
+        ["Drawdown absolu", eur(R.drawdown_absolu, 2)], ["Drawdown maximal", `${eur(R.drawdown_max_eur, 2)} (${pct(R.drawdown_max_pct)})`],
+        ["Pire chute le", dateFr(R.date_pire_chute)]],
+      [["Trades fermés", `${R.nb_trades} (+ ${R.nb_en_cours} en cours)`], ["Trades gagnants", pct(R.gagnants_pct)],
+        ["Plus gros gain / perte", `${eur(R.plus_gros_gain)} / ${eur(R.plus_grosse_perte)}`],
+        ["Gain moyen / perte moyenne", `${eur(R.gain_moyen)} / ${eur(R.perte_moyenne)}`],
+        ["Gains consécutifs max", `${g.nombre} (${eurSigne(g.montant)})`], ["Pertes consécutives max", `${p.nombre} (${eurSigne(p.montant)})`],
+        ["Durée moyenne d'un trade", `${Math.round(R.duree_moyenne_jours)} jours`]],
+    ];
+    const grille = el("div", { class: "rapport" });
+    for (const col of colonnes) {
+      const c = el("div");
+      for (const [l, v] of col) { const d = el("div", { class: "ligne" }); d.append(el("span", {}, l), el("b", {}, v)); c.append(d); }
+      grille.append(c);
+    }
+    const note = el("p", { class: "note" },
+      `Sur toute la période (${R.annees} ans). Le « Sharpe » de MetaTrader est calculé autrement : il n'est pas comparable à celui-ci. ` +
+      `Part investie en moyenne : ${pct(R.investi_moyen, 0)}. ${R.nb_ordres.toLocaleString("fr-FR")} ordres exécutés.`);
+    document.getElementById("onglet-rapport").replaceChildren(grille, note);
+  }
+
+  // --- Graphiques du rapport (SVG simple) -----------------------------------------------------------
+  const NS = "http://www.w3.org/2000/svg";
+  function svg(tag, attrs) { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); return e; }
+  function barres(titre, etiquettes, series, format) {
+    const L = 520, H = 190, m = { g: 58, d: 8, h: 8, b: 22 };
+    const toutes = series.flatMap((s) => s.valeurs);
+    const haut = Math.max(0, ...toutes), basV = Math.min(0, ...toutes);
+    const y = (v) => m.h + (haut - v) / ((haut - basV) || 1) * (H - m.h - m.b);
+    const bande = (L - m.g - m.d) / etiquettes.length;
+    const largeur = Math.min(20, (bande * 0.8) / series.length);
+    const s = svg("svg", { viewBox: `0 0 ${L} ${H}`, role: "img", "aria-label": titre });
+    for (const v of [haut, 0, basV].filter((v, i, a) => a.indexOf(v) === i)) {
+      s.append(svg("line", { x1: m.g, x2: L - m.d, y1: y(v), y2: y(v), stroke: v === 0 ? "#3a3f4b" : "#20242d" }));
+      const t = svg("text", { x: m.g - 6, y: y(v) + 3.5, "text-anchor": "end" }); t.textContent = format(v); s.append(t);
+    }
+    etiquettes.forEach((etq, i) => {
+      const cx = m.g + bande * i + bande / 2;
+      series.forEach((serie, j) => {
+        const v = serie.valeurs[i];
+        const x0 = cx - (largeur * series.length) / 2 + j * largeur + 1;
+        const r = svg("rect", { x: x0, y: Math.min(y(v), y(0)), width: Math.max(1, largeur - 2), height: Math.max(0.5, Math.abs(y(v) - y(0))), fill: serie.couleur, rx: 2 });
+        const info = svg("title", {}); info.textContent = `${etq} · ${serie.nom} : ${format(v)}`; r.append(info);
+        s.append(r);
+      });
+      const t = svg("text", { x: cx, y: H - 6, "text-anchor": "middle" }); t.textContent = etq; s.append(t);
+    });
+    const bloc = el("div", { class: "graphe" });
+    const legende = el("div", { class: "legende" });
+    if (series.length > 1) for (const serie of series) { const sp = el("span"); const i = el("i"); i.style.background = serie.couleur; sp.append(i, serie.nom); legende.append(sp); }
+    bloc.append(el("h3", {}, titre), legende, s);
+    return bloc;
+  }
+  function graphiques() {
+    const vert = "#22b35e", rouge = "#e66767", bleu = "#3987e5";
+    const eurCourt = (v) => (Math.abs(v) >= 1000 ? (v / 1000).toFixed(1).replace(".", ",") + " k€" : Math.round(v) + " €");
+    const annees = Object.keys(R.par_annee);
+    const zone = el("div", { class: "graphes" });
+    zone.append(
+      barres("Rendement année par année", annees.map((a) => a.slice(2)), [{ nom: "Rendement", valeurs: annees.map((a) => R.par_annee[a]), couleur: bleu }], (v) => pct(v, 0)),
+      barres("Profits et pertes par actif (trades fermés et en cours)", R.par_actif.map((a) => a.symbole.replace("-USD", "")),
+        [{ nom: "Résultat", valeurs: R.par_actif.map((a) => a.resultat), couleur: bleu }], eurCourt),
+      barres("Entrées par mois", R.par_mois.map((m) => m.mois), [{ nom: "Entrées", valeurs: R.par_mois.map((m) => m.entrees), couleur: bleu }], (v) => String(Math.round(v))),
+      barres("Profits et pertes par mois (trades fermés)", R.par_mois.map((m) => m.mois),
+        [{ nom: "Gains", valeurs: R.par_mois.map((m) => m.gains), couleur: vert }, { nom: "Pertes", valeurs: R.par_mois.map((m) => m.pertes), couleur: rouge }], eurCourt),
+      barres("Entrées par jour de la semaine", R.par_jour.map((j) => j.jour), [{ nom: "Entrées", valeurs: R.par_jour.map((j) => j.entrees), couleur: bleu }], (v) => String(Math.round(v))),
+      barres("Profits et pertes par jour de la semaine", R.par_jour.map((j) => j.jour),
+        [{ nom: "Gains", valeurs: R.par_jour.map((j) => j.gains), couleur: vert }, { nom: "Pertes", valeurs: R.par_jour.map((j) => j.pertes), couleur: rouge }], eurCourt),
+    );
+    document.getElementById("onglet-graphiques").replaceChildren(zone,
+      el("p", { class: "note" }, "Les graphiques par mois et par jour servent surtout à repérer une anomalie. Une différence entre deux mois n'est pas une règle à exploiter : c'est presque toujours du hasard."));
+  }
+
+  // --- Lecture --------------------------------------------------------------------------------------
+  let i = 0, enLecture = false, vitesse = 21, position = 0, dernier = 0, dessine = -1, echelles = null;
+  const curseur = document.getElementById("curseur");
+  curseur.max = String(N - 1);
+  const boutonLecture = document.getElementById("lecture");
+
+  function afficher(force = false) {
+    if (i === dessine && !force) return;
+    dessine = i;
+    echelles = dessinerCourbe(i);
+    dessinerChute(i);
+    chiffresDirect(i);
+    positions(i);
+    const actif = document.querySelector(".onglets [aria-selected='true']").dataset.onglet;
+    if (actif === "journal") journal(i);
+    if (actif === "trades") tradesFermes(i);
+    curseur.value = String(i);
+    document.getElementById("date-courante").textContent = dateFr(D.dates[i]);
+    document.getElementById("bandeau").hidden = i < N - 1;
+  }
+  function boucle(temps) {
+    if (!enLecture) return;
+    if (dernier) position = Math.min(N - 1, position + ((temps - dernier) / 1000) * vitesse);
+    dernier = temps;
+    i = Math.floor(position);
+    afficher();
+    if (i >= N - 1) { arreter(); choisirOnglet("rapport"); return; }
+    requestAnimationFrame(boucle);
+  }
+  function lancer() {
+    if (i >= N - 1) { i = 0; position = 0; }
+    enLecture = true; dernier = 0; boutonLecture.textContent = "⏸ Pause";
+    if (reduit) { i = N - 1; position = i; afficher(); arreter(); choisirOnglet("rapport"); return; }
+    requestAnimationFrame(boucle);
+  }
+  function arreter() { enLecture = false; boutonLecture.textContent = i >= N - 1 ? "↻ Rejouer" : "▶ Reprendre"; }
+  boutonLecture.addEventListener("click", () => (enLecture ? arreter() : lancer()));
+  document.getElementById("debut").addEventListener("click", () => { arreter(); i = 0; position = 0; boutonLecture.textContent = "▶ Lancer"; afficher(true); });
+  document.getElementById("fin").addEventListener("click", () => { arreter(); i = N - 1; position = i; afficher(true); arreter(); choisirOnglet("rapport"); });
+  curseur.addEventListener("input", () => { i = Number(curseur.value); position = i; afficher(); });
+  for (const b of document.querySelectorAll(".vitesses button")) {
+    b.addEventListener("click", () => {
+      vitesse = Number(b.dataset.v);
+      for (const autre of document.querySelectorAll(".vitesses button")) autre.setAttribute("aria-pressed", String(autre === b));
+    });
+  }
+  document.addEventListener("keydown", (e) => {
+    if (e.key === " " && e.target === document.body) { e.preventDefault(); enLecture ? arreter() : lancer(); }
+  });
+
+  function choisirOnglet(nom) {
+    for (const b of document.querySelectorAll(".onglets button")) b.setAttribute("aria-selected", String(b.dataset.onglet === nom));
+    for (const n of ["journal", "trades", "rapport", "graphiques"]) document.getElementById("onglet-" + n).hidden = n !== nom;
+    if (nom === "journal") journal(i);
+    if (nom === "trades") tradesFermes(i);
+  }
+  for (const b of document.querySelectorAll(".onglets button")) b.addEventListener("click", () => choisirOnglet(b.dataset.onglet));
+
+  // Lecture d'une date au survol de la courbe
+  cCourbe.addEventListener("mousemove", (e) => {
+    if (!echelles) return;
+    const rect = cCourbe.getBoundingClientRect();
+    const t = Math.round(((e.clientX - rect.left - marge.g) / (rect.width - marge.g - marge.d)) * (N - 1));
+    if (t < 0 || t > i) { document.getElementById("survol").textContent = "Pas encore joué : lance ou avance le curseur."; return; }
+    document.getElementById("survol").textContent =
+      `${dateFr(D.dates[t])} · compte ${eur(V[t])} · S&P 500 ${eur(S[t])} · chute ${pct(chute[t])}`;
+  });
+
+  let minuterie;
+  window.addEventListener("resize", () => { clearTimeout(minuterie); minuterie = setTimeout(() => afficher(true), 120); });
+
+  rapport();
+  graphiques();
+  afficher(true);
+})();
+</script>
+</body>
+</html>
