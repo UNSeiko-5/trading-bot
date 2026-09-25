@@ -60,3 +60,14 @@ jobs:
 
       - name: Expérience EXP-004 (v2 + retour à la moyenne, critères M, P et R)
         run: python experience_004.py
+
+      - name: Chiffres du tableau de bord, compressés (lus par Claude pour publier la page)
+        run: |
+          python - <<'PY'
+          import base64, gzip
+          texte = base64.b64encode(gzip.compress(open("tableau/donnees.json", "rb").read(), 9)).decode()
+          print("DEBUT-TABLEAU")
+          for i in range(0, len(texte), 2000):
+              print(texte[i:i + 2000])
+          print("FIN-TABLEAU")
+          PY
