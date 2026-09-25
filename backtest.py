@@ -1,38 +1,61 @@
+"""Simulation de la stratégie sur le passé (backtest).
+
+Hypothèses, identiques à ce que fait le robot :
+- le signal est calculé avec le prix de clôture du jour ;
+- l'ordre est exécuté à l'OUVERTURE du lendemain (pas à la clôture du jour même) ;
+- chaque achat ou vente coûte FRAIS (commission + écart achat/vente + glissement).
+"""
 import yfinance as yf
-import pandas as pd
-import numpy as np
 
-# 1. Télécharger 20 ans d'historique de SPY
-data = yf.download('SPY', start='2004-01-01', auto_adjust=True)
-df = data[['Close']].copy()
-df.columns = ['price']
+from strategie import FENETRE_SMA, SYMBOLE, calculer_sma, est_haussier
 
-# 2. Règle des 200 jours
-df['SMA200'] = df['price'].rolling(window=200).mean()
-df['signal'] = np.where(df['price'] > df['SMA200'], 1, 0)
-df['position'] = df['signal'].shift(1)  # Prise de position le lendemain
+FRAIS = 0.0005  # 0,05 % par ordre
+JOURS_PAR_AN = 252
 
-# 3. Calcul des rendements et des frais (0,05 % par ordre)
-df['pct_change'] = df['price'].pct_change()
-df['trades'] = df['position'].diff().abs()
-frais = 0.0005
 
-df['strategy_return'] = (df['position'] * df['pct_change']) - (df['trades'] * frais)
-df['buy_hold_return'] = df['pct_change']
+def simuler(historique, fenetre=FENETRE_SMA, frais=FRAIS):
+    """historique : tableau avec les colonnes Open et Close (prix ajustés des dividendes)."""
+    df = historique[["Open", "Close"]].copy()
+    df["sma"] = calculer_sma(df["Close"], fenetre)
+    df = df[df["sma"].notna()].copy()  # on commence le jour où la moyenne existe
 
-# 4. Performance cumulée et Drawdown
-df['cum_strategy'] = (1 + df['strategy_return']).cumprod()
-df['cum_bh'] = (1 + df['buy_hold_return']).cumprod()
+    signal = est_haussier(df["Close"], df["sma"]).astype(int)
+    df["position"] = signal.shift(1, fill_value=0)  # détenue pendant la journée = signal de la veille
+    position_veille = df["position"].shift(1, fill_value=0)
 
-# Calcul du Drawdown maximal (la pire chute depuis un sommet)
-def max_drawdown(cum_series):
-    peak = cum_series.cummax()
-    dd = (cum_series - peak) / peak
-    return dd.min() * 100
+    nuit = (df["Open"] / df["Close"].shift(1) - 1).fillna(0)  # clôture de la veille -> ouverture
+    journee = df["Close"] / df["Open"] - 1                     # ouverture -> clôture
+    df["transaction"] = (df["position"] - position_veille).abs()
 
-dd_strategy = max_drawdown(df['cum_strategy'])
-dd_bh = max_drawdown(df['cum_bh'])
+    df["strategie"] = (
+        (1 + position_veille * nuit) * (1 + df["position"] * journee) - 1
+        - df["transaction"] * frais
+    )
+    df["buy_hold"] = df["Close"].pct_change().fillna(0)
+    return df
 
-print(f"Performance Buy & Hold     : {df['cum_bh'].iloc[-1]:.2f}x | Pire chute : {dd_bh:.1f} %")
-print(f"Performance Stratégie 200j : {df['cum_strategy'].iloc[-1]:.2f}x | Pire chute : {dd_strategy:.1f} %")
-print(f"Nombre total de transactions : {int(df['trades'].sum())}")
+
+def resume(rendements):
+    courbe = (1 + rendements).cumprod()
+    annees = len(rendements) / JOURS_PAR_AN
+    return {
+        "multiplicateur": courbe.iloc[-1],
+        "rendement_annuel": courbe.iloc[-1] ** (1 / annees) - 1,
+        "pire_chute": (courbe / courbe.cummax() - 1).min(),
+    }
+
+
+if __name__ == "__main__":
+    historique = yf.Ticker(SYMBOLE).history(period="max", auto_adjust=True)
+    if historique.empty:
+        raise SystemExit("Aucune donnée reçue de Yahoo, réessaie plus tard.")
+
+    df = simuler(historique)
+    print(f"Période : {df.index[0].date()} -> {df.index[-1].date()} ({len(df) / JOURS_PAR_AN:.1f} ans)")
+    for nom, colonne in [("Buy & Hold", "buy_hold"), ("Stratégie 200j", "strategie")]:
+        r = resume(df[colonne])
+        print(
+            f"{nom:<15}: {r['multiplicateur']:6.2f}x | {r['rendement_annuel']:+.1%} par an"
+            f" | pire chute : {r['pire_chute']:.1%}"
+        )
+    print(f"Transactions : {int(df['transaction'].sum())} | Temps investi : {df['position'].mean():.0%}")
