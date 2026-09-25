@@ -1,5 +1,3 @@
-# EXP-003 — Cassures
-
 La v2 + 3 détecteurs de [[Cassures (canal de Donchian)]] dans la note combinée.
 
 - Verdict : **8/10, échec.** Rendement -0,04 point par rapport à la v2.

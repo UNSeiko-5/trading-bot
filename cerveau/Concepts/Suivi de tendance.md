@@ -1,5 +1,3 @@
-# Suivi de tendance
-
 Acheter ce qui monte, sortir de ce qui baisse. Méthode des fonds « CTA » (R. Carver,
 Moskowitz et al. 2012). Chez nous : moyenne rapide comparée à une moyenne lente.
 

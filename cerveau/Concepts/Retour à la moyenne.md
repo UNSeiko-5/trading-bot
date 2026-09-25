@@ -1,5 +1,3 @@
-# Retour à la moyenne
-
 Parier qu'un prix qui a trop baissé va remonter (et l'inverse). Outils classiques :
 RSI (Wilder), bandes de Bollinger.
 

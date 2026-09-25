@@ -1,5 +1,3 @@
-# Pire chute
-
 La plus grosse baisse entre un sommet et le creux qui suit. Ta limite : **-25 %**.
 Après -50 %, il faut +100 % pour revenir ; après -75 %, +300 %.
 

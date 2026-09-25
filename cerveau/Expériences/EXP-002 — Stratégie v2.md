@@ -1,5 +1,3 @@
-# EXP-002 — Stratégie v2
-
 Test de la [[Stratégie v2]] sur 2007-2026, frais compris.
 
 - Verdict : **7/8, non validée.** +6,3 %/an, [[Pire chute]] -10 %, [[Note rendement-risque]] 0,63.

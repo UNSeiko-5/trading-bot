@@ -1,5 +1,3 @@
-# Frais
-
 Chaque achat ou vente coûte : 0,10 % pour un ETF, 0,50 % pour la crypto dans nos tests.
 Plus un robot bouge, plus il paie.
 

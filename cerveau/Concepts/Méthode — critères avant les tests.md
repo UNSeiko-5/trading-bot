@@ -1,5 +1,3 @@
-# Méthode — critères avant les tests
-
 La règle d'or du projet. Chaque idée est une expérience :
 
 1. on écrit l'hypothèse et les critères de réussite ;

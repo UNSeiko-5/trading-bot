@@ -1,5 +1,3 @@
-# EXP-001 — Règle des 200 jours
-
 Version 1 : investi sur le S&P 500 (SPY) quand son prix est au-dessus de sa moyenne des 200 jours.
 
 - Verdict : **4/5, non jugée solide.**

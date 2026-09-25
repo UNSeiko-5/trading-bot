@@ -1,5 +1,3 @@
-# Stratégie v2
-
 La base à battre. Suivi de tendance sur 10 actifs de 6 classes (actions, obligations, or,
 matières premières, immobilier, crypto), une décision par jour. Détails : `docs/STRATEGIE_V2.md`.
 

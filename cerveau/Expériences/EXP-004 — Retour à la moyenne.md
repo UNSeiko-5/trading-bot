@@ -1,5 +1,3 @@
-# EXP-004 — Retour à la moyenne
-
 La v2 mélangée à moitié avec du [[Retour à la moyenne]] (RSI 14 jours, Bollinger 20 jours).
 
 - Verdict : **1/10, échec net.** +1,0 %/an contre +6,3 % pour la v2.

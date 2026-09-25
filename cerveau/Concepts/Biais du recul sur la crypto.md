@@ -1,5 +1,3 @@
-# Biais du recul sur la crypto
-
 On sait aujourd'hui que le Bitcoin a été multiplié par des centaines depuis 2014.
 Ce boom ne se reproduira pas forcément. Une stratégie doit donc tenir **sans la crypto**.
 

@@ -1,5 +1,3 @@
-# Accueil
-
 Le cerveau du projet : tout ce qu'on a appris, relié. Ouvre ce dossier dans Obsidian
 (gratuit) et regarde la « vue graphe » pour voir les liens.
 

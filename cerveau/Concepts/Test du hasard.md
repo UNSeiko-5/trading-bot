@@ -1,5 +1,3 @@
-# Test du hasard
-
 Deux usages du hasard pour ne pas se faire avoir :
 
 1. **Anti-chance** : on décale les signaux au hasard 500 fois. Si la vraie stratégie ne fait pas
