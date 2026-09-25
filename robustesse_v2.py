@@ -10,9 +10,9 @@ import numpy as np
 from backtest_v2 import verifier_performance
 from robot.donnees import charger
 from robot.parametres import DETECTEURS, FRAIS
-from robot.portefeuille import parts_cibles, preparer_risque
+from robot.portefeuille import preparer_risque
 from robot.signaux import notes as calculer_notes
-from robot.simulation import mesures, points_de_comparaison, simuler, strategie_v2
+from robot.simulation import cibles_strategie, mesures, points_de_comparaison, simuler, strategie_v2
 
 # --- Critères fixés à l'avance (EXPERIENCES.md, EXP-002) ------------------------------------------
 R1_RENDEMENT_MIN, R1_CHUTE_MIN, R1_ECART_NOTE_MAX = 0.04, -0.25, 0.30
@@ -119,10 +119,11 @@ def test_r4(ouvertures, clotures, note_60_40, reglage=None):
 def test_r5(ouvertures, clotures, risque, base, reglage=None, nom="la v2"):
     print(f"\nR5 — Hasard : signaux décalés au hasard dans le temps ({R5_TIRAGES} tirages)")
     notes = notes_du_reglage(clotures, reglage)
+    budget = (reglage or {}).get("budget")   # EXP-005 : multiplicateur recalculé pour chaque version au hasard
     aleatoire = np.random.default_rng(42)  # graine fixe : même résultat à chaque lancement
     notes_hasard, rendements_hasard = [], []
     for _ in range(R5_TIRAGES):
-        cibles = parts_cibles(decaler_au_hasard(notes, aleatoire), risque)
+        cibles, _ = cibles_strategie(ouvertures, clotures, decaler_au_hasard(notes, aleatoire), risque, budget=budget)
         m = mesures(simuler(ouvertures, clotures, cibles).valeur)
         notes_hasard.append(m["note_rendement_risque"])
         rendements_hasard.append(m["rendement_annuel"])

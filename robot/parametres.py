@@ -17,6 +17,11 @@ CASSURES = [(40, 0.70), (80, 0.73), (160, 0.74)]
 RETOUR_MOYENNE = [("RSI", 14), ("Bollinger", 20)]
 POIDS_RETOUR_MOYENNE = 0.5    # part de la note combinée donnée au retour à la moyenne
 
+# --- Budget de risque (EXP-005, en test : la v2 n'en utilise pas) ------------------------------
+# Multiplicateur = agitation visée ÷ agitation réalisée de la v2 normale sur `fenetre` jours, borné.
+# Fenêtre et borne haute reprises du bonus de diversification (IDM) ; 1 an d'historique minimum.
+BUDGET_RISQUE = {"fenetre": 504, "borne_basse": 1.0, "borne_haute": 2.5, "historique_min": 252}
+
 # --- Taille des positions (section 5) ------------------------------------------------
 VOL_CIBLE = 0.12              # agitation annuelle visée pour tout le portefeuille
 FENETRE_VOL = 35              # jours (moyenne exponentielle) pour mesurer l'agitation

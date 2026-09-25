@@ -12,14 +12,16 @@ import robustesse_v2
 M1_GAIN_MIN = 0.005     # au moins +0,5 point de rendement par an par rapport à la v2
 
 
-def verifier_mieux(nouvelle, v2):
-    """Renvoie les critères M1 et M2 : (nom, réussi, détail)."""
+def verifier_mieux(nouvelle, v2, m2_part_min=1.0):
+    """Renvoie les critères M1 et M2 : (nom, réussi, détail).
+    `m2_part_min` : part minimale de la note rendement/risque de la v2 à garder (1 = au moins égale)."""
     gain = nouvelle["rendement_annuel"] - v2["rendement_annuel"]
+    nom_m2 = ("M2 Note rendement/risque au moins égale à celle de la v2" if m2_part_min == 1 else
+              f"M2 Note rendement/risque au moins égale à {m2_part_min * 100:.0f} % de celle de la v2")
     return [
         ("M1 Au moins +0,5 point de rendement par an de plus que la v2", gain >= M1_GAIN_MIN,
          f"{nouvelle['rendement_annuel']:+.1%} contre {v2['rendement_annuel']:+.1%} ({gain * 100:+.2f} point)"),
-        ("M2 Note rendement/risque au moins égale à celle de la v2",
-         nouvelle["note_rendement_risque"] >= v2["note_rendement_risque"],
+        (nom_m2, nouvelle["note_rendement_risque"] >= m2_part_min * v2["note_rendement_risque"],
          f"{nouvelle['note_rendement_risque']:.2f} contre {v2['note_rendement_risque']:.2f}"),
     ]
 
@@ -39,7 +41,7 @@ def frais_par_an(resultat):
     return resultat.frais.sum() / (len(resultat.frais) / 252)
 
 
-def lancer_experience(code, nom, reglage, variantes, informations=None):
+def lancer_experience(code, nom, reglage, variantes, informations=None, m2_part_min=1.0):
     """Lance toute l'expérience sur les vraies données et affiche le verdict.
 
     `reglage` : ce qui change par rapport à la v2 (arguments de strategie_v2).
@@ -71,7 +73,7 @@ def lancer_experience(code, nom, reglage, variantes, informations=None):
         informations(o, c, risque)
 
     print("\nMieux que la v2")
-    mieux = verifier_mieux(base, m_v2)
+    mieux = verifier_mieux(base, m_v2, m2_part_min)
     afficher_criteres(mieux)
     print("\nPerformance")
     performance = verifier_performance(base, m_refs)

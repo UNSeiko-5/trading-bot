@@ -28,6 +28,7 @@ class Resultat:
     rotation: pd.Series    # montant échangé chaque jour, en part du capital
     gains: pd.DataFrame = None    # (mode détaillé) gain de chaque actif chaque jour, frais déduits, en part du capital de départ
     ordres: pd.DataFrame = None   # (mode détaillé) chaque ordre exécuté à l'ouverture
+    multiplicateur: pd.Series = None   # (EXP-005) multiplicateur de risque appliqué chaque jour
 
 
 def _variation(apres, avant):
@@ -103,19 +104,47 @@ def simuler(ouvertures, clotures, cibles, debut=DEBUT_BACKTEST, seuil=SEUIL_TRAN
     return resultat
 
 
+def multiplicateur_risque(rendements, vol_cible=VOL_CIBLE, fenetre=504, borne_basse=1.0, borne_haute=2.5,
+                         historique_min=JOURS_PAR_AN):
+    """EXP-005 : agitation visée ÷ agitation réalisée sur les `fenetre` derniers jours (le jour même compris,
+    donc connu à la clôture), bornée. Vaut 1 tant qu'il y a moins de `historique_min` jours d'historique.
+    `borne_basse=None` : pas de borne basse."""
+    realisee = rendements.rolling(fenetre, min_periods=historique_min).std() * sqrt(JOURS_PAR_AN)
+    with np.errstate(divide="ignore"):
+        brut = vol_cible / realisee
+    return brut.clip(lower=borne_basse, upper=borne_haute).fillna(1.0)
+
+
+def cibles_strategie(ouvertures, clotures, notes, risque, vol_cible=VOL_CIBLE, seuil=SEUIL_TRANSACTION,
+                     frais=FRAIS, budget=None):
+    """Parts visées à partir des notes. Avec `budget` (EXP-005), la v2 normale est d'abord simulée depuis
+    le début des données pour mesurer son agitation réalisée, puis toutes les parts sont multipliées.
+    Renvoie (parts visées, multiplicateur ou None)."""
+    base = parts_cibles(notes, risque, vol_cible)
+    if budget is None:
+        return base, None
+    normale = simuler(ouvertures, clotures, base, debut=clotures.index[0], seuil=seuil, frais=frais)
+    m = multiplicateur_risque(normale.valeur.pct_change(), vol_cible, **budget)
+    return parts_cibles(notes, risque, vol_cible, multiplicateur=m), m
+
+
 def strategie_v2(ouvertures, clotures, detecteurs=DETECTEURS, vol_cible=VOL_CIBLE,
                  seuil=SEUIL_TRANSACTION, frais=FRAIS, debut=DEBUT_BACKTEST, risque=None, cassures=(),
-                 retour=(), poids_retour=POIDS_RETOUR_MOYENNE, details=False):
+                 retour=(), poids_retour=POIDS_RETOUR_MOYENNE, details=False, budget=None):
     """La stratégie v2 complète : notes -> parts visées -> simulation.
 
     `risque` peut être fourni pour éviter de le recalculer (tests de robustesse).
     `cassures` : détecteurs de cassure ajoutés à la note combinée (EXP-003). Vide = la v2.
     `retour`, `poids_retour` : détecteurs de retour à la moyenne et leur part de la note (EXP-004). Vide = la v2.
+    `budget` : réglages du multiplicateur de risque (EXP-005, voir BUDGET_RISQUE). None = la v2.
     """
     risque = risque or preparer_risque(clotures)
     notes = calculer_notes(clotures, detecteurs, cassures=cassures, retour=retour, poids_retour=poids_retour)
-    cibles = parts_cibles(notes, risque, vol_cible)
-    return simuler(ouvertures, clotures, cibles, debut, seuil, frais, details)
+    cibles, m = cibles_strategie(ouvertures, clotures, notes, risque, vol_cible, seuil, frais, budget)
+    resultat = simuler(ouvertures, clotures, cibles, debut, seuil, frais, details)
+    if m is not None:
+        resultat.multiplicateur = m.reindex(resultat.valeur.index)
+    return resultat
 
 
 # --- Points de comparaison ------------------------------------------------------------------------

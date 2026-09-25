@@ -33,6 +33,9 @@
   `robot/parametres.py`, `note_cassure` dans `robot/signaux.py`). La v2 est inchangée par défaut (`cassures=()`).
 - **EXP-004 (retour à la moyenne)** : `experience_004.py` mélange à 50/50 la tendance et RSI 14 + Bollinger 20
   (`RETOUR_MOYENNE`, `POIDS_RETOUR_MOYENNE` ; `note_rsi`, `note_bollinger`). Désactivé par défaut (`retour=()`).
+- **EXP-005 (budget de risque)** : `experience_005.py`. Multiplicateur = 12 % ÷ agitation réalisée de la v2 normale
+  sur 2 ans, borné [1 ; 2,5], appliqué avant les garde-fous (`BUDGET_RISQUE`, `multiplicateur_risque`,
+  `cibles_strategie` ; `strategie_v2(budget=...)`). Désactivé par défaut (`budget=None`).
 - `outils_experience.py` : déroulé commun des expériences (critères M1-M2, P1-P3, R1-R5, verdict).
 - **Tableau de bord** : `tableau_de_bord.py` calcule backtest, jour par jour, Monte Carlo (2 000 avenirs de 10 ans,
   blocs d'un mois), expériences et graphe du cerveau, puis remplit `tableau/modele.html` (d3 via cdnjs).

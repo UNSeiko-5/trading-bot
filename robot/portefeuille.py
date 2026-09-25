@@ -101,9 +101,14 @@ def appliquer_garde_fous(parts, part_max=PART_MAX_ACTIF, crypto_max=PART_MAX_CRY
     return parts.mul((exposition_max / total).where(total > exposition_max, 1.0), axis=0)
 
 
-def parts_cibles(notes, risque, vol_cible=VOL_CIBLE):
-    """Part du capital visée pour chaque actif et chaque jour (garde-fous compris)."""
+def parts_cibles(notes, risque, vol_cible=VOL_CIBLE, multiplicateur=None):
+    """Part du capital visée pour chaque actif et chaque jour (garde-fous compris).
+
+    `multiplicateur` (EXP-005) : un nombre par jour qui multiplie toutes les parts avant les garde-fous.
+    """
     brutes = risque.budgets.mul(risque.idm, axis=0) * vol_cible * (notes.fillna(0) / 10) / risque.volatilites
+    if multiplicateur is not None:
+        brutes = brutes.mul(multiplicateur.reindex(brutes.index).fillna(1.0), axis=0)
     brutes = brutes.where(risque.budgets > 0, 0.0).fillna(0.0)
     return appliquer_garde_fous(brutes)
 
