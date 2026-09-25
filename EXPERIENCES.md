@@ -686,3 +686,60 @@ seulement si **les 10 critères** sont réussis.
 
 **Décision :** la v3 = v2 + multiplicateur de risque (EXP-005) + zone tampon (EXP-006) est la
 version à brancher sur le robot en argent fictif (étape 7).
+
+---
+
+## EXP-007 — Croisement de moyennes en H1, filtré par la tendance weekly, avec stop et stop suiveur
+
+**Date :** 25/09/2026 · **Idée de l'utilisateur**
+
+**Pourquoi cette expérience :** tester une stratégie différente de la v3, qui entre sur un horizon
+court (bougies d'une heure) mais seulement dans le sens de la tendance de fond (weekly), et qui gère
+chaque position avec un stop calculé et un stop suiveur. Elle doit battre la **v3** (la base actuelle).
+
+**Règle testée (réglages fixés a priori, valeurs classiques, non ajustées sur les données) :**
+
+| Élément | Règle |
+|---|---|
+| Filtre de fond | Moyenne des 10 dernières clôtures hebdomadaires au-dessus de celle des 40 dernières. Uniquement des **semaines terminées** (clôtures quotidiennes Yahoo ajustées). Si le filtre est baissier : aucun nouvel achat. |
+| Déclencheur H1 | Moyenne exponentielle 20 bougies (« légère ») qui passe au-dessus de la moyenne exponentielle 50 bougies (« lissée »), constaté à la **clôture** d'une bougie d'une heure |
+| Entrée | Achat à l'**ouverture de la bougie suivante** (jamais avant la fin de la bougie du croisement) |
+| Stop initial | Prix d'entrée − 2 × l'agitation moyenne d'une bougie H1 (ATR de Wilder sur 14 bougies) |
+| Stop suiveur | Plus haut atteint depuis l'entrée − 3 × ATR, mis à jour à chaque clôture, ne redescend jamais. Pas de passage au prix d'entrée (pas de breakeven). |
+| Sortie | Uniquement quand le stop est touché. Si le prix ouvre déjà sous le stop (trou), la sortie se fait au prix d'ouverture, pas au prix du stop. |
+| Nouvelle entrée | Seulement sur un **nouveau** croisement haussier. |
+| Taille | Perte maximale de **0,5 % du capital** si le stop initial est touché ; au plus 25 % du capital par actif, 15 % en crypto, 100 % au total (jamais de levier). Pas de martingale, pas de grille. |
+| Marchés | Les 10 actifs de la v3 ; actions de 9h à 16h (heure de New York), crypto 24h/24 |
+| Frais | Identiques à la v3 : 0,10 % par transaction pour un ETF, 0,50 % pour la crypto |
+
+**Données et période :** bougies d'une heure ajustées (dividendes et divisions) de l'historique gratuit
+d'Alpaca, depuis 2016 si disponible. La v3 et les points de comparaison sont **recalculés sur la même
+période**. Si Alpaca fournit **moins de 6 ans** de bougies H1 pour les ETF, l'expérience est déclarée
+**non concluante** : trop court pour juger.
+
+**Ce qu'on attend honnêtement :** le filtre weekly et le stop suiveur sont de bonnes idées. Le risque
+principal : en H1, les moyennes se croisent souvent et un stop de 2 ATR H1 est serré (souvent moins
+qu'une journée normale de mouvement). Beaucoup de trades, beaucoup de frais, des sorties sur du bruit.
+Battre la v3 est possible mais incertain.
+
+**Hypothèse :** cette stratégie fait mieux que la v3 sur la même période et réussit les mêmes critères.
+
+**Critères de réussite (fixés avant les tests) :** les 10 critères d'EXP-006, avec la **v3** comme base.
+
+| # | Réussi si… |
+|---|---|
+| M1 | Rendement annuel supérieur d'au moins **0,5 point** à celui de la v3 (même période) |
+| M2 | Note rendement/risque au moins égale à **90 %** de celle de la v3 |
+| P1 | Pire chute meilleure que **-20 %** |
+| P2 | Rendement annuel d'au moins **6 %** |
+| P3 | Note rendement/risque meilleure que les 4 points de comparaison (même période) |
+| R1 | 10 variantes : moyennes H1 10/30 ; moyennes H1 40/100 ; stop initial 3 ATR ; stop suiveur 2 ATR ; stop suiveur 5 ATR ; risque de 0,25 % par trade ; risque de 1 % par trade ; sans filtre weekly ; filtre weekly 5/20 semaines ; sortie aussi dès que le filtre weekly devient baissier. Chaque variante : rendement d'au moins 4 %, pire chute meilleure que -25 %, note à ±30 % de la base |
+| R2 | Trois tiers égaux de la période : rendement positif dans les 3, note meilleure que le 60/40 dans au moins 2 |
+| R3 | Frais x3 : perte de moins de 1,5 point par an, pire chute meilleure que -20 % |
+| R4 | Sans la crypto : pire chute meilleure que -20 %, rendement d'au moins 5 %, note meilleure que le 60/40 |
+| R5 | Hasard : les signaux d'entrée de chaque actif décalés au hasard dans le temps (500 tirages), mêmes stops : note meilleure que 95 % des tirages |
+
+*Pour information :* nombre de trades, part de trades gagnants, facteur de profit, durée moyenne d'un
+trade, frais par an, part investie moyenne.
+
+**Verdict prévu :** la stratégie remplace la v3 seulement si **les 10 critères** sont réussis.
