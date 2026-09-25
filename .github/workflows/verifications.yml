@@ -29,3 +29,6 @@ jobs:
 
       - name: Test anti-chance (robustesse de la stratégie)
         run: python robustesse.py
+
+      - name: Contrôle qualité des données v2 (10 actifs)
+        run: python -m robot.donnees
