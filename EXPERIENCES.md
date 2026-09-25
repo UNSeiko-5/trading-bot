@@ -421,3 +421,54 @@ dans cette expérience.
 **Verdict prévu :** la version « v2 + retour à la moyenne » remplace la v2 comme base à battre
 seulement si **les 10 critères** (M1, M2, P1 à P3, R1 à R5) sont réussis. Sinon, la v2 reste la
 base et l'échec est documenté ici.
+
+**Résultats** (lancement GitHub du 25/09/2026, `python experience_004.py`, données `39f1a6f243ce`,
+du 03/01/2007 au 24/09/2026, soit 19,7 ans, frais compris) :
+
+| | Rendement/an | Pire chute | Note R/R | Agitation | Sharpe | Investi en moyenne |
+|---|---|---|---|---|---|---|
+| **v2 + retour à la moyenne** | **+1,0 %** | **-12,4 %** | **0,08** | 4,3 % | 0,26 | 36 % |
+| v2 (base à battre) | +6,3 % | -10,0 % | 0,63 | 7,0 % | 0,90 | 66 % |
+| Acheter et garder SPY | +11,0 % | -55,2 % | 0,20 | 19,6 % | 0,63 | |
+| 60/40 (SPY/IEF) | +8,2 % | -32,2 % | 0,25 | 11,0 % | 0,77 | |
+| v1 (200 jours sur SPY) | +7,9 % | -24,4 % | 0,32 | 11,8 % | 0,70 | |
+| Même panier sans signaux | +7,6 % | -20,0 % | 0,38 | 8,6 % | 0,89 | |
+
+Frais : **1,86 % par an** (v2 : 0,65 %). Pour information : lien entre retour à la moyenne et
+tendance = **-0,38** (sens opposés) ; note moyenne du retour à la moyenne = 5,4 (environ 10 visé).
+**Retour à la moyenne seul, sans la tendance : -1,9 % par an**, pire chute -42,2 %, investi à 27 %,
+frais de 2,78 % par an.
+
+| # | Test | Résultat | Verdict |
+|---|---|---|---|
+| M1 | +0,5 point par rapport à la v2 | +1,0 % contre +6,3 % : **-5,25 points** | ❌ |
+| M2 | Note R/R au moins égale à la v2 | 0,08 contre 0,63 | ❌ |
+| P1 | Pire chute meilleure que -20 % | -12,4 % | ✅ |
+| P2 | Rendement d'au moins 6 % | +1,0 % | ❌ |
+| P3 | Meilleure note que les 4 références | 0,08 : battue par les 4 | ❌ |
+| R1 | 11 variantes | Aucune réussie. Toutes entre -1,2 % et +4,7 %/an ; la meilleure est celle qui met le moins de retour à la moyenne (25 %) | ❌ |
+| R2 | Sous-périodes | 2007-2012 : +1,8 %/an · 2013-2019 : **-0,2 %/an** · 2020-2026 : +1,5 %/an. Meilleure que le 60/40 sur 1 période sur 3 | ❌ |
+| R3 | Frais x3 | -2,6 %/an (perte de 3,66 points), chute -44,5 % | ❌ |
+| R4 | Sans la crypto | +0,8 %/an, chute -16,6 %, note 0,05 (60/40 : 0,25) | ❌ |
+| R5 | Hasard (500 tirages) | Meilleure que 86 % seulement des versions au hasard (95 % exigés) | ❌ |
+
+**Conclusion :**
+
+- **Verdict officiel : 1/10, EXP-004 échoue nettement. La v2 reste la base à battre.**
+- **Ce qui était prévu s'est produit, en pire.** Le robot n'est plus investi qu'à 36 % (66 % pour
+  la v2), il paie presque 3 fois plus de frais (1,86 % par an), et les deux familles se
+  contredisent (lien de -0,38) : la moitié « retour à la moyenne » vend ce que la tendance achète.
+- **Le retour à la moyenne ne gagne rien sur ce panier, à cet horizon, avec cette exécution.**
+  Seul, il perd 1,9 % par an. Plus on lui donne de poids, pire c'est : 25 % → +4,7 %/an,
+  50 % → +1,0 %, 75 % → -1,2 %.
+- **Pas de réglage « sauveur » à aller chercher.** Toutes les variantes sont en dessous de la v2.
+  Celle qui s'en rapproche le plus est celle qui enlève le plus de retour à la moyenne : c'est
+  la preuve que c'est la famille entière qui coûte, pas un mauvais réglage.
+- Limites de ce test (connues d'avance) : exécution à l'ouverture du lendemain, qui rate une
+  partie du rebond ; un seul horizon court (1 à 4 semaines) ; frais de 0,10 % par transaction,
+  qui pèsent lourd sur un signal qui change d'avis souvent.
+
+**Décision :** on n'ajoute pas le retour à la moyenne au robot. Le code reste dans le dépôt,
+désactivé (`retour=()` par défaut). Leçon d'EXP-003 et d'EXP-004 : ajouter des familles de
+signaux ne règle pas le problème de la v2, qui est de n'utiliser qu'une partie de son budget
+de risque (investie à 66 %, 7 % d'agitation pour 12 % visés).

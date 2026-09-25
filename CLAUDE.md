@@ -54,14 +54,18 @@
     pire chute -10 % pour -25 % acceptés).
 - **EXP-003** (v2 + cassures de Donchian) : **8/10, échec.** Rendement -0,04 point (M1 ❌), sans crypto
   +4,3 %/an (R4 ❌). Cassures liées à 0,90 aux moyennes : elles n'apportent rien. Code gardé, désactivé.
+- **EXP-004** (v2 + retour à la moyenne, RSI 14 et Bollinger 20, mélange 50/50) : **1/10, échec net.**
+  +1,0 %/an, investi à 36 %, frais 1,86 %/an. Seul, le retour à la moyenne perd 1,9 %/an. Code gardé, désactivé.
 - **La v2 est la base à battre.**
 
 ## Prochaines étapes (choisies par l'utilisateur)
 
 1. ~~EXP-003 : cassures~~ : fait, échec (voir ci-dessus).
-2. **EXP-004 : retour à la moyenne** (RSI, Bollinger).
+2. ~~EXP-004 : retour à la moyenne~~ : fait, échec net (voir ci-dessus).
 3. **EXP-005 : filtre de panique** (VIX).
-4. Proposé : rémunérer le cash non investi (fonds monétaire) dans la simulation, pour toutes les versions.
+4. Proposé après EXP-003 et EXP-004 : s'attaquer au vrai problème de la v2, le budget de risque sous-utilisé
+   (investie à 66 %, agitation 7 % pour 12 % visés). À discuter avec l'utilisateur.
+5. Proposé : rémunérer le cash non investi (fonds monétaire) dans la simulation, pour toutes les versions.
 
 Chaque expérience doit faire mieux que la v2 **et** réussir les critères P1 à P3 et R1 à R5
 (mêmes seuils que EXP-002).
