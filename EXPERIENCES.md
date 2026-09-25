@@ -131,6 +131,36 @@ Années clés : 2008 +7,2 % (SPY -36,8 %) · 2022 -1,6 % (SPY -18,2 %, 60/40 -16
 - P2 ✅ +6,3 % par an (seuil 6 %, réussi de justesse)
 - P3 ✅ note rendement/risque 0,63, meilleure que les 4 références
 
-**Résultats — robustesse (étape 6) :** *(à remplir)*
+**Résultats — robustesse (étape 6)** (lancement GitHub du 25/09/2026, `python robustesse_v2.py`,
+données `cd4b24362ef5`) :
 
-**Conclusion :** *(à remplir après l'étape 6)*
+| # | Test | Résultat | Verdict |
+|---|---|---|---|
+| R1 | Autres réglages (7 variantes) | Toutes entre +5,8 % et +6,9 %/an, chutes entre -8,5 % et -11,1 %, note R/R à 13 % au plus de la base | ✅ |
+| R2 | Sous-périodes | 2007-2012 : +5,8 %/an, note 0,75 (60/40 : 0,16) · 2013-2019 : +6,2 %/an, note 0,70 (60/40 : **0,91**) · 2020-2026 : +6,5 %/an, note 0,65 (60/40 : 0,43). Positive partout, meilleure que le 60/40 sur 2 périodes sur 3 | ✅ |
+| R3 | Frais x3 | +4,9 %/an (perte de 1,34 point), chute -11,0 % | ✅ |
+| R4 | Sans la crypto | +4,4 %/an (**minimum fixé : 5 %**), chute -10,3 %, note R/R 0,43 (60/40 : 0,26) | ❌ |
+| R5 | Hasard (500 tirages) | Note R/R meilleure que **100 %** des versions au hasard (médiane du hasard : 0,23) | ✅ |
+
+Remarque technique : ces lancements incluaient la séance du jour encore en cours (d'où une
+empreinte de données différente d'un lancement à l'autre). L'effet sur les résultats est
+négligeable (1 jour sur près de 5 000). Le chargement des données exclut désormais la séance
+en cours.
+
+**Conclusion :**
+
+- **Verdict officiel : 7/8, la v2 n'est PAS validée.** Seul R4 échoue : sans la crypto, le
+  rendement tombe à +4,4 % par an, sous le minimum de 5 % fixé à l'avance.
+- **La maîtrise du risque est excellente et solide.** Pire chute d'environ -10 % dans toutes les
+  variantes, toutes les périodes et même sans crypto. Les signaux font mieux que 100 % des
+  versions au hasard : le timing est réel, pas de la chance.
+- **Le point faible, c'est le rendement.** Environ 1,9 point par an sur les 6,3 % vient de la
+  crypto, c'est-à-dire en partie du boom 2015-2021, qui ne se reproduira pas forcément. Le
+  rendement réaliste à attendre de la v2 est plutôt de 4,5 à 6 % par an.
+- **Diagnostic :** le robot sous-utilise son budget de risque. Il n'est investi qu'à 66 % en
+  moyenne, avec 7 % d'agitation (12 % visés), pour une pire chute de -10 % alors que la limite
+  acceptée est de -25 %.
+
+**Décision :** la v1 continue de tourner en paper trading. La v2 reste la meilleure base connue.
+Les prochaines expériences visent le rendement sans dégrader le risque. Chacune est comparée
+à la v2 et doit réussir les mêmes critères (P1 à P3, R1 à R5).

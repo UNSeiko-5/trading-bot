@@ -6,6 +6,9 @@ import hashlib
 import sys
 import time
 from dataclasses import dataclass
+from datetime import datetime
+from datetime import time as heure
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 import yfinance as yf
@@ -16,6 +19,17 @@ CALENDRIER = "SPY"   # les jours de bourse américains servent de calendrier com
 TROU_MAX = 3         # nombre de jours manquants comblés au maximum (au-delà : problème)
 REPETITIONS_MAX = 5  # prix identique au jour précédent 5 fois de suite : donnée figée
 VARIATION_SUSPECTE = {"ETF": 0.20, "crypto": 0.50}  # au-delà en un jour : avertissement
+NEW_YORK = ZoneInfo("America/New_York")
+SEANCE_TERMINEE_A = heure(16, 30)  # clôture à 16h00, avec une marge pour les prix définitifs
+
+
+def sans_seance_en_cours(calendrier, maintenant=None):
+    """Retire le jour en cours tant que la bourse de New York n'a pas fermé : ses prix sont
+    provisoires et changeraient d'un lancement à l'autre."""
+    maintenant = maintenant or datetime.now(NEW_YORK)
+    if len(calendrier) and calendrier[-1].date() == maintenant.date() and maintenant.time() < SEANCE_TERMINEE_A:
+        return calendrier[:-1]
+    return calendrier
 
 
 def telecharger(symbole, essais=3):
@@ -117,13 +131,13 @@ class Donnees:
         return hashlib.sha256(self.clotures.round(6).to_csv().encode()).hexdigest()[:12]
 
 
-def charger(symboles=None, telechargeur=telecharger):
-    """Télécharge, contrôle et aligne les actifs. Le calendrier est celui de SPY."""
+def charger(symboles=None, telechargeur=telecharger, maintenant=None):
+    """Télécharge, contrôle et aligne les actifs. Le calendrier est celui de SPY, sans la séance en cours."""
     symboles = symboles or [actif.symbole for actif in UNIVERS]
     historiques = {symbole: telechargeur(symbole) for symbole in symboles}
     if historiques[CALENDRIER].empty:
         raise RuntimeError(f"Aucune donnée pour {CALENDRIER}, impossible de construire le calendrier.")
-    calendrier = dates_simples(historiques[CALENDRIER].index).drop_duplicates()
+    calendrier = sans_seance_en_cours(dates_simples(historiques[CALENDRIER].index).drop_duplicates(), maintenant)
 
     rapport, exploitables = [], {}
     for symbole in symboles:

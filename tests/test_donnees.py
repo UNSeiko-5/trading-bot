@@ -2,7 +2,10 @@
 import numpy as np
 import pandas as pd
 
-from robot.donnees import aligner, charger, controler_brut, dates_simples
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
+from robot.donnees import aligner, charger, controler_brut, dates_simples, sans_seance_en_cours
 
 
 def historique(dates, prix=None, fuseau="America/New_York"):
@@ -125,3 +128,25 @@ def test_un_actif_sans_donnees_rend_le_jeu_inutilisable():
         return pd.DataFrame() if symbole == "GLD" else faux_telechargeur(symbole)
     donnees = charger(["SPY", "GLD"], telechargeur=telechargeur)
     assert not donnees.utilisables
+
+
+# --- Séance en cours ---------------------------------------------------------------------------
+
+NY = ZoneInfo("America/New_York")
+
+
+def test_la_seance_en_cours_est_retiree():
+    calendrier = pd.bdate_range("2026-09-21", "2026-09-25")
+    resultat = sans_seance_en_cours(calendrier, datetime(2026, 9, 25, 11, 0, tzinfo=NY))
+    assert resultat[-1] == pd.Timestamp("2026-09-24")
+
+
+def test_une_seance_terminee_est_gardee():
+    calendrier = pd.bdate_range("2026-09-21", "2026-09-25")
+    resultat = sans_seance_en_cours(calendrier, datetime(2026, 9, 25, 17, 0, tzinfo=NY))
+    assert resultat[-1] == pd.Timestamp("2026-09-25")
+
+
+def test_le_chargement_ignore_les_prix_provisoires_du_jour():
+    donnees = charger(["SPY", "GLD"], telechargeur=faux_telechargeur, maintenant=datetime(2026, 9, 30, 12, 0, tzinfo=NY))
+    assert donnees.clotures.index[-1] == pd.Timestamp("2026-09-29")
