@@ -164,3 +164,102 @@ en cours.
 **Décision :** la v1 continue de tourner en paper trading. La v2 reste la meilleure base connue.
 Les prochaines expériences visent le rendement sans dégrader le risque. Chacune est comparée
 à la v2 et doit réussir les mêmes critères (P1 à P3, R1 à R5).
+
+---
+
+## EXP-003 — Ajout des cassures (canal de Donchian) à la note combinée
+
+**Date :** 25/09/2026
+
+**Pourquoi cette expérience :** EXP-002 a montré que la v2 maîtrise très bien le risque, mais
+qu'elle rapporte trop peu : +4,4 % par an sans la crypto (R4 échoué). Les cassures sont la
+deuxième grande famille de signaux de tendance des fonds systématiques (les « Tortues »,
+R. Carver). Idée : repérer les tendances de deux façons différentes rend la note combinée plus
+fiable, donc devrait améliorer le rendement pour le même risque.
+
+**Règle testée :** la v2 à l'identique (`docs/STRATEGIE_V2.md`), avec **une seule différence** :
+la note combinée fait la moyenne de **6 détecteurs** au lieu de 3 : les 3 moyennes de la v2,
+plus 3 détecteurs de cassure.
+
+Détecteur de cassure sur N jours (règle « breakout » publiée par R. Carver, code public
+pysystemtrade, `systems/provided/rules/breakout.py`) :
+
+1. Canal de Donchian : plus haut et plus bas des clôtures des N derniers jours (jour même compris).
+2. Position du prix dans le canal : `40 × (prix − milieu du canal) ÷ (haut − bas)`.
+   Cela donne -20 en bas du canal, 0 au milieu, +20 tout en haut (au moment d'une cassure).
+3. Lissage : moyenne exponentielle sur N/4 jours, pour éviter les allers-retours.
+4. Multiplication par le facteur d'échelle publié, pour que la note moyenne vaille environ 10.
+5. Note bornée entre -20 et +20, comme les autres détecteurs.
+
+| Détecteur | Durée du canal | Lissage | Facteur d'échelle | Horizon |
+|---|---|---|---|---|
+| Cassure courte | 40 jours | 10 jours | 0,70 | environ 2 mois |
+| Cassure moyenne | 80 jours | 20 jours | 0,73 | environ 4 mois |
+| Cassure longue | 160 jours | 40 jours | 0,74 | environ 8 mois |
+
+Les facteurs sont ceux de R. Carver (pysystemtrade, `systems/provided/rob_system/config.yaml` :
+0,704 ; 0,726 ; 0,739), **pas ajustés sur nos données**. Les durées sont choisies a priori pour
+couvrir les mêmes horizons que les 3 moyennes de la v2.
+
+**Note combinée** = moyenne des 6 notes (donc moitié moyennes, moitié cassures), puis bornée
+entre 0 et 20. **Tout le reste est inchangé** : panier, budgets de risque, agitation visée de 12 %,
+IDM, garde-fous, seuil de transaction, frais, exécution à l'ouverture suivante, période 2007-2026.
+
+À savoir : une note de cassure ne dépasse jamais environ 14,8 (20 × 0,74), alors qu'une note de
+moyenne peut monter à 20. C'est la conception de Carver, on ne la corrige pas.
+
+**Ce qu'on attend honnêtement (écrit avant les tests) :** cassures et moyennes mesurent la même
+chose (« le prix monte-t-il ? ») et sont très liées. Dans la littérature, ajouter des cassures
+rend le résultat un peu plus régulier, mais augmente rarement beaucoup le rendement. Surtout,
+cette expérience ne touche pas au problème principal trouvé par EXP-002 (robot investi à 66 %
+seulement). **Un gain faible ou nul est le résultat le plus probable.** On teste quand même :
+c'est peu coûteux, et un échec évite d'ajouter de la complexité inutile au robot.
+
+**Hypothèse :** ajouter les cassures augmente le rendement de la v2 d'au moins 0,5 point par an
+sans dégrader sa note rendement/risque, et la nouvelle version réussit tous les critères
+d'EXP-002, y compris R4 (sans la crypto), que la v2 ratait.
+
+**Critères de réussite (fixés avant les tests) :**
+
+*Mieux que la v2 (nouveau) — comparaison dans le même lancement, sur les mêmes données :*
+
+| # | Réussi si… |
+|---|---|
+| M1 | Rendement annuel supérieur d'au moins **0,5 point** à celui de la v2 |
+| M2 | Note rendement/risque **au moins égale** à celle de la v2 |
+
+Pourquoi 0,5 point : 3 détecteurs de plus rendent le robot plus compliqué. En dessous d'un
+demi-point par an, le gain est trop petit pour être distingué du bruit et ne justifie pas
+cette complexité.
+
+*Performance — identiques à EXP-002 :*
+
+| # | Réussi si… |
+|---|---|
+| P1 | Pire chute meilleure que **-20 %** |
+| P2 | Rendement annuel d'au moins **6 %** |
+| P3 | Note rendement/risque meilleure que les 4 points de comparaison : acheter et garder SPY, 60/40, v1, et le même panier toujours investi |
+
+*Robustesse — mêmes seuils que EXP-002. Seules les variantes de R1 changent, pour tester aussi
+les réglages des cassures :*
+
+| # | Test | Réussi si… |
+|---|---|---|
+| R1 | 9 variantes : cassures seules (sans les moyennes) ; horizon court seul (moyenne 16/64 + cassure 40) ; horizon long seul (moyenne 64/256 + cassure 160) ; cassures plus rapides (20, 40, 80 jours, facteurs publiés 0,67 ; 0,70 ; 0,73) ; cassures plus lentes (80, 160, 320 jours, facteurs 0,73 ; 0,74 ; 0,74) ; moyennes x1,5 comme dans EXP-002 (cassures inchangées) ; agitation visée de 10 % et de 14 % ; seuil de transaction de 1 % et de 4 % | Chaque variante garde un rendement d'au moins 4 %, une pire chute meilleure que -25 %, et une note rendement/risque à ±30 % de la version de base |
+| R2 | Sous-périodes : 2007-2012, 2013-2019, 2020-2026 | Rendement positif dans les 3, et note rendement/risque meilleure que le 60/40 dans au moins 2 sur 3 |
+| R3 | Frais multipliés par 3 | Perte de moins de 1,5 point de rendement par an, et pire chute toujours meilleure que -20 % |
+| R4 | Sans la crypto | Pire chute meilleure que -20 %, rendement d'au moins 5 %, et note rendement/risque meilleure que le 60/40 |
+| R5 | Hasard : note combinée de chaque actif décalée au hasard dans le temps (500 tirages) | Note rendement/risque meilleure qu'au moins 95 % des versions au hasard |
+
+Remarque sur la variante « cassures plus lentes » : le canal de 320 jours demande plus que les
+300 jours d'historique minimum, donc chaque actif y entre 20 jours plus tard. Effet attendu
+négligeable, on le laisse tel quel.
+
+*Affiché pour information seulement (pas des critères) :* part investie moyenne, lien
+(corrélation) entre les notes de cassure et les notes de moyenne, et contrôle d'échelle des
+cassures (note moyenne visée : environ 10). Si ce contrôle s'écarte beaucoup de 10, on le note,
+mais on ne corrige pas les facteurs dans cette expérience.
+
+**Verdict prévu :** la version « v2 + cassures » remplace la v2 comme base à battre seulement si
+**les 10 critères** (M1, M2, P1 à P3, R1 à R5) sont réussis. Sinon, la v2 reste la base et
+l'échec est documenté ici.
