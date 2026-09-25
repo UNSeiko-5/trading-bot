@@ -66,3 +66,10 @@ jobs:
 
       - name: Expérience EXP-006 (budget de risque + zone tampon, critères M, P et R)
         run: python experience_006.py
+
+      - name: Expérience EXP-007 (croisement H1 filtré weekly, critères M, P et R)
+        # Les clés Alpaca servent seulement à LIRE l'historique des bougies d'une heure (aucun ordre).
+        env:
+          ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+        run: python experience_007.py

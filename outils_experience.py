@@ -12,14 +12,14 @@ import robustesse_v2
 M1_GAIN_MIN = 0.005     # au moins +0,5 point de rendement par an par rapport à la v2
 
 
-def verifier_mieux(nouvelle, v2, m2_part_min=1.0):
+def verifier_mieux(nouvelle, v2, m2_part_min=1.0, base="la v2"):
     """Renvoie les critères M1 et M2 : (nom, réussi, détail).
     `m2_part_min` : part minimale de la note rendement/risque de la v2 à garder (1 = au moins égale)."""
     gain = nouvelle["rendement_annuel"] - v2["rendement_annuel"]
-    nom_m2 = ("M2 Note rendement/risque au moins égale à celle de la v2" if m2_part_min == 1 else
-              f"M2 Note rendement/risque au moins égale à {m2_part_min * 100:.0f} % de celle de la v2")
+    nom_m2 = (f"M2 Note rendement/risque au moins égale à celle de {base}" if m2_part_min == 1 else
+              f"M2 Note rendement/risque au moins égale à {m2_part_min * 100:.0f} % de celle de {base}")
     return [
-        ("M1 Au moins +0,5 point de rendement par an de plus que la v2", gain >= M1_GAIN_MIN,
+        (f"M1 Au moins +0,5 point de rendement par an de plus que {base}", gain >= M1_GAIN_MIN,
          f"{nouvelle['rendement_annuel']:+.1%} contre {v2['rendement_annuel']:+.1%} ({gain * 100:+.2f} point)"),
         (nom_m2, nouvelle["note_rendement_risque"] >= m2_part_min * v2["note_rendement_risque"],
          f"{nouvelle['note_rendement_risque']:.2f} contre {v2['note_rendement_risque']:.2f}"),

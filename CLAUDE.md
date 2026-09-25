@@ -41,6 +41,8 @@
   `cibles_strategie` ; `strategie_v2(budget=...)`). Désactivé par défaut (`budget=None`).
 - **EXP-006 (zone tampon)** : `experience_006.py`. EXP-005 + zone tampon de Carver (±10 % de la position normale,
   on ne va qu'au bord) : `TAMPON`, `tampon_rapide`, `parts_normales` ; `strategie_v2(tampon=...)`.
+- **EXP-007 (H1 filtrée weekly, idée de l'utilisateur)** : `experience_007.py` + `robot/h1.py` (bougies H1 Alpaca,
+  croisement EMA 20/50, filtre 10/40 semaines, stop 2 ATR, suiveur 3 ATR, risque 0,5 %/trade). Base à battre : v3.
 - `outils_experience.py` : déroulé commun des expériences (critères M1-M2, P1-P3, R1-R5, verdict).
 - **Tableau de bord** : `tableau_de_bord.py` calcule backtest, jour par jour, Monte Carlo (2 000 avenirs de 10 ans,
   blocs d'un mois), expériences et graphe du cerveau, puis remplit `tableau/modele.html` (d3 via cdnjs).
