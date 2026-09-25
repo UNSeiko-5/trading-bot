@@ -101,6 +101,31 @@ def appliquer_garde_fous(parts, part_max=PART_MAX_ACTIF, crypto_max=PART_MAX_CRY
     return parts.mul((exposition_max / total).where(total > exposition_max, 1.0), axis=0)
 
 
+def parts_normales(risque, vol_cible=VOL_CIBLE, multiplicateur=None):
+    """Part qu'aurait chaque actif avec une note de 10 (tendance « normale »), avant les plafonds.
+    Sert à régler la largeur de la zone tampon (EXP-006)."""
+    dix = pd.DataFrame(10.0, index=risque.volatilites.index, columns=risque.volatilites.columns)
+    brutes = risque.budgets.mul(risque.idm, axis=0) * vol_cible * (dix / 10) / risque.volatilites
+    if multiplicateur is not None:
+        brutes = brutes.mul(multiplicateur.reindex(brutes.index).fillna(1.0), axis=0)
+    return brutes.where(risque.budgets > 0, 0.0).fillna(0.0)
+
+
+def tampon_rapide(cibles, actuelles, largeurs, crypto,
+                  part_max=PART_MAX_ACTIF, crypto_max=PART_MAX_CRYPTO, exposition_max=EXPOSITION_MAX):
+    """Zone tampon de R. Carver (EXP-006) : on ne bouge pas si la position est à moins de `largeurs`
+    de la cible ; sinon on la ramène seulement jusqu'au bord de la zone. Cible à 0 : on vend tout.
+    Si le résultat violait un garde-fou, on applique toutes les cibles."""
+    nouvelles = np.clip(actuelles, cibles - largeurs, cibles + largeurs)
+    nouvelles = np.where(cibles == 0, 0.0, np.maximum(nouvelles, 0.0))
+    respecte = (
+        (nouvelles <= part_max + TOLERANCE).all()
+        and nouvelles[crypto].sum() <= crypto_max + TOLERANCE
+        and nouvelles.sum() <= exposition_max + TOLERANCE
+    )
+    return nouvelles if respecte else cibles.copy()
+
+
 def parts_cibles(notes, risque, vol_cible=VOL_CIBLE, multiplicateur=None):
     """Part du capital visée pour chaque actif et chaque jour (garde-fous compris).
 

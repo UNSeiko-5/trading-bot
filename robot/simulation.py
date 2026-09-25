@@ -15,7 +15,7 @@ import pandas as pd
 from robot.parametres import (
     DEBUT_BACKTEST, DETECTEURS, FRAIS, JOURS_PAR_AN, POIDS_RETOUR_MOYENNE, SEUIL_TRANSACTION, VOL_CIBLE,
 )
-from robot.portefeuille import est_crypto, parts_cibles, preparer_risque, seuil_rapide
+from robot.portefeuille import est_crypto, parts_cibles, parts_normales, preparer_risque, seuil_rapide, tampon_rapide
 from robot.signaux import notes as calculer_notes
 from robot.univers import PAR_SYMBOLE
 
@@ -42,9 +42,11 @@ def frais_par_actif(symboles, frais=FRAIS):
     return np.array([frais[PAR_SYMBOLE[s].type] if s in PAR_SYMBOLE else frais["ETF"] for s in symboles])
 
 
-def simuler(ouvertures, clotures, cibles, debut=DEBUT_BACKTEST, seuil=SEUIL_TRANSACTION, frais=FRAIS, details=False):
+def simuler(ouvertures, clotures, cibles, debut=DEBUT_BACKTEST, seuil=SEUIL_TRANSACTION, frais=FRAIS, details=False,
+            tampons=None):
     """Simule la stratégie jour par jour. `cibles` : part visée de chaque actif, décidée chaque soir.
 
+    `tampons` (EXP-006) : demi-largeur de la zone tampon de chaque actif chaque jour ; remplace le seuil.
     `details=True` garde aussi le gain de chaque actif chaque jour et la liste des ordres (pour le rejeu
     et le rapport). Plus lent : réservé à l'affichage, pas aux tests de robustesse.
     """
@@ -54,6 +56,7 @@ def simuler(ouvertures, clotures, cibles, debut=DEBUT_BACKTEST, seuil=SEUIL_TRAN
     c = clotures.loc[dates, symboles].to_numpy(dtype=float)
     w = cibles.reindex(index=dates, columns=symboles).fillna(0).to_numpy(dtype=float)
     crypto = np.array([est_crypto(s) for s in symboles])
+    b = None if tampons is None else tampons.reindex(index=dates, columns=symboles).fillna(0).to_numpy(dtype=float)
     taux = frais_par_actif(symboles, frais)
 
     n, k = c.shape
@@ -68,7 +71,8 @@ def simuler(ouvertures, clotures, cibles, debut=DEBUT_BACKTEST, seuil=SEUIL_TRAN
             positions = positions * _variation(o[t], c[t - 1])      # 1. la nuit
             if details:
                 gains[t] += positions - avant
-            decision = seuil_rapide(w[t - 1], poids[t - 1], crypto, seuil)
+            decision = (seuil_rapide(w[t - 1], poids[t - 1], crypto, seuil) if b is None
+                        else tampon_rapide(w[t - 1], poids[t - 1], b[t - 1], crypto))
             bouger = decision != poids[t - 1]
             if bouger.any():                                         # 2. exécution à l'ouverture
                 capital = cash + positions.sum()
@@ -116,21 +120,24 @@ def multiplicateur_risque(rendements, vol_cible=VOL_CIBLE, fenetre=504, borne_ba
 
 
 def cibles_strategie(ouvertures, clotures, notes, risque, vol_cible=VOL_CIBLE, seuil=SEUIL_TRANSACTION,
-                     frais=FRAIS, budget=None):
+                     frais=FRAIS, budget=None, tampon=None):
     """Parts visées à partir des notes. Avec `budget` (EXP-005), la v2 normale est d'abord simulée depuis
     le début des données pour mesurer son agitation réalisée, puis toutes les parts sont multipliées.
-    Renvoie (parts visées, multiplicateur ou None)."""
-    base = parts_cibles(notes, risque, vol_cible)
-    if budget is None:
-        return base, None
-    normale = simuler(ouvertures, clotures, base, debut=clotures.index[0], seuil=seuil, frais=frais)
-    m = multiplicateur_risque(normale.valeur.pct_change(), vol_cible, **budget)
-    return parts_cibles(notes, risque, vol_cible, multiplicateur=m), m
+    Avec `tampon` (EXP-006), calcule aussi la demi-largeur de la zone tampon = tampon x part « normale ».
+    Renvoie (parts visées, multiplicateur ou None, zones tampons ou None)."""
+    m = None
+    if budget is not None:
+        base = parts_cibles(notes, risque, vol_cible)
+        normale = simuler(ouvertures, clotures, base, debut=clotures.index[0], seuil=seuil, frais=frais)
+        m = multiplicateur_risque(normale.valeur.pct_change(), vol_cible, **budget)
+    cibles = parts_cibles(notes, risque, vol_cible, multiplicateur=m)
+    tampons = None if tampon is None else tampon * parts_normales(risque, vol_cible, m)
+    return cibles, m, tampons
 
 
 def strategie_v2(ouvertures, clotures, detecteurs=DETECTEURS, vol_cible=VOL_CIBLE,
                  seuil=SEUIL_TRANSACTION, frais=FRAIS, debut=DEBUT_BACKTEST, risque=None, cassures=(),
-                 retour=(), poids_retour=POIDS_RETOUR_MOYENNE, details=False, budget=None):
+                 retour=(), poids_retour=POIDS_RETOUR_MOYENNE, details=False, budget=None, tampon=None):
     """La stratégie v2 complète : notes -> parts visées -> simulation.
 
     `risque` peut être fourni pour éviter de le recalculer (tests de robustesse).
@@ -140,8 +147,8 @@ def strategie_v2(ouvertures, clotures, detecteurs=DETECTEURS, vol_cible=VOL_CIBL
     """
     risque = risque or preparer_risque(clotures)
     notes = calculer_notes(clotures, detecteurs, cassures=cassures, retour=retour, poids_retour=poids_retour)
-    cibles, m = cibles_strategie(ouvertures, clotures, notes, risque, vol_cible, seuil, frais, budget)
-    resultat = simuler(ouvertures, clotures, cibles, debut, seuil, frais, details)
+    cibles, m, tampons = cibles_strategie(ouvertures, clotures, notes, risque, vol_cible, seuil, frais, budget, tampon)
+    resultat = simuler(ouvertures, clotures, cibles, debut, seuil, frais, details, tampons)
     if m is not None:
         resultat.multiplicateur = m.reindex(resultat.valeur.index)
     return resultat

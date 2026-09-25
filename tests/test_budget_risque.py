@@ -113,9 +113,9 @@ def test_cibles_strategie_renvoie_le_multiplicateur():
     o, c = marche_fictif(5)
     risque = preparer_risque(c)
     notes = calculer_notes(c)
-    cibles, m = cibles_strategie(o, c, notes, risque)
+    cibles, m, _ = cibles_strategie(o, c, notes, risque)
     assert m is None
-    cibles_b, m_b = cibles_strategie(o, c, notes, risque, budget=BUDGET_RISQUE)
+    cibles_b, m_b, _ = cibles_strategie(o, c, notes, risque, budget=BUDGET_RISQUE)
     assert m_b.between(1, 2.5).all() and (cibles_b.sum(axis=1) >= cibles.sum(axis=1) - 1e-9).all()
 
 

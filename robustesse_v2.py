@@ -120,11 +120,13 @@ def test_r5(ouvertures, clotures, risque, base, reglage=None, nom="la v2"):
     print(f"\nR5 — Hasard : signaux décalés au hasard dans le temps ({R5_TIRAGES} tirages)")
     notes = notes_du_reglage(clotures, reglage)
     budget = (reglage or {}).get("budget")   # EXP-005 : multiplicateur recalculé pour chaque version au hasard
+    tampon = (reglage or {}).get("tampon")   # EXP-006 : zone tampon appliquée à chaque version au hasard
     aleatoire = np.random.default_rng(42)  # graine fixe : même résultat à chaque lancement
     notes_hasard, rendements_hasard = [], []
     for _ in range(R5_TIRAGES):
-        cibles, _ = cibles_strategie(ouvertures, clotures, decaler_au_hasard(notes, aleatoire), risque, budget=budget)
-        m = mesures(simuler(ouvertures, clotures, cibles).valeur)
+        cibles, _, tampons = cibles_strategie(ouvertures, clotures, decaler_au_hasard(notes, aleatoire), risque,
+                                              budget=budget, tampon=tampon)
+        m = mesures(simuler(ouvertures, clotures, cibles, tampons=tampons).valeur)
         notes_hasard.append(m["note_rendement_risque"])
         rendements_hasard.append(m["rendement_annuel"])
     part = float(np.mean(base["note_rendement_risque"] > np.array(notes_hasard)))

@@ -22,6 +22,9 @@ POIDS_RETOUR_MOYENNE = 0.5    # part de la note combinée donnée au retour à l
 # Fenêtre et borne haute reprises du bonus de diversification (IDM) ; 1 an d'historique minimum.
 BUDGET_RISQUE = {"fenetre": 504, "borne_basse": 1.0, "borne_haute": 2.5, "historique_min": 252}
 
+# --- Zone tampon (EXP-006, en test) : demi-largeur = 10 % de la position « normale » (R. Carver) ---
+TAMPON = 0.10
+
 # --- Taille des positions (section 5) ------------------------------------------------
 VOL_CIBLE = 0.12              # agitation annuelle visée pour tout le portefeuille
 FENETRE_VOL = 35              # jours (moyenne exponentielle) pour mesurer l'agitation
