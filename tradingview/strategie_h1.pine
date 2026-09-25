@@ -1,0 +1,59 @@
+//@version=5
+// EXP-007 : croisement de moyennes H1 filtré par la tendance weekly, stop 2 ATR, stop suiveur 3 ATR.
+// Stratégie de l'utilisateur, testée par le robot : 0/10 (voir EXPERIENCES.md). Ce script sert à VOIR
+// ses trades sur les bougies, pas à la juger : le verdict vient du test sur 10 ans.
+// À utiliser sur un graphique en 1 heure (H1).
+strategy("EXP-007 · Croisement H1 filtré weekly", overlay=true, initial_capital=100000,
+     commission_type=strategy.commission.percent, commission_value=0.1, pyramiding=0,
+     process_orders_on_close=false)
+
+// Réglages fixés dans EXPERIENCES.md (identiques à REGLAGE_H1 dans robot/h1.py)
+COURTE = 20
+LONGUE = 50
+ATR_N = 14
+STOP_INIT = 2.0
+SUIVEUR = 3.0
+RISQUE = 0.005
+WEEKLY_COURTE = 10
+WEEKLY_LONGUE = 40
+PART_MAX = 0.25
+
+// Moyennes H1 et agitation (ATR de Wilder)
+ema_courte = ta.ema(close, COURTE)
+ema_longue = ta.ema(close, LONGUE)
+atr = ta.atr(ATR_N)
+croisement = ta.crossover(ema_courte, ema_longue)
+
+// Filtre weekly sur la dernière semaine TERMINÉE (pas de triche avec le futur)
+haussier_w = ta.sma(close, WEEKLY_COURTE) > ta.sma(close, WEEKLY_LONGUE)
+weekly = request.security(syminfo.tickerid, "W", haussier_w[1], lookahead=barmerge.lookahead_on)
+
+// Entrée : croisement constaté à la clôture, achat à l'ouverture de la bougie suivante
+var float stop = na
+var float plus_haut = na
+if croisement and weekly and strategy.position_size == 0
+    distance = STOP_INIT * atr
+    quantite = math.min(strategy.equity * RISQUE / distance, strategy.equity * PART_MAX / close)
+    strategy.entry("Achat", strategy.long, qty=quantite)
+    stop := close - distance          // provisoire : recalé sur le vrai prix d'achat à la bougie suivante
+    plus_haut := na
+
+// Position ouverte : stop initial recalé, puis stop suiveur qui ne redescend jamais
+if strategy.position_size > 0
+    if strategy.position_size[1] == 0
+        stop := strategy.position_avg_price - STOP_INIT * atr[1]
+        plus_haut := high
+    plus_haut := math.max(plus_haut, high)
+    stop := math.max(stop, plus_haut - SUIVEUR * atr)
+if strategy.position_size > 0 or (croisement and weekly)
+    strategy.exit("Stop", "Achat", stop=stop)
+if strategy.position_size == 0 and not (croisement and weekly)
+    stop := na
+
+// Affichage
+plot(ema_courte, "Moyenne H1 20", color=color.new(color.aqua, 0), linewidth=1)
+plot(ema_longue, "Moyenne H1 50", color=color.new(color.orange, 0), linewidth=2)
+plot(strategy.position_size > 0 ? stop : na, "Stop (suiveur)", color=color.red, style=plot.style_linebr, linewidth=2)
+bgcolor(weekly ? color.new(color.green, 92) : color.new(color.red, 92), title="Tendance weekly")
+plotshape(croisement and not weekly, "Croisement ignoré (weekly baissier)", shape.xcross, location.belowbar,
+     color.new(color.gray, 0), size=size.tiny)

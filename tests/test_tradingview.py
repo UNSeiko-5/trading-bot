@@ -58,3 +58,15 @@ def test_l_indicateur_donne_la_meme_note_que_le_robot_une_fois_l_historique_suff
         # Au-delà de 1 500 jours (6 ans d'historique sur le graphique), l'écart est négligeable
         ecart = (robot - indicateur).abs().iloc[1500:]
         assert ecart.max() < 0.01, (graine, ecart.max())
+
+
+def test_la_strategie_h1_tradingview_a_les_reglages_d_exp_007():
+    from robot.h1 import REGLAGE_H1
+    from robot.parametres import PART_MAX_ACTIF
+    pine = (Path(__file__).parent.parent / "tradingview" / "strategie_h1.pine").read_text(encoding="utf-8")
+    val = lambda nom: float(re.search(rf"^{nom} = ([\d.]+)$", pine, re.M).group(1))
+    assert (val("COURTE"), val("LONGUE"), val("ATR_N")) == (REGLAGE_H1["courte"], REGLAGE_H1["longue"], REGLAGE_H1["atr"])
+    assert (val("STOP_INIT"), val("SUIVEUR"), val("RISQUE")) == (REGLAGE_H1["stop_init"], REGLAGE_H1["suiveur"], REGLAGE_H1["risque"])
+    assert (val("WEEKLY_COURTE"), val("WEEKLY_LONGUE")) == REGLAGE_H1["weekly"]
+    assert val("PART_MAX") == PART_MAX_ACTIF
+    assert "lookahead_on" in pine and "haussier_w[1]" in pine   # semaine terminée seulement

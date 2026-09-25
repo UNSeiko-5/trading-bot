@@ -50,7 +50,7 @@
 - **Testeur visuel** : `python rejeu.py` (sur l'ordinateur de l'utilisateur, où Yahoo marche) rejoue le backtest
   jour par jour dans le navigateur (`tableau/modele_rejeu.html`, serveur local port 8765) avec journal des ordres,
   positions, et rapport façon MetaTrader (`robot/rapport.py` ; simulation `details=True`). Options `--capital`, `--version`.
-- **TradingView** : `tradingview/tendance_v2.pine` (Pine Script v5) affiche la note de tendance de la v2 ;
+- **TradingView** : `tradingview/tendance_v2.pine` (Pine Script v5) affiche la note de tendance de la v2 ; `tradingview/strategie_h1.pine` rejoue EXP-007 dans le testeur de stratégie (pour voir les trades) ;
   `tests/test_tradingview.py` vérifie que ses réglages et sa formule suivent `robot/signaux.py`.
 - **Cerveau** : dossier `cerveau/` (notes Obsidian reliées par [[liens]] : Expériences, Concepts, Leçons).
   À compléter après chaque expérience ; aucun lien cassé ni note isolée (vérifié par les tests).
