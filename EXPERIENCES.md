@@ -112,6 +112,25 @@ fixés a priori.
 **Verdict prévu :** la v2 remplace la v1 seulement si **tous** les critères (P1 à P3, R1 à R5)
 sont remplis. Sinon, on documente ce qui échoue et on corrige par une nouvelle expérience.
 
-**Résultats :** *(à remplir après les tests, étapes 5 et 6)*
+**Résultats — performance (étape 5)** (lancement GitHub du 25/09/2026, `python backtest_v2.py`,
+données `94e466b5440e`, du 03/01/2007 au 25/09/2026, soit 19,7 ans, frais compris) :
 
-**Conclusion :** *(à remplir après les tests)*
+| | Rendement/an | Pire chute | Note R/R | Agitation | Sharpe |
+|---|---|---|---|---|---|
+| **Stratégie v2** | **+6,3 %** | **-10,0 %** | **0,63** | 7,0 % | 0,90 |
+| Acheter et garder SPY | +11,0 % | -55,2 % | 0,20 | 19,6 % | 0,63 |
+| 60/40 (SPY/IEF) | +8,2 % | -32,2 % | 0,26 | 11,0 % | 0,77 |
+| v1 (200 jours sur SPY) | +7,9 % | -24,4 % | 0,32 | 11,8 % | 0,70 |
+| Même panier sans signaux | +7,6 % | -20,0 % | 0,38 | 8,6 % | 0,89 |
+
+v2 investie en moyenne à 66 %, montant échangé de 585 % du capital par an, frais de 0,65 % par an.
+Années clés : 2008 +7,2 % (SPY -36,8 %) · 2022 -1,6 % (SPY -18,2 %, 60/40 -16,6 %) ·
+2013 +1,0 % (SPY +32,3 %) · 2023 -2,1 % (SPY +26,2 %).
+
+- P1 ✅ pire chute -10,0 % (seuil -20 %)
+- P2 ✅ +6,3 % par an (seuil 6 %, réussi de justesse)
+- P3 ✅ note rendement/risque 0,63, meilleure que les 4 références
+
+**Résultats — robustesse (étape 6) :** *(à remplir)*
+
+**Conclusion :** *(à remplir après l'étape 6)*
