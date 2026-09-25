@@ -1,12 +1,11 @@
-from alpaca.trading.client import TradingClient
+# ⚠️ Ce script passe un VRAI ordre (achat d'une part de SPY) sur le compte paper.
 from alpaca.trading.requests import MarketOrderRequest
 from alpaca.trading.enums import OrderSide, TimeInForce
 
-# Identifiants Alpaca Paper
-API_KEY = "PKGS6QEGFF5SKYFB3CCKYK2OUU"
-SECRET_KEY = "Dzrt7xsFwQM5P5fBxSBbxgyoHvY8DHubVABtxQkzjamZ"
+from connexion import client_alpaca
 
-client = TradingClient(API_KEY, SECRET_KEY, paper=True)
+# Les clés sont lues depuis le fichier .env (voir .env.example), plus jamais écrites ici
+client = client_alpaca()
 
 # Préparation de l'ordre : achat d'une part de SPY
 ordre = MarketOrderRequest(
