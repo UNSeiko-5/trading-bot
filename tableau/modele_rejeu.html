@@ -82,7 +82,7 @@ td:first-child { font-family: var(--sans); }
 .onglets button { background: none; border: 0; border-bottom: 2px solid transparent; color: var(--texte-2); padding: 8px 14px; cursor: pointer; white-space: nowrap; }
 .onglets button[aria-selected="true"] { color: var(--texte); border-bottom-color: var(--bleu); }
 .zone-onglet { max-height: 420px; overflow: auto; }
-.journal td:nth-child(3) { text-align: left; }
+.journal td:nth-child(2), .journal th:nth-child(2), .journal td:nth-child(3), .journal th:nth-child(3) { text-align: left; }
 
 /* Rapport façon MT5 */
 .rapport { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 28px; }
@@ -131,9 +131,9 @@ td:first-child { font-family: var(--sans); }
         <h2>Valeur du compte</h2>
         <div class="legende"><span><i style="background:var(--bleu)"></i><span id="nom-courbe">Stratégie</span></span><span><i style="background:var(--orange)"></i>Acheter et garder le S&amp;P 500</span></div>
       </div>
-      <canvas id="courbe" height="340" aria-label="Valeur du compte au fil du temps"></canvas>
+      <canvas id="courbe" data-hauteur="340" aria-label="Valeur du compte au fil du temps"></canvas>
       <div class="entete"><h2>Chute depuis le plus haut</h2><span class="note">lignes : -20 % et -25 % (ta limite)</span></div>
-      <canvas id="chute" height="120" aria-label="Chute depuis le plus haut"></canvas>
+      <canvas id="chute" data-hauteur="120" aria-label="Chute depuis le plus haut"></canvas>
       <div class="survol" id="survol">Passe la souris sur la courbe pour lire une date.</div>
     </div>
 
@@ -232,7 +232,8 @@ td:first-child { font-family: var(--sans); }
 
   function preparer(canvas) {
     const r = window.devicePixelRatio || 1;
-    const largeur = canvas.clientWidth, hauteur = Number(canvas.getAttribute("height"));
+    // La hauteur voulue est lue dans data-hauteur, jamais dans canvas.height (qui vaut hauteur x densité de l'écran)
+    const largeur = canvas.clientWidth, hauteur = Number(canvas.dataset.hauteur);
     canvas.width = largeur * r; canvas.height = hauteur * r;
     canvas.style.height = hauteur + "px";
     const ctx = canvas.getContext("2d");
