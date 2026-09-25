@@ -24,8 +24,11 @@
 
 ## Architecture
 
-- **v1, en service** (paper trading Alpaca) : `bot.py`, `strategie.py`, `connexion.py`, `backtest.py`,
-  `robustesse.py`. Lancée par `.github/workflows/trading.yml` chaque soir à 22h30 UTC.
+- **v3, en service** (paper trading Alpaca) : `robot_v3.py` (connexion, ordres) + `robot/decision.py` (décision,
+  sécurités -20 %/-25 %, plan d'ordres sans levier, message Telegram expliqué). Lancée par
+  `.github/workflows/trading_v3.yml` chaque soir de semaine à 22h40 UTC (branche par défaut uniquement).
+  Sommet du compte compté depuis `ROBOT_V3_DEPART` (variable GitHub, défaut 2026-09-28).
+- **v1, arrêtée** : `bot.py`, `strategie.py`… `trading.yml` n'est plus lancé automatiquement (manuel seulement).
 - **v2, en recherche** (pas encore branchée au robot) : dossier `robot/` (`parametres.py`, `univers.py`,
   `donnees.py`, `signaux.py`, `portefeuille.py`, `simulation.py`), `backtest_v2.py`, `robustesse_v2.py`.
   Spécification complète : `docs/STRATEGIE_V2.md`.
