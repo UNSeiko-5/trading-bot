@@ -597,3 +597,57 @@ agitation réalisée 8,3 % (visée 12 %) ; frais 0,72 % par an (v2 : 0,65 %).
 **Décision :** la v2 reste officiellement la base. Le budget de risque est **la piste la plus
 prometteuse** ; la prochaine expérience devrait réduire les frais (par exemple en échangeant moins
 souvent) tout en gardant ce multiplicateur, avec de nouveaux critères fixés avant.
+
+---
+
+## EXP-006 — Budget de risque + zone tampon (moins d'échanges, moins de frais)
+
+**Date :** 25/09/2026
+
+**Pourquoi cette expérience :** EXP-005 (multiplicateur de risque) a réussi 9 critères sur 10 :
++7,8 %/an, pire chute -12,6 %, et +5,2 % sans crypto. Elle n'échoue que sur les frais x3 (perte de
+1,50 point pour moins de 1,5 exigé). Le robot échange trop souvent pour de petits ajustements.
+
+**Règle testée :** EXP-005 à l'identique (même multiplicateur de risque), avec **une seule
+différence** : la règle qui décide quand ajuster une position.
+
+- Aujourd'hui : on ajuste si l'écart avec la cible dépasse **2 % du capital**, et on va jusqu'à la cible.
+- EXP-006 : **zone tampon** de R. Carver (*Systematic Trading*, *Leveraged Trading*). Pour chaque
+  actif, la zone a une demi-largeur de **10 % de la position « normale »** de cet actif (celle qu'il
+  aurait avec une note de 10, multiplicateur compris, avant les plafonds). Si la position actuelle
+  est dans la zone, on ne fait rien. Sinon, on ne ramène la position **que jusqu'au bord** de la zone,
+  pas jusqu'à la cible. Si la cible tombe à 0, on vend tout, comme avant.
+- Les garde-fous ne changent pas (25 % par actif, 15 % crypto, 100 % investi au maximum). Si garder
+  une position violait un plafond, on applique les cibles exactes, comme avant.
+
+Le chiffre de 10 % est celui publié par R. Carver, **pas ajusté sur nos données**.
+
+**Transparence :** dans EXP-005, la variante « seuil de transaction de 4 % » faisait déjà moins de
+frais. On ne choisit **pas** ce chiffre, puisqu'on l'a vu : on teste une autre règle, fixée a priori.
+
+**Ce qu'on attend honnêtement :** moins d'échanges et moins de frais ; rendement proche d'EXP-005
+(un peu plus ou un peu moins) ; R3 devrait passer. Risque : la position suit un peu moins vite la
+cible, ce qui peut coûter un peu de rendement.
+
+**Hypothèse :** la zone tampon réduit assez les frais pour que la version « v2 + budget de risque +
+zone tampon » réussisse les 10 critères.
+
+**Critères de réussite (fixés avant les tests) :** exactement ceux d'EXP-005, contre la v2 (base officielle).
+
+| # | Réussi si… |
+|---|---|
+| M1 | Rendement annuel supérieur d'au moins **0,5 point** à celui de la v2 |
+| M2 | Note rendement/risque au moins égale à **90 %** de celle de la v2 |
+| P1 | Pire chute meilleure que **-20 %** |
+| P2 | Rendement annuel d'au moins **6 %** |
+| P3 | Note rendement/risque meilleure que les 4 points de comparaison |
+| R1 | 10 variantes : zone tampon de 5 % ; zone tampon de 20 % ; zone tampon sans multiplicateur de risque ; fenêtre de mesure de 1 an ; fenêtre de 4 ans ; borne haute de 2 ; borne haute de 3 ; moyennes x1,5 ; agitation visée de 10 % ; agitation visée de 14 %. Chaque variante : rendement d'au moins 4 %, pire chute meilleure que -25 %, note rendement/risque à ±30 % de la base |
+| R2 | Sous-périodes 2007-2012, 2013-2019, 2020-2026 : rendement positif dans les 3, note meilleure que le 60/40 dans au moins 2 |
+| R3 | Frais x3 : perte de moins de 1,5 point par an, pire chute meilleure que -20 % |
+| R4 | Sans la crypto : pire chute meilleure que -20 %, rendement d'au moins 5 %, note meilleure que le 60/40 |
+| R5 | Hasard (500 tirages, multiplicateur et zone tampon appliqués à chaque version) : note meilleure que 95 % des tirages |
+
+*Pour information :* frais par an et montant échangé par an, comparés à la v2 et à EXP-005.
+
+**Verdict prévu :** « v2 + budget de risque + zone tampon » devient la nouvelle base à battre
+seulement si **les 10 critères** sont réussis.
