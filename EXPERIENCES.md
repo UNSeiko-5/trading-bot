@@ -266,3 +266,55 @@ mais on ne corrige pas les facteurs dans cette expérience.
 **Verdict prévu :** la version « v2 + cassures » remplace la v2 comme base à battre seulement si
 **les 10 critères** (M1, M2, P1 à P3, R1 à R5) sont réussis. Sinon, la v2 reste la base et
 l'échec est documenté ici.
+
+**Résultats** (lancement GitHub du 25/09/2026, `python experience_003.py`, données `9f340c2f2bdb`,
+du 03/01/2007 au 24/09/2026, soit 19,7 ans, frais compris) :
+
+| | Rendement/an | Pire chute | Note R/R | Agitation | Sharpe | Investi en moyenne |
+|---|---|---|---|---|---|---|
+| **v2 + cassures** | **+6,2 %** | **-9,7 %** | **0,65** | 6,7 % | 0,93 | 63 % |
+| v2 (base à battre) | +6,3 % | -10,0 % | 0,63 | 7,0 % | 0,90 | 66 % |
+| Acheter et garder SPY | +11,0 % | -55,2 % | 0,20 | 19,6 % | 0,63 | |
+| 60/40 (SPY/IEF) | +8,2 % | -32,2 % | 0,25 | 11,0 % | 0,77 | |
+| v1 (200 jours sur SPY) | +7,9 % | -24,4 % | 0,32 | 11,8 % | 0,70 | |
+| Même panier sans signaux | +7,6 % | -20,0 % | 0,38 | 8,6 % | 0,89 | |
+
+Frais : 0,68 % par an (v2 : 0,65 %). Pour information : lien entre cassures et moyennes = **0,90**
+(1 = identiques) ; note moyenne des cassures = 7,9 (visé : environ 10).
+
+| # | Test | Résultat | Verdict |
+|---|---|---|---|
+| M1 | +0,5 point par rapport à la v2 | +6,2 % contre +6,3 % : **-0,04 point** | ❌ |
+| M2 | Note R/R au moins égale à la v2 | 0,65 contre 0,63 | ✅ |
+| P1 | Pire chute meilleure que -20 % | -9,7 % | ✅ |
+| P2 | Rendement d'au moins 6 % | +6,2 % | ✅ |
+| P3 | Meilleure note que les 4 références | 0,65 (meilleure référence : 0,38) | ✅ |
+| R1 | 10 variantes | Toutes entre +5,4 % et +7,2 %/an, chutes entre -8,4 % et -11,3 %, note R/R à 19 % au plus de la base | ✅ |
+| R2 | Sous-périodes | 2007-2012 : note 0,74 (60/40 : 0,16) · 2013-2019 : 0,61 (60/40 : **0,91**) · 2020-2026 : 0,76 (60/40 : 0,43). Positive partout, meilleure que le 60/40 sur 2 périodes sur 3 | ✅ |
+| R3 | Frais x3 | +4,8 %/an (perte de 1,44 point), chute -10,5 % | ✅ |
+| R4 | Sans la crypto | +4,3 %/an (**minimum fixé : 5 %**), chute -9,5 %, note 0,45 (60/40 : 0,25). La v2 sans crypto faisait +4,4 % | ❌ |
+| R5 | Hasard (500 tirages) | Note R/R meilleure que 100 % des versions au hasard (médiane du hasard : 0,22) | ✅ |
+
+**Conclusion :**
+
+- **Verdict officiel : 8/10, EXP-003 échoue. La v2 reste la base à battre.** Les cassures
+  n'apportent pas de rendement (-0,04 point par an) et ne règlent pas R4 (sans la crypto :
+  +4,3 %/an, contre +4,4 % pour la v2).
+- **Ce qui était prévu s'est produit.** Cassures et moyennes sont presque identiques (lien de 0,90) :
+  les ajouter revient à demander deux fois la même chose. La régularité s'améliore à peine
+  (Sharpe 0,93 contre 0,90, pire chute -9,7 % contre -10,0 %), trop peu pour justifier 3
+  détecteurs de plus.
+- **Le robot est encore un peu plus prudent** (investi à 63 % au lieu de 66 %) : les notes de
+  cassure sont un peu plus faibles que prévu (7,9 au lieu d'environ 10) et ne dépassent jamais 14,8.
+  On ne corrige pas les facteurs après coup.
+- **Piège à éviter :** les variantes « horizon long seul » (+7,2 %/an) et « cassures 80, 160, 320 »
+  (+6,7 %/an) font mieux que la base. Les choisir maintenant serait de l'optimisation sur les
+  données déjà vues (on garderait simplement le meilleur tirage). Ce n'est pas une piste valable
+  sans une nouvelle expérience fixée à l'avance, et ce n'est pas l'objet d'EXP-003.
+- **Leçon :** le problème de la v2 n'est pas la façon de repérer les tendances (le hasard le
+  confirme encore : 100 %), c'est qu'elle n'utilise qu'une partie de son budget de risque. Ajouter
+  des signaux qui disent la même chose n'y change rien.
+
+**Décision :** on n'ajoute pas les cassures au robot. Le code reste dans le dépôt, désactivé
+(`cassures=()` par défaut), pour pouvoir refaire le test. Prochaine étape prévue : EXP-004
+(retour à la moyenne), une famille de signaux qui, elle, n'est **pas** liée à la tendance.

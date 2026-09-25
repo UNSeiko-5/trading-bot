@@ -49,11 +49,13 @@
   - Échoué : R4, sans la crypto, +4,4 %/an pour un minimum fixé à 5 %.
   - Diagnostic : robot trop prudent (investi à 66 % en moyenne, agitation 7 % pour 12 % visés,
     pire chute -10 % pour -25 % acceptés).
+- **EXP-003** (v2 + cassures de Donchian) : **8/10, échec.** Rendement -0,04 point (M1 ❌), sans crypto
+  +4,3 %/an (R4 ❌). Cassures liées à 0,90 aux moyennes : elles n'apportent rien. Code gardé, désactivé.
 - **La v2 est la base à battre.**
 
 ## Prochaines étapes (choisies par l'utilisateur)
 
-1. **EXP-003 : cassures** (canal de Donchian), ajoutées comme famille de signaux dans la note combinée.
+1. ~~EXP-003 : cassures~~ : fait, échec (voir ci-dessus).
 2. **EXP-004 : retour à la moyenne** (RSI, Bollinger).
 3. **EXP-005 : filtre de panique** (VIX).
 4. Proposé : rémunérer le cash non investi (fonds monétaire) dans la simulation, pour toutes les versions.
