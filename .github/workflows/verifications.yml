@@ -32,3 +32,6 @@ jobs:
 
       - name: Contrôle qualité des données v2 (10 actifs)
         run: python -m robot.donnees
+
+      - name: Signaux de tendance v2 du jour
+        run: python -m robot.signaux
