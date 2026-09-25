@@ -38,3 +38,6 @@ jobs:
 
       - name: Répartition v2 visée aujourd'hui
         run: python -m robot.portefeuille
+
+      - name: Backtest v2 (EXP-002, critères de performance)
+        run: python backtest_v2.py

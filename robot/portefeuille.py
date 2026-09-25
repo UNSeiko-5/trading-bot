@@ -108,13 +108,18 @@ def parts_cibles(notes, risque, vol_cible=VOL_CIBLE):
     return appliquer_garde_fous(brutes)
 
 
-def respecte_garde_fous(parts, part_max=PART_MAX_ACTIF, crypto_max=PART_MAX_CRYPTO, exposition_max=EXPOSITION_MAX):
-    crypto = sum(v for s, v in parts.items() if est_crypto(s))
-    return (
-        (parts <= part_max + TOLERANCE).all()
-        and crypto <= crypto_max + TOLERANCE
-        and parts.sum() <= exposition_max + TOLERANCE
+def seuil_rapide(cibles, actuelles, crypto, seuil=SEUIL_TRANSACTION,
+                 part_max=PART_MAX_ACTIF, crypto_max=PART_MAX_CRYPTO, exposition_max=EXPOSITION_MAX):
+    """Même règle que `appliquer_seuil`, sur de simples tableaux de nombres (utilisé par le backtest,
+    qui l'appelle des milliers de fois). `crypto` indique quels actifs sont des cryptos."""
+    bouger = (np.abs(cibles - actuelles) >= seuil - TOLERANCE) | ((cibles == 0) & (actuelles > 0))
+    nouvelles = np.where(bouger, cibles, actuelles)
+    respecte = (
+        (nouvelles <= part_max + TOLERANCE).all()
+        and nouvelles[crypto].sum() <= crypto_max + TOLERANCE
+        and nouvelles.sum() <= exposition_max + TOLERANCE
     )
+    return nouvelles if respecte else cibles.copy()
 
 
 def appliquer_seuil(cibles, actuelles, seuil=SEUIL_TRANSACTION):
@@ -124,10 +129,10 @@ def appliquer_seuil(cibles, actuelles, seuil=SEUIL_TRANSACTION):
     tombe à 0. Si garder certaines positions telles quelles violait un garde-fou (parce que
     leur prix a monté), on applique toutes les cibles.
     """
-    ecart = (cibles - actuelles).abs()
-    bouger = (ecart >= seuil - TOLERANCE) | ((cibles == 0) & (actuelles > 0))
-    nouvelles = cibles.where(bouger, actuelles)
-    return nouvelles if respecte_garde_fous(nouvelles) else cibles.copy()
+    crypto = np.array([est_crypto(s) for s in cibles.index])
+    nouvelles = seuil_rapide(cibles.to_numpy(dtype=float), actuelles.reindex(cibles.index).to_numpy(dtype=float),
+                             crypto, seuil)
+    return pd.Series(nouvelles, index=cibles.index)
 
 
 def agitation_portefeuille(parts, rendements, fenetre=FENETRE_CORRELATION):

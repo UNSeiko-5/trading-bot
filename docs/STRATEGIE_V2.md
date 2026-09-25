@@ -185,7 +185,7 @@ trading-bot/
 │   ├── donnees.py          # téléchargement, alignement, contrôles de qualité
 │   ├── signaux.py          # les 3 détecteurs et la note combinée
 │   ├── portefeuille.py     # taille des positions, IDM, garde-fous
-│   └── backtest.py         # simulation multi-actifs avec seuil de transaction
+│   └── simulation.py       # backtest multi-actifs avec seuil de transaction et points de comparaison
 ├── backtest_v2.py          # lance la simulation et affiche les résultats
 ├── robustesse_v2.py        # lance les tests anti-chance de EXP-002
 └── tests/                  # un fichier de tests par module
