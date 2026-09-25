@@ -13,6 +13,15 @@ FRAIS = 0.0005  # 0,05 % par ordre
 JOURS_PAR_AN = 252
 
 
+def rendements_strategie(ouvertures, clotures, position, frais=FRAIS):
+    """Rendement de chaque jour, pour une position (0 ou 1) prise à l'ouverture du jour."""
+    position_veille = position.shift(1, fill_value=0)
+    nuit = (ouvertures / clotures.shift(1) - 1).fillna(0)  # clôture de la veille -> ouverture
+    journee = clotures / ouvertures - 1                     # ouverture -> clôture
+    transactions = (position - position_veille).abs()
+    return (1 + position_veille * nuit) * (1 + position * journee) - 1 - transactions * frais
+
+
 def simuler(historique, fenetre=FENETRE_SMA, frais=FRAIS):
     """historique : tableau avec les colonnes Open et Close (prix ajustés des dividendes)."""
     df = historique[["Open", "Close"]].copy()
@@ -21,16 +30,8 @@ def simuler(historique, fenetre=FENETRE_SMA, frais=FRAIS):
 
     signal = est_haussier(df["Close"], df["sma"]).astype(int)
     df["position"] = signal.shift(1, fill_value=0)  # détenue pendant la journée = signal de la veille
-    position_veille = df["position"].shift(1, fill_value=0)
-
-    nuit = (df["Open"] / df["Close"].shift(1) - 1).fillna(0)  # clôture de la veille -> ouverture
-    journee = df["Close"] / df["Open"] - 1                     # ouverture -> clôture
-    df["transaction"] = (df["position"] - position_veille).abs()
-
-    df["strategie"] = (
-        (1 + position_veille * nuit) * (1 + df["position"] * journee) - 1
-        - df["transaction"] * frais
-    )
+    df["transaction"] = (df["position"] - df["position"].shift(1, fill_value=0)).abs()
+    df["strategie"] = rendements_strategie(df["Open"], df["Close"], df["position"], frais)
     df["buy_hold"] = df["Close"].pct_change().fillna(0)
     return df
 
