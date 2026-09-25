@@ -6,7 +6,7 @@ Retour au point de départ : [[Accueil]].
 
 ## Idées
 
-- (exemple) Tester un filtre de panique avec le VIX. → Prévu : EXP-005.
+- (exemple) Tester un filtre de panique avec le VIX. → Reporté : EXP-005 porte finalement sur le budget de risque.
 
 ## Réponses de Claude
 

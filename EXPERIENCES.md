@@ -472,3 +472,88 @@ frais de 2,78 % par an.
 désactivé (`retour=()` par défaut). Leçon d'EXP-003 et d'EXP-004 : ajouter des familles de
 signaux ne règle pas le problème de la v2, qui est de n'utiliser qu'une partie de son budget
 de risque (investie à 66 %, 7 % d'agitation pour 12 % visés).
+
+---
+
+## EXP-005 — Budget de risque : faire atteindre à la v2 l'agitation qu'elle vise déjà
+
+**Date :** 25/09/2026
+
+**Pourquoi cette expérience :** EXP-002, EXP-003 et EXP-004 montrent toutes le même défaut : la v2
+vise une agitation de 12 % par an, mais n'en réalise que 7 %. Elle n'est investie qu'à 66 % en
+moyenne, et sa pire chute (-10 %) est loin de la limite acceptée (-25 %). Ajouter des signaux n'y a
+rien changé. Cette expérience s'attaque directement à ce défaut.
+
+**Règle testée :** la v2 à l'identique, avec **une seule différence** : un **multiplicateur de
+risque**, recalculé chaque soir, appliqué à toutes les parts visées **avant** les garde-fous.
+
+1. On simule d'abord la v2 normale (multiplicateur 1) depuis le début des données.
+2. Chaque soir, on mesure l'agitation réalisée de cette v2 normale sur les **2 dernières années**
+   (504 jours de bourse, la même fenêtre que le bonus de diversification), avec seulement le passé.
+3. Multiplicateur = **agitation visée (12 %) ÷ agitation réalisée**, borné entre **1 et 2,5**.
+4. Toutes les parts visées sont multipliées par ce nombre, puis les garde-fous habituels
+   s'appliquent sans changement : 25 % maximum par actif, 15 % en crypto, **100 % investi au
+   maximum (toujours pas de levier)**.
+
+Tant qu'il y a moins d'un an d'historique, le multiplicateur vaut 1.
+
+**Pourquoi ces choix sont fixés a priori :**
+- L'agitation visée reste **12 %**, la valeur de la spécification d'origine. On ne choisit pas
+  une nouvelle cible après avoir vu que « 14 % » faisait mieux dans EXP-002 : on fait seulement
+  atteindre au robot la cible qu'il avait déjà.
+- La fenêtre de 2 ans et la borne de 2,5 sont celles du bonus de diversification (IDM) de la v2.
+- La borne basse de 1 : on ne réduit jamais le risque sous celui de la v2, déjà validé.
+
+**Ce qu'on attend honnêtement (écrit avant les tests) :**
+- Rendement plus élevé, **mais pire chute plus grande aussi** : prendre plus de risque, c'est
+  accepter des baisses plus fortes. Ordre de grandeur attendu : pire chute entre -13 % et -18 %.
+- La note rendement/risque devrait rester **à peu près la même** : on monte le volume, pas la
+  qualité du signal. Elle peut même baisser un peu, car le plafond de 100 % investi et les
+  plafonds par actif empêchent de tout multiplier à l'identique.
+- Plus de transactions, donc un peu plus de frais.
+- **Principal risque :** quand peu d'actifs sont en tendance, le robot se concentre davantage sur
+  eux (jusqu'à 25 % chacun). Le critère P1 (pire chute meilleure que -20 %) peut être menacé.
+
+**Hypothèse :** le multiplicateur de risque augmente le rendement de la v2 d'au moins 0,5 point
+par an, garde une pire chute meilleure que -20 %, ne dégrade pas nettement la note
+rendement/risque, et permet enfin de réussir R4 (au moins 5 % par an sans la crypto).
+
+**Critères de réussite (fixés avant les tests) :**
+
+*Mieux que la v2 — comparaison dans le même lancement, sur les mêmes données :*
+
+| # | Réussi si… |
+|---|---|
+| M1 | Rendement annuel supérieur d'au moins **0,5 point** à celui de la v2 |
+| M2 | Note rendement/risque **au moins égale à 90 %** de celle de la v2 |
+
+Pourquoi M2 est différent d'EXP-003 et EXP-004 : ici on augmente volontairement le risque, et une
+note rendement/risque à peu près stable est le résultat attendu d'un bon changement. Exiger
+« au moins égale » ferait dépendre le verdict d'un écart de hasard de quelques centièmes. La
+tolérance de 10 % laisse passer une note stable, mais refuse une vraie dégradation.
+
+*Performance — identiques à EXP-002 :*
+
+| # | Réussi si… |
+|---|---|
+| P1 | Pire chute meilleure que **-20 %** |
+| P2 | Rendement annuel d'au moins **6 %** |
+| P3 | Note rendement/risque meilleure que les 4 points de comparaison : acheter et garder SPY, 60/40, v1, et le même panier toujours investi |
+
+*Robustesse — mêmes seuils que EXP-002 :*
+
+| # | Test | Réussi si… |
+|---|---|---|
+| R1 | 10 variantes : fenêtre de mesure de 1 an (252 jours) ; fenêtre de 4 ans (1 008 jours) ; borne haute de 2 ; borne haute de 3 ; sans borne basse (le multiplicateur peut descendre sous 1) ; moyennes x1,5 comme dans EXP-002 ; agitation visée de 10 % et de 14 % ; seuil de transaction de 1 % et de 4 % | Chaque variante garde un rendement d'au moins 4 %, une pire chute meilleure que -25 %, et une note rendement/risque à ±30 % de la version de base |
+| R2 | Sous-périodes : 2007-2012, 2013-2019, 2020-2026 | Rendement positif dans les 3, et note rendement/risque meilleure que le 60/40 dans au moins 2 sur 3 |
+| R3 | Frais multipliés par 3 | Perte de moins de 1,5 point de rendement par an, et pire chute toujours meilleure que -20 % |
+| R4 | Sans la crypto | Pire chute meilleure que -20 %, rendement d'au moins 5 %, et note rendement/risque meilleure que le 60/40 |
+| R5 | Hasard : notes de chaque actif décalées au hasard dans le temps (500 tirages), multiplicateur recalculé pour chaque version au hasard | Note rendement/risque meilleure qu'au moins 95 % des versions au hasard |
+
+*Affiché pour information seulement (pas des critères) :* multiplicateur moyen, minimum et
+maximum ; part investie moyenne ; agitation réalisée ; frais par an. Aucun réglage n'est corrigé
+après coup dans cette expérience.
+
+**Verdict prévu :** la version « v2 + budget de risque » remplace la v2 comme base à battre
+seulement si **les 10 critères** (M1, M2, P1 à P3, R1 à R5) sont réussis. Sinon, la v2 reste la
+base et l'échec est documenté ici.
