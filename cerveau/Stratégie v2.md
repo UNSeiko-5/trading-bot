@@ -6,3 +6,5 @@ matières premières, immobilier, crypto), une décision par jour. Détails : `d
 - Mesurée par : [[Note rendement-risque]], [[Pire chute]], [[Frais]].
 - Validée partiellement par [[EXP-002 — Stratégie v2]] : 7/8.
 - Point faible : [[Leçon — le robot est trop prudent]].
+- À voir sur TradingView : l'indicateur `tradingview/tendance_v2.pine` affiche la même note de
+  [[Suivi de tendance]] que le robot (graphique en 1 jour).
