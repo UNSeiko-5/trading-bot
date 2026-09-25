@@ -2,9 +2,8 @@ name: Execution Quotidienne du Bot
 
 on:
   schedule:
-    # 20h30 UTC = 22h30 heure française, du lundi au vendredi
     - cron: '30 20 * * 1-5'
-  workflow_dispatch: # Permet aussi de lancer le bot manuellement via un bouton
+  workflow_dispatch:
 
 jobs:
   run-trading-bot:
@@ -20,11 +19,13 @@ jobs:
 
       - name: Installation des bibliothèques
         run: |
-          pip install yfinance alpaca-py pandas
+          pip install yfinance alpaca-py pandas requests
 
       - name: Lancement du robot
         env:
           ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
           ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           python bot.py
