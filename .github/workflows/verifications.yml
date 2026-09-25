@@ -35,3 +35,6 @@ jobs:
 
       - name: Signaux de tendance v2 du jour
         run: python -m robot.signaux
+
+      - name: Répartition v2 visée aujourd'hui
+        run: python -m robot.portefeuille
