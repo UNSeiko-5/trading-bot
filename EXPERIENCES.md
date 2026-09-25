@@ -557,3 +557,43 @@ après coup dans cette expérience.
 **Verdict prévu :** la version « v2 + budget de risque » remplace la v2 comme base à battre
 seulement si **les 10 critères** (M1, M2, P1 à P3, R1 à R5) sont réussis. Sinon, la v2 reste la
 base et l'échec est documenté ici.
+
+**Résultats** (lancement GitHub du 25/09/2026, `python experience_005.py`, 19,7 ans, frais compris) :
+
+| | Rendement/an | Pire chute | Note R/R | Investi en moyenne |
+|---|---|---|---|---|
+| **v2 + budget de risque** | **+7,8 %** | **-12,6 %** | **0,62** | 77 % |
+| v2 (base à battre) | +6,3 % | -10,0 % | 0,63 | 66 % |
+| 60/40 (SPY/IEF) | +8,2 % | -32,2 % | 0,25 | |
+| Acheter et garder SPY | +11,0 % | -55,2 % | 0,20 | |
+
+Pour information : multiplicateur moyen 1,80 (de 1,26 à 2,50, à la borne haute 7 % du temps) ;
+agitation réalisée 8,3 % (visée 12 %) ; frais 0,72 % par an (v2 : 0,65 %).
+
+| # | Résultat | Verdict |
+|---|---|---|
+| M1 | +7,8 % contre +6,3 % : **+1,47 point** | ✅ |
+| M2 | 0,62 contre 0,63 (seuil : 90 %, soit 0,57) | ✅ |
+| P1 | -12,6 % | ✅ |
+| P2 | +7,8 % | ✅ |
+| P3 | 0,62 (meilleure référence : 0,38) | ✅ |
+| R1 | 10 variantes entre +7,1 % et +8,1 %/an, chutes entre -11,6 % et -13,4 %, note à 8 % au plus de la base | ✅ |
+| R2 | 2007-2012 : +6,8 %/an · 2013-2019 : +7,5 % (note 0,65, 60/40 : 0,91) · 2020-2026 : +8,6 %. Mieux que le 60/40 sur 2 périodes sur 3 | ✅ |
+| R3 | Frais x3 : +6,3 %/an, chute -14,1 %, **perte de 1,50 point** (il fallait **moins** de 1,5) | ❌ |
+| R4 | Sans la crypto : **+5,2 %/an** (minimum 5 %), chute -12,1 %, note 0,43 (60/40 : 0,25) | ✅ |
+| R5 | Meilleure que 100 % des 500 versions au hasard | ✅ |
+
+**Conclusion :**
+
+- **Verdict officiel : 9/10, EXP-005 n'est PAS validée.** L'échec (R3) se joue à un cheveu : perte
+  de 1,50 point quand il en fallait moins de 1,50. On ne change pas le critère après coup.
+- **C'est de loin la meilleure expérience.** +1,5 point de rendement par an pour seulement 2,6 points
+  de chute en plus, note rendement/risque stable, et **R4 réussi pour la première fois** (+5,2 % sans
+  crypto). Toutes les variantes donnent le même résultat : ce n'est pas un réglage chanceux.
+- **Point faible confirmé : les frais.** Plus de positions, c'est plus d'échanges. Avec des frais
+  3 fois plus élevés, le gain fond. Les frais réels du courtier devront être mesurés avant le réel.
+- **Le robot reste prudent** : 8,3 % d'agitation pour 12 % visée, bridé par le plafond de 100 % investi.
+
+**Décision :** la v2 reste officiellement la base. Le budget de risque est **la piste la plus
+prometteuse** ; la prochaine expérience devrait réduire les frais (par exemple en échangeant moins
+souvent) tout en gardant ce multiplicateur, avec de nouveaux critères fixés avant.

@@ -34,6 +34,8 @@ JOURNAL = [
      "lecon": "Liées à 0,90 aux moyennes : deux fois la même question, aucun gain."},
     {"code": "EXP-004", "titre": "v2 + retour à la moyenne (RSI, Bollinger)", "score": "1/10", "statut": "échec",
      "lecon": "Contredit la tendance : investi à 36 %, frais x3, +1,0 %/an."},
+    {"code": "EXP-005", "titre": "v2 + budget de risque", "score": "9/10", "statut": "échec",
+     "lecon": "+7,8 %/an, chute -12,6 %, réussit sans crypto ; échoue d'un cheveu aux frais x3."},
 ]
 
 

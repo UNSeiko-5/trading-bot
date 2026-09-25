@@ -71,6 +71,8 @@
   +4,3 %/an (R4 ❌). Cassures liées à 0,90 aux moyennes : elles n'apportent rien. Code gardé, désactivé.
 - **EXP-004** (v2 + retour à la moyenne, RSI 14 et Bollinger 20, mélange 50/50) : **1/10, échec net.**
   +1,0 %/an, investi à 36 %, frais 1,86 %/an. Seul, le retour à la moyenne perd 1,9 %/an. Code gardé, désactivé.
+- **EXP-005** (v2 + budget de risque) : **9/10, non validée à un cheveu.** +7,8 %/an, chute -12,6 %,
+  R4 enfin réussi (+5,2 % sans crypto) ; R3 échoue (frais x3 : perte 1,50 point pour < 1,5). Piste la plus prometteuse.
 - **La v2 est la base à battre.**
 
 ## Prochaines étapes (choisies par l'utilisateur)
@@ -78,8 +80,7 @@
 1. ~~EXP-003 : cassures~~ : fait, échec (voir ci-dessus).
 2. ~~EXP-004 : retour à la moyenne~~ : fait, échec net (voir ci-dessus).
 3. **EXP-005 : filtre de panique** (VIX).
-4. Proposé après EXP-003 et EXP-004 : s'attaquer au vrai problème de la v2, le budget de risque sous-utilisé
-   (investie à 66 %, agitation 7 % pour 12 % visés). À discuter avec l'utilisateur.
+4. ~~EXP-005 : budget de risque~~ : 9/10. Suite proposée : réduire les frais en gardant le multiplicateur.
 5. Proposé : rémunérer le cash non investi (fonds monétaire) dans la simulation, pour toutes les versions.
 
 Chaque expérience doit faire mieux que la v2 **et** réussir les critères P1 à P3 et R1 à R5
