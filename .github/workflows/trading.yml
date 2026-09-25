@@ -2,8 +2,15 @@ name: Execution Quotidienne du Bot
 
 on:
   schedule:
-    - cron: '30 20 * * 1-5'
+    # 22h30 UTC du lundi au vendredi = après la clôture de New York toute l'année
+    # (18h30 à New York en été, 17h30 en hiver). Les ordres partent à l'ouverture suivante.
+    - cron: '30 22 * * 1-5'
   workflow_dispatch:
+
+# Jamais deux robots en même temps (évite les ordres en double)
+concurrency:
+  group: trading-bot
+  cancel-in-progress: false
 
 jobs:
   run-trading-bot:
@@ -17,9 +24,11 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Installation des bibliothèques
-        run: |
-          pip install yfinance alpaca-py pandas requests
+      - name: Installation des bibliothèques (versions figées)
+        run: pip install -r requirements.txt
+
+      - name: Vérifications automatiques (si un test échoue, le robot ne tourne pas)
+        run: python -m pytest
 
       - name: Lancement du robot
         env:
@@ -27,5 +36,14 @@ jobs:
           ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python bot.py
+
+      - name: Alerte Telegram si une étape a échoué
+        if: failure()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          python bot.py
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d chat_id="${TELEGRAM_CHAT_ID}" \
+            -d text="❌ Le robot n'a pas tourné correctement ce soir. Détails : onglet Actions du dépôt trading-bot."
