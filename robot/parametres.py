@@ -12,6 +12,11 @@ NOTE_MAX = 20
 # (durée du canal de Donchian en jours, facteur d'échelle publié par R. Carver dans pysystemtrade)
 CASSURES = [(40, 0.70), (80, 0.73), (160, 0.74)]
 
+# --- Retour à la moyenne (EXP-004, en test : la v2 n'en utilise pas) ---------------------------
+# (indicateur, durée en jours) : réglages classiques des auteurs (J. W. Wilder 1978, J. Bollinger)
+RETOUR_MOYENNE = [("RSI", 14), ("Bollinger", 20)]
+POIDS_RETOUR_MOYENNE = 0.5    # part de la note combinée donnée au retour à la moyenne
+
 # --- Taille des positions (section 5) ------------------------------------------------
 VOL_CIBLE = 0.12              # agitation annuelle visée pour tout le portefeuille
 FENETRE_VOL = 35              # jours (moyenne exponentielle) pour mesurer l'agitation

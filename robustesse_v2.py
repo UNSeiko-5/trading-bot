@@ -55,6 +55,13 @@ def decaler_au_hasard(notes, aleatoire, marge=252):
     return resultat
 
 
+def notes_du_reglage(clotures, reglage=None):
+    """Les notes combinées de la version testée (`reglage` vide = la v2), avant le décalage au hasard."""
+    reglage = reglage or {}
+    return calculer_notes(clotures, **{cle: reglage[cle] for cle in ("detecteurs", "cassures", "retour", "poids_retour")
+                                       if cle in reglage})
+
+
 def ligne(nom, m, ok=None):
     fin = "" if ok is None else ("  ✅" if ok else "  ❌")
     return (f"  {nom:<32} {m['rendement_annuel']:+7.1%}/an   chute {m['pire_chute']:6.1%}"
@@ -111,8 +118,7 @@ def test_r4(ouvertures, clotures, note_60_40, reglage=None):
 
 def test_r5(ouvertures, clotures, risque, base, reglage=None, nom="la v2"):
     print(f"\nR5 — Hasard : signaux décalés au hasard dans le temps ({R5_TIRAGES} tirages)")
-    reglage = reglage or {}
-    notes = calculer_notes(clotures, reglage.get("detecteurs", DETECTEURS), cassures=reglage.get("cassures", ()))
+    notes = notes_du_reglage(clotures, reglage)
     aleatoire = np.random.default_rng(42)  # graine fixe : même résultat à chaque lancement
     notes_hasard, rendements_hasard = [], []
     for _ in range(R5_TIRAGES):

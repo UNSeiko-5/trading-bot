@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from robot.parametres import CASSURES
+from robot.parametres import CASSURES, RETOUR_MOYENNE
 from robot.portefeuille import appliquer_seuil, seuil_rapide
 from robot.simulation import (
     acheter_et_garder, mesures, rendements_par_annee, simuler, soixante_quarante, strategie_v2,
@@ -149,6 +149,26 @@ def test_les_cassures_changent_le_resultat_et_la_v2_reste_la_meme_par_defaut():
     v2 = strategie_v2(ouvertures, clotures, debut=debut).valeur
     pd.testing.assert_series_equal(strategie_v2(ouvertures, clotures, debut=debut, cassures=()).valeur, v2)
     assert not np.allclose(strategie_v2(ouvertures, clotures, debut=debut, cassures=CASSURES).valeur, v2)
+
+
+def test_avec_retour_a_la_moyenne_sans_triche_avec_le_futur():
+    ouvertures, clotures = marche_fictif(graine=7)
+    debut = clotures.index[400]
+    normal = strategie_v2(ouvertures, clotures, debut=debut, retour=RETOUR_MOYENNE).valeur
+    o2, c2 = ouvertures.copy(), clotures.copy()
+    o2.iloc[900:] *= 0.5
+    c2.iloc[900:] *= 0.5
+    modifie = strategie_v2(o2, c2, debut=debut, retour=RETOUR_MOYENNE).valeur
+    pd.testing.assert_series_equal(normal.loc[: clotures.index[899]], modifie.loc[: clotures.index[899]])
+
+
+def test_avec_retour_a_la_moyenne_respecte_les_garde_fous_et_change_le_resultat():
+    ouvertures, clotures = marche_fictif(graine=8)
+    debut = clotures.index[400]
+    r = strategie_v2(ouvertures, clotures, debut=debut, retour=RETOUR_MOYENNE)
+    assert (r.poids.sum(axis=1) <= 1 + 1e-6).all()
+    assert (r.poids["BTC-USD"] <= 0.15 + 0.02).all()
+    assert not np.allclose(r.valeur, strategie_v2(ouvertures, clotures, debut=debut).valeur)
 
 # --- Points de comparaison et mesures ---------------------------------------------------------------
 

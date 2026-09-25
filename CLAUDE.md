@@ -29,6 +29,9 @@
   Spécification complète : `docs/STRATEGIE_V2.md`.
 - **EXP-003 (cassures)** : `experience_003.py` teste la v2 + 3 détecteurs de cassure (`CASSURES` dans
   `robot/parametres.py`, `note_cassure` dans `robot/signaux.py`). La v2 est inchangée par défaut (`cassures=()`).
+- **EXP-004 (retour à la moyenne)** : `experience_004.py` mélange à 50/50 la tendance et RSI 14 + Bollinger 20
+  (`RETOUR_MOYENNE`, `POIDS_RETOUR_MOYENNE` ; `note_rsi`, `note_bollinger`). Désactivé par défaut (`retour=()`).
+- `outils_experience.py` : déroulé commun des expériences (critères M1-M2, P1-P3, R1-R5, verdict).
 - `.github/workflows/verifications.yml` : à chaque envoi de code, tests, backtests et tests anti-chance
   sur les vraies données Yahoo.
 

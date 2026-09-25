@@ -3,8 +3,10 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from robot.parametres import CASSURES
-from robot.signaux import note_cassure, note_combinee, note_detecteur, notes, notes_detecteurs
+from robot.parametres import CASSURES, RETOUR_MOYENNE
+from robot.signaux import (
+    note_bollinger, note_cassure, note_combinee, note_detecteur, note_rsi, notes, notes_detecteurs,
+)
 
 JOURS = pd.bdate_range("2020-01-01", periods=800)
 
@@ -164,3 +166,125 @@ def test_sans_cassures_la_note_de_la_v2_ne_change_pas():
     p = prix(0.0005, graine=6)
     pd.testing.assert_series_equal(note_combinee(p, cassures=()), note_combinee(p))
     assert list(notes_detecteurs(p).columns) == ["16/64", "32/128", "64/256"]
+
+
+# --- Retour à la moyenne (EXP-004) ----------------------------------------------------------------
+
+def rsi_de_wilder_en_boucle(prix, duree):
+    """RSI calculé pas à pas comme dans le livre de Wilder (1978) : moyenne simple des `duree`
+    premières variations, puis moyenne = (ancienne x (duree - 1) + nouvelle) / duree."""
+    variations = prix.diff().to_numpy()[1:]
+    hausses, baisses = np.clip(variations, 0, None), np.clip(-variations, 0, None)
+    resultat = [np.nan] * len(prix)
+    m_h, m_b = hausses[:duree].mean(), baisses[:duree].mean()
+    for t in range(duree, len(variations)):
+        m_h = (m_h * (duree - 1) + hausses[t]) / duree
+        m_b = (m_b * (duree - 1) + baisses[t]) / duree
+        resultat[t + 1] = 100 * m_h / (m_h + m_b)
+    return pd.Series(resultat, index=prix.index)
+
+
+def test_rsi_identique_a_la_methode_de_wilder():
+    # Même RSI que le calcul du livre une fois passé le démarrage : la façon d'initialiser diffère
+    # (Wilder part d'une moyenne simple) mais son effet s'efface. On compare à partir du 300e jour,
+    # quand le robot commence à utiliser un actif.
+    p = prix(0.0005, graine=21)
+    note = note_rsi(p, 14)
+    attendu = ((50 - rsi_de_wilder_en_boucle(p, 14)) / 2).clip(-20, 20)
+    assert (note - attendu).abs().iloc[20:40].max() > 1e-3      # l'écart de démarrage existe bien...
+    pd.testing.assert_series_equal(note.iloc[300:], attendu.iloc[300:], check_names=False, atol=1e-6, rtol=0)
+
+
+def test_rsi_prix_qui_monte_tous_les_jours_suracheté():
+    p = pd.Series(np.linspace(100, 200, 100), index=JOURS[:100])
+    assert note_rsi(p, 14).iloc[-1] == -20         # RSI 100 -> (50 - 100) / 2 = -25, borné à -20
+    assert note_rsi(-p + 300, 14).iloc[-1] == 20    # RSI 0 -> survendu, borné à +20
+
+
+def test_rsi_seuils_classiques():
+    # 3 hausses de 2 pour 7 baisses de 1 dans chaque bloc : le RSI tend vers 6 / (6 + 7) = 46,2
+    bloc = [2, 2, 2, -1, -1, -1, -1, -1, -1, -1]
+    p = pd.Series(100 + np.cumsum(bloc * 30), index=JOURS[:300], dtype=float)
+    assert note_rsi(p, 14).iloc[-50:].mean() == pytest.approx((50 - 600 / 13) / 2, abs=0.5)
+
+
+def test_bollinger_a_la_main():
+    p = prix(0.0005, graine=22)
+    moyenne, ecart_type = p.rolling(20).mean(), p.rolling(20).std(ddof=0)
+    attendu = (-5 * (p - moyenne) / ecart_type).clip(-20, 20)
+    pd.testing.assert_series_equal(note_bollinger(p, 20), attendu)
+
+
+def test_bollinger_sur_la_bande_basse_note_10():
+    # 19 jours à 100 et 101 en alternance, puis une chute : on construit le dernier prix
+    # pour qu'il tombe pile à 2 écarts-types sous la moyenne des 20 derniers jours
+    debut = [100.0, 101.0] * 9 + [100.0]
+    base = pd.Series(debut)
+    # On cherche x tel que (x - moyenne) / écart-type = -2, par recherche simple
+    bas, haut = 50.0, 100.0
+    for _ in range(100):
+        x = (bas + haut) / 2
+        serie = pd.Series(debut + [x])
+        z = (x - serie.mean()) / serie.std(ddof=0)
+        bas, haut = (x, haut) if z < -2 else (bas, x)
+    p = pd.Series(debut + [x], index=JOURS[:20])
+    assert note_bollinger(p, 20).iloc[-1] == pytest.approx(10, abs=1e-6)
+
+
+def test_retour_a_la_moyenne_apres_une_chute_positif_apres_une_envolee_negatif():
+    montee = pd.Series(np.r_[np.full(60, 100.0) + np.tile([0, 1], 30), np.linspace(101, 130, 10)], index=JOURS[:70])
+    chute = 200 - montee
+    for calcul, duree in ((note_rsi, 14), (note_bollinger, 20)):
+        assert calcul(montee, duree).iloc[-1] < -5
+        assert calcul(chute, duree).iloc[-1] > 5
+
+
+def test_retour_a_la_moyenne_prix_plat_note_nulle():
+    p = pd.Series(100.0, index=JOURS[:100])
+    assert (note_rsi(p, 14).dropna() == 0).all() and note_rsi(p, 14).iloc[20:].notna().all()
+    assert (note_bollinger(p, 20).dropna() == 0).all() and note_bollinger(p, 20).iloc[20:].notna().all()
+
+
+def test_retour_a_la_moyenne_meme_note_quel_que_soit_le_prix():
+    a, b = prix(0.001, debut=10), prix(0.001, debut=1000)
+    for calcul, duree in ((note_rsi, 14), (note_bollinger, 20)):
+        pd.testing.assert_series_equal(calcul(a, duree), calcul(b, duree))
+
+
+def test_retour_a_la_moyenne_reste_entre_moins_20_et_20():
+    for tendance in (-0.01, 0, 0.01):
+        details = notes_detecteurs(prix(tendance), detecteurs=[], retour=RETOUR_MOYENNE).dropna()
+        assert details.abs().max().max() <= 20
+
+
+def test_melange_moitie_tendance_moitie_retour():
+    p = prix(0.0005, graine=23)
+    details = notes_detecteurs(p, retour=RETOUR_MOYENNE)
+    assert list(details.columns) == ["16/64", "32/128", "64/256", "RSI 14", "Bollinger 20"]
+    tendance = details[["16/64", "32/128", "64/256"]].mean(axis=1)
+    retour = details[["RSI 14", "Bollinger 20"]].mean(axis=1)
+    for poids in (0.5, 0.25, 0.75):
+        attendu = ((1 - poids) * tendance + poids * retour).clip(0, 20)
+        obtenu = note_combinee(p, retour=RETOUR_MOYENNE, poids_retour=poids)
+        pd.testing.assert_series_equal(obtenu.iloc[400:], attendu.iloc[400:], check_names=False)
+
+
+def test_retour_a_la_moyenne_seul():
+    p = prix(0.0005, graine=24)
+    retour = notes_detecteurs(p, detecteurs=[], retour=RETOUR_MOYENNE).mean(axis=1).clip(0, 20)
+    obtenu = note_combinee(p, detecteurs=[], retour=RETOUR_MOYENNE, poids_retour=1.0)
+    pd.testing.assert_series_equal(obtenu.iloc[400:], retour.iloc[400:], check_names=False)
+
+
+@pytest.mark.parametrize("facteur", [3, 0.3])
+def test_retour_a_la_moyenne_pas_de_triche_avec_le_futur(facteur):
+    normal = prix(0.0005, graine=9)
+    futur_modifie = normal.copy()
+    futur_modifie.iloc[600:] *= facteur
+    avec = {"retour": RETOUR_MOYENNE}
+    pd.testing.assert_series_equal(note_combinee(normal, **avec).iloc[:600], note_combinee(futur_modifie, **avec).iloc[:600])
+
+
+def test_sans_retour_a_la_moyenne_la_note_de_la_v2_ne_change_pas():
+    p = prix(0.0005, graine=25)
+    pd.testing.assert_series_equal(note_combinee(p, retour=(), poids_retour=0.9), note_combinee(p))

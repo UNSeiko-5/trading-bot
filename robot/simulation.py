@@ -12,7 +12,9 @@ from math import sqrt
 import numpy as np
 import pandas as pd
 
-from robot.parametres import DEBUT_BACKTEST, DETECTEURS, FRAIS, JOURS_PAR_AN, SEUIL_TRANSACTION, VOL_CIBLE
+from robot.parametres import (
+    DEBUT_BACKTEST, DETECTEURS, FRAIS, JOURS_PAR_AN, POIDS_RETOUR_MOYENNE, SEUIL_TRANSACTION, VOL_CIBLE,
+)
 from robot.portefeuille import est_crypto, parts_cibles, preparer_risque, seuil_rapide
 from robot.signaux import notes as calculer_notes
 from robot.univers import PAR_SYMBOLE
@@ -79,14 +81,17 @@ def simuler(ouvertures, clotures, cibles, debut=DEBUT_BACKTEST, seuil=SEUIL_TRAN
 
 
 def strategie_v2(ouvertures, clotures, detecteurs=DETECTEURS, vol_cible=VOL_CIBLE,
-                 seuil=SEUIL_TRANSACTION, frais=FRAIS, debut=DEBUT_BACKTEST, risque=None, cassures=()):
+                 seuil=SEUIL_TRANSACTION, frais=FRAIS, debut=DEBUT_BACKTEST, risque=None, cassures=(),
+                 retour=(), poids_retour=POIDS_RETOUR_MOYENNE):
     """La stratégie v2 complète : notes -> parts visées -> simulation.
 
     `risque` peut être fourni pour éviter de le recalculer (tests de robustesse).
     `cassures` : détecteurs de cassure ajoutés à la note combinée (EXP-003). Vide = la v2.
+    `retour`, `poids_retour` : détecteurs de retour à la moyenne et leur part de la note (EXP-004). Vide = la v2.
     """
     risque = risque or preparer_risque(clotures)
-    cibles = parts_cibles(calculer_notes(clotures, detecteurs, cassures=cassures), risque, vol_cible)
+    notes = calculer_notes(clotures, detecteurs, cassures=cassures, retour=retour, poids_retour=poids_retour)
+    cibles = parts_cibles(notes, risque, vol_cible)
     return simuler(ouvertures, clotures, cibles, debut, seuil, frais)
 
 

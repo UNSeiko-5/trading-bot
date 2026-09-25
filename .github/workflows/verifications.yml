@@ -47,3 +47,6 @@ jobs:
 
       - name: Expérience EXP-003 (v2 + cassures, critères M, P et R)
         run: python experience_003.py
+
+      - name: Expérience EXP-004 (v2 + retour à la moyenne, critères M, P et R)
+        run: python experience_004.py
