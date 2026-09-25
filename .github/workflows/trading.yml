@@ -1,0 +1,30 @@
+name: Execution Quotidienne du Bot
+
+on:
+  schedule:
+    # 20h30 UTC = 22h30 heure française, du lundi au vendredi
+    - cron: '30 20 * * 1-5'
+  workflow_dispatch: # Permet aussi de lancer le bot manuellement via un bouton
+
+jobs:
+  run-trading-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupération du code
+        uses: actions/checkout@v4
+
+      - name: Installation de Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Installation des bibliothèques
+        run: |
+          pip install yfinance alpaca-py pandas
+
+      - name: Lancement du robot
+        env:
+          ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+        run: |
+          python bot.py
