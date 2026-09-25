@@ -26,3 +26,6 @@ jobs:
 
       - name: Backtest sur tout l'historique de SPY
         run: python backtest.py
+
+      - name: Test anti-chance (robustesse de la stratégie)
+        run: python robustesse.py
