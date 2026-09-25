@@ -37,6 +37,9 @@
 - **Tableau de bord** : `tableau_de_bord.py` calcule backtest, jour par jour, Monte Carlo (2 000 avenirs de 10 ans,
   blocs d'un mois), expériences et graphe du cerveau, puis remplit `tableau/modele.html` (d3 via cdnjs).
   GitHub Actions l'envoie comme fichier `tableau-de-bord`. Le résumé `JOURNAL` est à mettre à jour après chaque expérience.
+- **Testeur visuel** : `python rejeu.py` (sur l'ordinateur de l'utilisateur, où Yahoo marche) rejoue le backtest
+  jour par jour dans le navigateur (`tableau/modele_rejeu.html`, serveur local port 8765) avec journal des ordres,
+  positions, et rapport façon MetaTrader (`robot/rapport.py` ; simulation `details=True`). Options `--capital`, `--version`.
 - **Cerveau** : dossier `cerveau/` (notes Obsidian reliées par [[liens]] : Expériences, Concepts, Leçons).
   À compléter après chaque expérience ; aucun lien cassé ni note isolée (vérifié par les tests).
 - `.github/workflows/verifications.yml` : à chaque envoi de code, tests, backtests et tests anti-chance

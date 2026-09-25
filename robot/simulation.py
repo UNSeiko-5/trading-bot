@@ -26,6 +26,8 @@ class Resultat:
     poids: pd.DataFrame    # part de chaque actif chaque soir
     frais: pd.Series       # frais payés chaque jour, en part du capital
     rotation: pd.Series    # montant échangé chaque jour, en part du capital
+    gains: pd.DataFrame = None    # (mode détaillé) gain de chaque actif chaque jour, frais déduits, en part du capital de départ
+    ordres: pd.DataFrame = None   # (mode détaillé) chaque ordre exécuté à l'ouverture
 
 
 def _variation(apres, avant):
@@ -39,8 +41,12 @@ def frais_par_actif(symboles, frais=FRAIS):
     return np.array([frais[PAR_SYMBOLE[s].type] if s in PAR_SYMBOLE else frais["ETF"] for s in symboles])
 
 
-def simuler(ouvertures, clotures, cibles, debut=DEBUT_BACKTEST, seuil=SEUIL_TRANSACTION, frais=FRAIS):
-    """Simule la stratégie jour par jour. `cibles` : part visée de chaque actif, décidée chaque soir."""
+def simuler(ouvertures, clotures, cibles, debut=DEBUT_BACKTEST, seuil=SEUIL_TRANSACTION, frais=FRAIS, details=False):
+    """Simule la stratégie jour par jour. `cibles` : part visée de chaque actif, décidée chaque soir.
+
+    `details=True` garde aussi le gain de chaque actif chaque jour et la liste des ordres (pour le rejeu
+    et le rapport). Plus lent : réservé à l'affichage, pas aux tests de robustesse.
+    """
     symboles = list(clotures.columns)
     dates = clotures.loc[debut:].index
     o = ouvertures.loc[dates, symboles].to_numpy(dtype=float)
@@ -53,10 +59,14 @@ def simuler(ouvertures, clotures, cibles, debut=DEBUT_BACKTEST, seuil=SEUIL_TRAN
     positions, cash = np.zeros(k), 1.0   # montants investis dans chaque actif, et cash
     valeur, poids = np.empty(n), np.zeros((n, k))
     frais_jour, rotation = np.zeros(n), np.zeros(n)
+    gains, ordres = (np.zeros((n, k)), []) if details else (None, None)
 
     for t in range(n):
         if t > 0:
+            avant = positions
             positions = positions * _variation(o[t], c[t - 1])      # 1. la nuit
+            if details:
+                gains[t] += positions - avant
             decision = seuil_rapide(w[t - 1], poids[t - 1], crypto, seuil)
             bouger = decision != poids[t - 1]
             if bouger.any():                                         # 2. exécution à l'ouverture
@@ -68,21 +78,34 @@ def simuler(ouvertures, clotures, cibles, debut=DEBUT_BACKTEST, seuil=SEUIL_TRAN
                 if cash < 0:   # les frais dépassent le cash : on réduit un peu les positions (jamais de levier)
                     nouvelles *= (nouvelles.sum() + cash) / nouvelles.sum()
                     cash = 0.0
+                if details:
+                    couts = echange * taux
+                    gains[t] -= couts
+                    for i in np.flatnonzero(echange > 1e-12):
+                        ordres.append((dates[t], symboles[i], "achat" if nouvelles[i] > positions[i] else "vente",
+                                       positions[i], nouvelles[i], o[t, i], couts[i]))
                 positions = nouvelles
                 frais_jour[t], rotation[t] = cout / capital, echange.sum() / capital
+        avant = positions
         positions = positions * _variation(c[t], o[t])              # 3. la séance
+        if details:
+            gains[t] += positions - avant
         valeur[t] = cash + positions.sum()
         poids[t] = positions / valeur[t]
 
-    return Resultat(
+    resultat = Resultat(
         pd.Series(valeur, index=dates), pd.DataFrame(poids, index=dates, columns=symboles),
         pd.Series(frais_jour, index=dates), pd.Series(rotation, index=dates),
     )
+    if details:
+        resultat.gains = pd.DataFrame(gains, index=dates, columns=symboles)
+        resultat.ordres = pd.DataFrame(ordres, columns=["date", "symbole", "sens", "avant", "apres", "prix", "frais"])
+    return resultat
 
 
 def strategie_v2(ouvertures, clotures, detecteurs=DETECTEURS, vol_cible=VOL_CIBLE,
                  seuil=SEUIL_TRANSACTION, frais=FRAIS, debut=DEBUT_BACKTEST, risque=None, cassures=(),
-                 retour=(), poids_retour=POIDS_RETOUR_MOYENNE):
+                 retour=(), poids_retour=POIDS_RETOUR_MOYENNE, details=False):
     """La stratégie v2 complète : notes -> parts visées -> simulation.
 
     `risque` peut être fourni pour éviter de le recalculer (tests de robustesse).
@@ -92,7 +115,7 @@ def strategie_v2(ouvertures, clotures, detecteurs=DETECTEURS, vol_cible=VOL_CIBL
     risque = risque or preparer_risque(clotures)
     notes = calculer_notes(clotures, detecteurs, cassures=cassures, retour=retour, poids_retour=poids_retour)
     cibles = parts_cibles(notes, risque, vol_cible)
-    return simuler(ouvertures, clotures, cibles, debut, seuil, frais)
+    return simuler(ouvertures, clotures, cibles, debut, seuil, frais, details)
 
 
 # --- Points de comparaison ------------------------------------------------------------------------
