@@ -75,7 +75,10 @@
   +1,0 %/an, investi à 36 %, frais 1,86 %/an. Seul, le retour à la moyenne perd 1,9 %/an. Code gardé, désactivé.
 - **EXP-005** (v2 + budget de risque) : **9/10, non validée à un cheveu.** +7,8 %/an, chute -12,6 %,
   R4 enfin réussi (+5,2 % sans crypto) ; R3 échoue (frais x3 : perte 1,50 point pour < 1,5). Piste la plus prometteuse.
-- **La v2 est la base à battre.**
+- **EXP-006** (EXP-005 + zone tampon de Carver) : **10/10, validée.** +7,8 %/an, chute -11,7 %, note 0,67,
+  frais 0,48 %/an, +5,1 % sans crypto, frais x3 OK. Prudence : 6e expérience sur le même passé.
+- **La v3 = v2 + `budget=BUDGET_RISQUE` + `tampon=TAMPON` est la nouvelle base à battre.** Prochaine étape :
+  la brancher au robot en argent fictif. Proposé à l'utilisateur : EXP-007 moteur de décision, EXP-008 apprentissage walk-forward.
 
 ## Prochaines étapes (choisies par l'utilisateur)
 

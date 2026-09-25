@@ -28,7 +28,7 @@ REFERENCES_AFFICHEES = ["Acheter et garder SPY", "60/40 (SPY/IEF)", "Même panie
 JOURNAL = [
     {"code": "EXP-001", "titre": "Règle des 200 jours sur SPY (v1)", "score": "4/5", "statut": "non solide",
      "lecon": "Protège des krachs, mais trop dépendante du réglage."},
-    {"code": "EXP-002", "titre": "Stratégie v2 : tendance multi-actifs", "score": "7/8", "statut": "base à battre",
+    {"code": "EXP-002", "titre": "Stratégie v2 : tendance multi-actifs", "score": "7/8", "statut": "non solide",
      "lecon": "Risque très bien tenu, mais trop prudente : +4,4 %/an sans la crypto."},
     {"code": "EXP-003", "titre": "v2 + cassures (Donchian)", "score": "8/10", "statut": "échec",
      "lecon": "Liées à 0,90 aux moyennes : deux fois la même question, aucun gain."},
@@ -36,6 +36,8 @@ JOURNAL = [
      "lecon": "Contredit la tendance : investi à 36 %, frais x3, +1,0 %/an."},
     {"code": "EXP-005", "titre": "v2 + budget de risque", "score": "9/10", "statut": "échec",
      "lecon": "+7,8 %/an, chute -12,6 %, réussit sans crypto ; échoue d'un cheveu aux frais x3."},
+    {"code": "EXP-006", "titre": "v2 + budget de risque + zone tampon (v3)", "score": "10/10", "statut": "base à battre",
+     "lecon": "+7,8 %/an, chute -11,7 %, frais 0,48 %/an : validée, devient la v3."},
 ]
 
 

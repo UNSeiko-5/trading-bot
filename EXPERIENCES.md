@@ -651,3 +651,38 @@ zone tampon » réussisse les 10 critères.
 
 **Verdict prévu :** « v2 + budget de risque + zone tampon » devient la nouvelle base à battre
 seulement si **les 10 critères** sont réussis.
+
+**Résultats** (lancement GitHub du 25/09/2026, `python experience_006.py`, données `679effe582d7`,
+19,7 ans, frais compris) :
+
+| | Rendement/an | Pire chute | Note R/R | Sharpe | Investi | Frais/an | Échangé/an |
+|---|---|---|---|---|---|---|---|
+| **v2 + budget + zone tampon** | **+7,8 %** | **-11,7 %** | **0,67** | 0,97 | 73 % | **0,48 %** | 402 % |
+| EXP-005 (seuil de 2 %) | +7,8 % | -12,6 % | 0,62 | | 77 % | 0,72 % | 622 % |
+| v2 | +6,3 % | -10,0 % | 0,63 | 0,90 | 66 % | 0,65 % | 585 % |
+
+| # | Résultat | Verdict |
+|---|---|---|
+| M1 | +7,8 % contre +6,3 % : +1,52 point | ✅ |
+| M2 | 0,67 contre 0,63 | ✅ |
+| P1 / P2 / P3 | -11,7 % · +7,8 % · 0,67 (meilleure référence : 0,38) | ✅ ✅ ✅ |
+| R1 | 10 variantes entre +6,3 % et +8,1 %/an, chutes entre -9,8 % et -12,7 %, note à 19 % au plus | ✅ |
+| R2 | 2007-2012 : +6,4 % · 2013-2019 : +7,6 % (60/40 meilleur) · 2020-2026 : +9,1 %. 2 périodes sur 3 | ✅ |
+| R3 | Frais x3 : +6,8 %/an, perte de **1,03 point** (moins de 1,5), chute -12,8 % | ✅ |
+| R4 | Sans la crypto : +5,1 %/an, chute -10,6 %, note 0,48 (60/40 : 0,25) | ✅ |
+| R5 | Meilleure que 100 % des 500 versions au hasard | ✅ |
+
+**Conclusion :**
+
+- **Verdict officiel : 10/10. « v2 + budget + zone tampon » devient la nouvelle base à battre (v3).**
+- La zone tampon fait ce qui était prévu : **31 % d'échanges en moins** que la v2, frais passés de
+  0,65 % à 0,48 % par an, et même une pire chute plus faible qu'EXP-005.
+- **Prudence (honnêteté) :** c'est la 6e expérience sur les mêmes 20 ans de données. Plus on teste
+  d'idées sur le même passé, plus une réussite peut être en partie due à la chance. Les critères fixés
+  avant, le test du hasard et la stabilité des 10 variantes limitent ce risque, sans l'annuler. Le
+  vrai juge sera l'argent fictif sur plusieurs mois.
+- La variante « zone tampon 20 % » fait une meilleure note (0,79) : on ne la choisit **pas** après
+  coup. Le réglage reste celui de Carver (10 %).
+
+**Décision :** la v3 = v2 + multiplicateur de risque (EXP-005) + zone tampon (EXP-006) est la
+version à brancher sur le robot en argent fictif (étape 7).
