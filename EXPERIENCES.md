@@ -66,3 +66,52 @@ celle d'« acheter et garder ».
 validée pour de l'argent réel. La prochaine expérience découle directement de l'échec :
 **EXP-002, combiner plusieurs réglages** (par exemple 150, 200 et 250 jours) au lieu d'un
 seul, pour ne plus dépendre d'un chiffre choisi.
+
+---
+
+## EXP-002 — Stratégie v2 : suivi de tendance multi-actifs piloté par le risque
+
+**Date :** 25/09/2026
+
+**Règle testée :** voir la spécification complète dans `docs/STRATEGIE_V2.md`.
+En résumé : 10 actifs dans 6 classes, 3 détecteurs de tendance par actif, taille des positions
+selon le risque, agitation visée de 12 % par an, pas de levier, pas de pari à la baisse.
+
+**Pourquoi cette expérience :** EXP-001 a montré que la protection contre les krachs par la
+tendance est réelle, mais que le résultat dépendait trop d'un seul réglage et d'un seul marché.
+La v2 combine plusieurs réglages et plusieurs marchés.
+
+**Hypothèse :** sur 2007-2026, frais compris, la v2 offre un bon rendement avec une pire chute
+nettement plus faible que la bourse, et elle est mieux payée pour son risque que tous les
+points de comparaison, y compris sans la crypto.
+
+**Période de test :** de 2007 à aujourd'hui (tous les actifs, sauf la crypto, existent depuis
+2006). Aucun paramètre n'est ajusté sur ces données : ils viennent de la littérature ou sont
+fixés a priori.
+
+**Critères de réussite (fixés avant les tests) :**
+
+*Performance (backtest complet, frais compris) :*
+
+| # | Réussi si… |
+|---|---|
+| P1 | Pire chute meilleure que **-20 %** (marge de sécurité sous ta limite de -25 %) |
+| P2 | Rendement annuel d'au moins **6 %** |
+| P3 | Note rendement/risque (rendement annuel ÷ pire chute) meilleure que les 4 points de comparaison : acheter et garder SPY, 60/40, v1, et le même panier toujours investi |
+
+*Robustesse :*
+
+| # | Test | Réussi si… |
+|---|---|---|
+| R1 | Autres réglages : un seul détecteur (rapide, puis lent) ; toutes les moyennes x1,5 ; agitation visée de 10 % et de 14 % ; seuil de transaction de 1 % et de 4 % | Chaque variante garde un rendement d'au moins 4 %, une pire chute meilleure que -25 %, et une note rendement/risque à ±30 % de la version de base |
+| R2 | Sous-périodes : 2007-2012, 2013-2019, 2020-2026 | Rendement positif dans les 3, et note rendement/risque meilleure que le 60/40 dans au moins 2 sur 3 |
+| R3 | Frais multipliés par 3 | Perte de moins de 1,5 point de rendement par an, et pire chute toujours meilleure que -20 % |
+| R4 | Sans la crypto | Pire chute meilleure que -20 %, rendement d'au moins 5 %, et note rendement/risque meilleure que le 60/40 |
+| R5 | Hasard : signaux de chaque actif décalés au hasard dans le temps (500 tirages) | Note rendement/risque meilleure qu'au moins 95 % des versions au hasard |
+
+**Verdict prévu :** la v2 remplace la v1 seulement si **tous** les critères (P1 à P3, R1 à R5)
+sont remplis. Sinon, on documente ce qui échoue et on corrige par une nouvelle expérience.
+
+**Résultats :** *(à remplir après les tests, étapes 5 et 6)*
+
+**Conclusion :** *(à remplir après les tests)*
