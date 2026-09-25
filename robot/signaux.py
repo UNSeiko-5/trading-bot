@@ -2,6 +2,7 @@
 
 Pour chaque actif, 3 détecteurs comparent une moyenne rapide et une moyenne lente du prix.
 Leurs notes sont combinées en une seule note de 0 (cash) à 20 (tendance très forte).
+En option (expérience EXP-003), des détecteurs de cassure s'ajoutent à la moyenne.
 
 `python -m robot.signaux` affiche les notes du jour et leur historique depuis 2007.
 """
@@ -26,27 +27,43 @@ def note_detecteur(prix, rapide, lente, facteur, fenetre_vol=FENETRE_VOL):
     return (ecart / agitation_prix(prix, fenetre_vol) * facteur).clip(-NOTE_MAX, NOTE_MAX)
 
 
-def notes_detecteurs(prix, detecteurs=DETECTEURS):
-    """Les notes de chaque détecteur, une colonne par détecteur (nommée « rapide/lente »)."""
-    return pd.DataFrame(
-        {f"{rapide}/{lente}": note_detecteur(prix, rapide, lente, facteur) for rapide, lente, facteur in detecteurs}
-    )
+def note_cassure(prix, duree, facteur):
+    """Note d'un détecteur de cassure (canal de Donchian, règle « breakout » de R. Carver), entre -20 et +20.
+
+    Le canal va du plus bas au plus haut des `duree` dernières clôtures. Tout en haut du canal
+    (le prix vient de casser vers le haut) : +20 avant le facteur ; au milieu : 0 ; tout en bas : -20.
+    La position est lissée sur `duree`/4 jours, puis le facteur ramène la note moyenne vers 10.
+    """
+    haut = prix.rolling(duree, min_periods=duree).max()
+    bas = prix.rolling(duree, min_periods=duree).min()
+    position = 40 * (prix - (haut + bas) / 2) / (haut - bas)
+    position = position.where(haut != bas, 0.0)   # prix parfaitement plat : ni hausse ni baisse
+    lissage = max(duree // 4, 1)
+    return (position.ewm(span=lissage, min_periods=lissage).mean() * facteur).clip(-NOTE_MAX, NOTE_MAX)
 
 
-def note_combinee(prix, detecteurs=DETECTEURS, jours_min=JOURS_MIN_HISTORIQUE):
+def notes_detecteurs(prix, detecteurs=DETECTEURS, cassures=()):
+    """Les notes de chaque détecteur, une colonne par détecteur : « rapide/lente » pour les moyennes,
+    « cassure N » pour les cassures."""
+    colonnes = {f"{rapide}/{lente}": note_detecteur(prix, rapide, lente, facteur) for rapide, lente, facteur in detecteurs}
+    colonnes.update({f"cassure {duree}": note_cassure(prix, duree, facteur) for duree, facteur in cassures})
+    return pd.DataFrame(colonnes)
+
+
+def note_combinee(prix, detecteurs=DETECTEURS, jours_min=JOURS_MIN_HISTORIQUE, cassures=()):
     """Moyenne des détecteurs, ramenée entre 0 et 20 (0 = cash : on ne parie pas à la baisse).
 
     Vide tant que l'actif n'a pas `jours_min` jours de données.
     """
-    moyenne = notes_detecteurs(prix, detecteurs).mean(axis=1, skipna=False)
+    moyenne = notes_detecteurs(prix, detecteurs, cassures).mean(axis=1, skipna=False)
     anciennete = prix.notna().cumsum()
     return moyenne.clip(0, NOTE_MAX).where(anciennete >= jours_min)
 
 
-def notes(clotures, detecteurs=DETECTEURS, jours_min=JOURS_MIN_HISTORIQUE):
+def notes(clotures, detecteurs=DETECTEURS, jours_min=JOURS_MIN_HISTORIQUE, cassures=()):
     """Note combinée de chaque actif, chaque jour (une colonne par actif)."""
     return pd.DataFrame(
-        {symbole: note_combinee(clotures[symbole], detecteurs, jours_min) for symbole in clotures.columns}
+        {symbole: note_combinee(clotures[symbole], detecteurs, jours_min, cassures) for symbole in clotures.columns}
     )
 
 

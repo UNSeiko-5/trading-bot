@@ -8,6 +8,10 @@ Ne pas modifier sans ouvrir une nouvelle expérience dans EXPERIENCES.md.
 DETECTEURS = [(16, 64, 3.75), (32, 128, 2.65), (64, 256, 1.87)]
 NOTE_MAX = 20
 
+# --- Cassures (EXP-003, en test : la v2 n'en utilise pas) -------------------------------------
+# (durée du canal de Donchian en jours, facteur d'échelle publié par R. Carver dans pysystemtrade)
+CASSURES = [(40, 0.70), (80, 0.73), (160, 0.74)]
+
 # --- Taille des positions (section 5) ------------------------------------------------
 VOL_CIBLE = 0.12              # agitation annuelle visée pour tout le portefeuille
 FENETRE_VOL = 35              # jours (moyenne exponentielle) pour mesurer l'agitation

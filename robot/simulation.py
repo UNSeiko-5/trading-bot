@@ -79,13 +79,14 @@ def simuler(ouvertures, clotures, cibles, debut=DEBUT_BACKTEST, seuil=SEUIL_TRAN
 
 
 def strategie_v2(ouvertures, clotures, detecteurs=DETECTEURS, vol_cible=VOL_CIBLE,
-                 seuil=SEUIL_TRANSACTION, frais=FRAIS, debut=DEBUT_BACKTEST, risque=None):
+                 seuil=SEUIL_TRANSACTION, frais=FRAIS, debut=DEBUT_BACKTEST, risque=None, cassures=()):
     """La stratégie v2 complète : notes -> parts visées -> simulation.
 
     `risque` peut être fourni pour éviter de le recalculer (tests de robustesse).
+    `cassures` : détecteurs de cassure ajoutés à la note combinée (EXP-003). Vide = la v2.
     """
     risque = risque or preparer_risque(clotures)
-    cibles = parts_cibles(calculer_notes(clotures, detecteurs), risque, vol_cible)
+    cibles = parts_cibles(calculer_notes(clotures, detecteurs, cassures=cassures), risque, vol_cible)
     return simuler(ouvertures, clotures, cibles, debut, seuil, frais)
 
 

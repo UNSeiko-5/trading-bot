@@ -61,12 +61,14 @@ def ligne(nom, m, ok=None):
             f"   note R/R {m['note_rendement_risque']:5.2f}{fin}")
 
 
-def test_r1(ouvertures, clotures, risque, base):
+def test_r1(ouvertures, clotures, risque, base, variantes=None, reglage=None):
+    """`reglage` : réglages de la version testée (vide = la v2) ; chaque variante les modifie."""
+    variantes, reglage = variantes or variantes_reglages(), reglage or {}
     print("\nR1 — Autres réglages")
     print(ligne("Version de base", base))
     tous = True
-    for nom, reglage in variantes_reglages().items():
-        m = mesures(strategie_v2(ouvertures, clotures, risque=risque, **reglage).valeur)
+    for nom, variante in variantes.items():
+        m = mesures(strategie_v2(ouvertures, clotures, risque=risque, **{**reglage, **variante}).valeur)
         ecart = abs(m["note_rendement_risque"] / base["note_rendement_risque"] - 1)
         ok = m["rendement_annuel"] >= R1_RENDEMENT_MIN and m["pire_chute"] > R1_CHUTE_MIN and ecart <= R1_ECART_NOTE_MAX
         tous &= ok
@@ -87,29 +89,30 @@ def test_r2(valeur_v2, valeur_60_40):
     return tous_positifs and nb_meilleur >= 2
 
 
-def test_r3(ouvertures, clotures, risque, base):
+def test_r3(ouvertures, clotures, risque, base, reglage=None):
     print("\nR3 — Frais multipliés par 3")
     triples = {cle: 3 * taux for cle, taux in FRAIS.items()}
-    m = mesures(strategie_v2(ouvertures, clotures, risque=risque, frais=triples).valeur)
+    m = mesures(strategie_v2(ouvertures, clotures, risque=risque, frais=triples, **(reglage or {})).valeur)
     perte = base["rendement_annuel"] - m["rendement_annuel"]
     ok = perte < R3_PERTE_MAX and m["pire_chute"] > R3_CHUTE_MIN
     print(ligne("Frais x3 (ETF 0,30 %, crypto 1,50 %)", m, ok) + f"   (perte : {perte:.2%} par an)")
     return ok
 
 
-def test_r4(ouvertures, clotures, note_60_40):
+def test_r4(ouvertures, clotures, note_60_40, reglage=None):
     print("\nR4 — Sans la crypto")
     sans = [s for s in clotures.columns if not s.endswith("-USD")]
-    m = mesures(strategie_v2(ouvertures[sans], clotures[sans]).valeur)
+    m = mesures(strategie_v2(ouvertures[sans], clotures[sans], **(reglage or {})).valeur)
     ok = m["pire_chute"] > R4_CHUTE_MIN and m["rendement_annuel"] >= R4_RENDEMENT_MIN and \
         m["note_rendement_risque"] > note_60_40
     print(ligne("8 actifs, sans Bitcoin ni Ethereum", m, ok) + f"   (60/40 : note {note_60_40:.2f})")
     return ok
 
 
-def test_r5(ouvertures, clotures, risque, base):
+def test_r5(ouvertures, clotures, risque, base, reglage=None, nom="la v2"):
     print(f"\nR5 — Hasard : signaux décalés au hasard dans le temps ({R5_TIRAGES} tirages)")
-    notes = calculer_notes(clotures)
+    reglage = reglage or {}
+    notes = calculer_notes(clotures, reglage.get("detecteurs", DETECTEURS), cassures=reglage.get("cassures", ()))
     aleatoire = np.random.default_rng(42)  # graine fixe : même résultat à chaque lancement
     notes_hasard, rendements_hasard = [], []
     for _ in range(R5_TIRAGES):
@@ -119,10 +122,10 @@ def test_r5(ouvertures, clotures, risque, base):
         rendements_hasard.append(m["rendement_annuel"])
     part = float(np.mean(base["note_rendement_risque"] > np.array(notes_hasard)))
     ok = part >= R5_PART_MIN
-    print(f"  Note R/R de la v2 ({base['note_rendement_risque']:.2f}) meilleure que {part:.0%} des versions"
+    print(f"  Note R/R de {nom} ({base['note_rendement_risque']:.2f}) meilleure que {part:.0%} des versions"
           f" au hasard (médiane du hasard : {np.median(notes_hasard):.2f})  {'✅' if ok else '❌'}")
     print(f"  Rendement : médiane du hasard {np.median(rendements_hasard):+.1%}/an,"
-          f" v2 {base['rendement_annuel']:+.1%}/an (information)")
+          f" {nom} {base['rendement_annuel']:+.1%}/an (information)")
     return ok
 
 

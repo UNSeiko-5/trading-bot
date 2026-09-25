@@ -44,3 +44,6 @@ jobs:
 
       - name: Test anti-chance v2 (EXP-002, critères R1 à R5)
         run: python robustesse_v2.py
+
+      - name: Expérience EXP-003 (v2 + cassures, critères M, P et R)
+        run: python experience_003.py

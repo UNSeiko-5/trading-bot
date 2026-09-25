@@ -27,6 +27,8 @@
 - **v2, en recherche** (pas encore branchée au robot) : dossier `robot/` (`parametres.py`, `univers.py`,
   `donnees.py`, `signaux.py`, `portefeuille.py`, `simulation.py`), `backtest_v2.py`, `robustesse_v2.py`.
   Spécification complète : `docs/STRATEGIE_V2.md`.
+- **EXP-003 (cassures)** : `experience_003.py` teste la v2 + 3 détecteurs de cassure (`CASSURES` dans
+  `robot/parametres.py`, `note_cassure` dans `robot/signaux.py`). La v2 est inchangée par défaut (`cassures=()`).
 - `.github/workflows/verifications.yml` : à chaque envoi de code, tests, backtests et tests anti-chance
   sur les vraies données Yahoo.
 
