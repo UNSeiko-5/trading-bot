@@ -19,6 +19,8 @@
 - Tout nouveau code a ses tests (`python -m pytest`). Vérifier que les tests attrapent vraiment les
   erreurs en réintroduisant volontairement des bugs.
 - Avancer étape par étape, expliquer ce qui a été fait et ce que montrent les résultats.
+- **Cerveau** : au début de chaque session, lire `cerveau/Boîte à idées.md` (l'utilisateur y écrit depuis
+  Obsidian) et y répondre. Après chaque expérience, mettre à jour les notes de `cerveau/`.
 
 ## Architecture
 

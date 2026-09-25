@@ -3,6 +3,7 @@
 Le cerveau du projet : tout ce qu'on a appris, relié. Ouvre ce dossier dans Obsidian
 (gratuit) et regarde la « vue graphe » pour voir les liens.
 
+- Tes idées et questions : [[Boîte à idées]] (Claude la lit à chaque session)
 - La stratégie actuelle : [[Stratégie v2]]
 - La règle d'or : [[Méthode — critères avant les tests]]
 - Les expériences : [[EXP-001 — Règle des 200 jours]], [[EXP-002 — Stratégie v2]],
