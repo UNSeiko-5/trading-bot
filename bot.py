@@ -96,7 +96,7 @@ def main():
     if action == "ACHAT":
         client.submit_order(MarketOrderRequest(
             symbol=SYMBOLE, qty=quantite, side=OrderSide.BUY, time_in_force=TimeInForce.DAY))
-        envoyer_alerte(f"🟢 ACHAT de {quantite} parts {SYMBOLE}\n{rapport}\nOrdre transmis (exécuté à l'ouverture).")
+        envoyer_alerte(f"🟢 ACHAT de {quantite} parts {SYMBOLE}\n{rapport}\nOrdre transmis (exécuté dès que la bourse est ouverte).")
     elif action == "VENTE":
         client.submit_order(MarketOrderRequest(
             symbol=SYMBOLE, qty=quantite, side=OrderSide.SELL, time_in_force=TimeInForce.DAY))
