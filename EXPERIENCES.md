@@ -318,3 +318,103 @@ Frais : 0,68 % par an (v2 : 0,65 %). Pour information : lien entre cassures et m
 **Décision :** on n'ajoute pas les cassures au robot. Le code reste dans le dépôt, désactivé
 (`cassures=()` par défaut), pour pouvoir refaire le test. Prochaine étape prévue : EXP-004
 (retour à la moyenne), une famille de signaux qui, elle, n'est **pas** liée à la tendance.
+
+---
+
+## EXP-004 — Ajout du retour à la moyenne (RSI et bandes de Bollinger) à la note combinée
+
+**Date :** 25/09/2026
+
+**Pourquoi cette expérience :** EXP-003 a montré qu'ajouter un signal qui dit la même chose que
+la tendance n'apporte rien (cassures liées à 0,90 aux moyennes). Le retour à la moyenne est
+l'inverse : il achète ce qui vient de trop baisser et allège ce qui vient de trop monter. C'est
+une famille de signaux **vraiment différente**, qui pourrait gagner de l'argent quand la tendance
+n'en gagne pas (marchés sans direction).
+
+**Règle testée :** la v2 à l'identique (`docs/STRATEGIE_V2.md`, sans les cassures d'EXP-003),
+avec **une seule différence** : la note combinée mélange deux familles de signaux.
+
+**Famille « retour à la moyenne »** : 2 détecteurs aux réglages classiques des manuels, convertis
+en note de -20 à +20. Note **positive** quand l'actif est « survendu » (il a trop baissé, on
+parie qu'il remonte), **négative** quand il est « suracheté ».
+
+| Détecteur | Calcul | Conversion en note | Repères |
+|---|---|---|---|
+| RSI 14 jours | Indicateur de force relative de J. W. Wilder (1978) : part des hausses dans les variations des 14 derniers jours (moyenne de Wilder), de 0 à 100 | `note = (50 − RSI) ÷ 2` | RSI 30 (seuil classique « survendu ») → +10 ; RSI 70 (« suracheté ») → -10 |
+| Bandes de Bollinger 20 jours | Écart entre le prix et sa moyenne des 20 derniers jours, mesuré en écarts-types de ces 20 clôtures (J. Bollinger) | `note = −5 × écart` | Prix sur la bande basse (-2 écarts-types) → +10 ; sur la bande haute → -10 |
+
+Les réglages (14 jours, 20 jours, seuils 30/70, bandes à 2 écarts-types) sont ceux des auteurs.
+La conversion est fixée **a priori** : le seuil classique de chaque indicateur correspond à une
+note de 10 (un signal « normal »), comme pour les autres détecteurs. Les notes sont bornées entre
+-20 et +20. **Rien n'est ajusté sur nos données.**
+
+**Note combinée** = **50 %** × moyenne des 3 détecteurs de tendance de la v2
+\+ **50 %** × moyenne des 2 détecteurs de retour à la moyenne, puis bornée entre 0 et 20.
+Moitié-moitié : on ne sait pas a priori quelle famille est la meilleure, donc on ne favorise
+aucune des deux (même logique que les budgets de risque égaux par classe d'actifs).
+**Tout le reste est inchangé** : panier, budgets de risque, agitation visée de 12 %, IDM,
+garde-fous, seuil de transaction, frais, exécution à l'ouverture suivante, période 2007-2026.
+
+Exemples : tendance haussière (+10) et actif suracheté (-10) → note 0, cash. Tendance baissière
+(-10) et actif survendu (+10) → note 0, cash. Pas de tendance (0) et actif survendu (+10) → note 5 :
+le robot achète la baisse d'un marché sans direction.
+
+**Ce qu'on attend honnêtement (écrit avant les tests) :**
+
+- **Le robot sera probablement encore moins investi.** En moyenne, une note de retour à la moyenne
+  vaut à peu près 0 (un actif est autant de fois survendu que suracheté). La mélanger à moitié
+  avec la tendance fait donc baisser la note combinée, alors que le problème de la v2 est déjà
+  d'être trop peu investie (66 %). Dans le cas le plus fréquent (tendance haussière + prix qui
+  monte), les deux familles se contredisent.
+- **Plus de transactions, donc plus de frais :** RSI et Bollinger changent d'avis en quelques
+  jours, contre des mois pour la tendance.
+- **Ce que dit la littérature :** le retour à la moyenne à court terme fonctionne surtout sur les
+  indices actions, peu sur les obligations et les matières premières, et beaucoup de résultats
+  publiés sur le RSI ont été trouvés en testant de nombreux réglages (optimisation cachée).
+  Et notre exécution à l'ouverture du lendemain rate une partie du rebond, qui arrive souvent
+  pendant la nuit.
+- **Résultat le plus probable : rendement plus faible que la v2 (M1 échoué).** Ce qui reste
+  à découvrir : est-ce que le mélange améliore la régularité (M2, note rendement/risque) ?
+
+**Hypothèse :** mélanger à moitié retour à la moyenne et tendance augmente le rendement de la v2
+d'au moins 0,5 point par an sans dégrader sa note rendement/risque, et la nouvelle version réussit
+tous les critères d'EXP-002, y compris R4 (sans la crypto).
+
+**Critères de réussite (fixés avant les tests) :** exactement les mêmes 10 critères qu'EXP-003,
+avec les mêmes seuils. Seules les variantes de R1 changent, pour tester les réglages du retour à
+la moyenne.
+
+*Mieux que la v2 — comparaison dans le même lancement, sur les mêmes données :*
+
+| # | Réussi si… |
+|---|---|
+| M1 | Rendement annuel supérieur d'au moins **0,5 point** à celui de la v2 |
+| M2 | Note rendement/risque **au moins égale** à celle de la v2 |
+
+*Performance — identiques à EXP-002 :*
+
+| # | Réussi si… |
+|---|---|
+| P1 | Pire chute meilleure que **-20 %** |
+| P2 | Rendement annuel d'au moins **6 %** |
+| P3 | Note rendement/risque meilleure que les 4 points de comparaison : acheter et garder SPY, 60/40, v1, et le même panier toujours investi |
+
+*Robustesse — mêmes seuils que EXP-002 :*
+
+| # | Test | Réussi si… |
+|---|---|---|
+| R1 | 10 variantes : RSI seul (sans Bollinger) ; Bollinger seul (sans RSI) ; durées doublées (RSI 28 jours, Bollinger 40 jours) ; durées divisées par 2 (RSI 7 jours, Bollinger 10 jours) ; retour à la moyenne pesant 25 % au lieu de 50 % ; retour à la moyenne pesant 75 % ; moyennes de tendance x1,5 comme dans EXP-002 ; agitation visée de 10 % et de 14 % ; seuil de transaction de 1 % et de 4 % | Chaque variante garde un rendement d'au moins 4 %, une pire chute meilleure que -25 %, et une note rendement/risque à ±30 % de la version de base |
+| R2 | Sous-périodes : 2007-2012, 2013-2019, 2020-2026 | Rendement positif dans les 3, et note rendement/risque meilleure que le 60/40 dans au moins 2 sur 3 |
+| R3 | Frais multipliés par 3 | Perte de moins de 1,5 point de rendement par an, et pire chute toujours meilleure que -20 % |
+| R4 | Sans la crypto | Pire chute meilleure que -20 %, rendement d'au moins 5 %, et note rendement/risque meilleure que le 60/40 |
+| R5 | Hasard : note combinée de chaque actif décalée au hasard dans le temps (500 tirages) | Note rendement/risque meilleure qu'au moins 95 % des versions au hasard |
+
+*Affiché pour information seulement (pas des critères) :* part investie moyenne, frais par an,
+lien (corrélation) entre la note de retour à la moyenne et la note de tendance, note moyenne du
+retour à la moyenne en valeur absolue (comparée à environ 10), et résultat de la famille
+« retour à la moyenne » seule (sans la tendance). Aucun réglage n'est corrigé après coup
+dans cette expérience.
+
+**Verdict prévu :** la version « v2 + retour à la moyenne » remplace la v2 comme base à battre
+seulement si **les 10 critères** (M1, M2, P1 à P3, R1 à R5) sont réussis. Sinon, la v2 reste la
+base et l'échec est documenté ici.
