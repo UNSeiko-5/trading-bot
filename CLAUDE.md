@@ -32,6 +32,11 @@
 - **EXP-004 (retour à la moyenne)** : `experience_004.py` mélange à 50/50 la tendance et RSI 14 + Bollinger 20
   (`RETOUR_MOYENNE`, `POIDS_RETOUR_MOYENNE` ; `note_rsi`, `note_bollinger`). Désactivé par défaut (`retour=()`).
 - `outils_experience.py` : déroulé commun des expériences (critères M1-M2, P1-P3, R1-R5, verdict).
+- **Tableau de bord** : `tableau_de_bord.py` calcule backtest, jour par jour, Monte Carlo (2 000 avenirs de 10 ans,
+  blocs d'un mois), expériences et graphe du cerveau, puis remplit `tableau/modele.html` (d3 via cdnjs).
+  GitHub Actions l'envoie comme fichier `tableau-de-bord`. Le résumé `JOURNAL` est à mettre à jour après chaque expérience.
+- **Cerveau** : dossier `cerveau/` (notes Obsidian reliées par [[liens]] : Expériences, Concepts, Leçons).
+  À compléter après chaque expérience ; aucun lien cassé ni note isolée (vérifié par les tests).
 - `.github/workflows/verifications.yml` : à chaque envoi de code, tests, backtests et tests anti-chance
   sur les vraies données Yahoo.
 

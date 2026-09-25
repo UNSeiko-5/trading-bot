@@ -39,6 +39,16 @@ jobs:
       - name: Répartition v2 visée aujourd'hui
         run: python -m robot.portefeuille
 
+      - name: Tableau de bord (graphiques, Monte Carlo, cerveau)
+        run: python tableau_de_bord.py
+
+      - name: Envoi du tableau de bord (à télécharger en bas de la page du lancement)
+        uses: actions/upload-artifact@v4
+        with:
+          name: tableau-de-bord
+          path: tableau/tableau_de_bord.html
+          retention-days: 30
+
       - name: Backtest v2 (EXP-002, critères de performance)
         run: python backtest_v2.py
 
