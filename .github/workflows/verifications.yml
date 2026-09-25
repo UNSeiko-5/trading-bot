@@ -41,3 +41,6 @@ jobs:
 
       - name: Backtest v2 (EXP-002, critères de performance)
         run: python backtest_v2.py
+
+      - name: Test anti-chance v2 (EXP-002, critères R1 à R5)
+        run: python robustesse_v2.py
