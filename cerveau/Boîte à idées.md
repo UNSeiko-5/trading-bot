@@ -45,3 +45,11 @@ avec Claude Code jusqu'à ce que la stratégie marche », c'est-à-dire du [[Sur
 **À décider par toi plus tard :** des coupe-circuits rapides (-2 % ou -3 % en une journée : positions
 réduites ou fermées). Ce serait une expérience à part (un prochain numéro libre). Je m'attends plutôt à ce qu'ils
 coûtent : après une journée de krach, ils font souvent vendre au plus bas.
+
+**Résultats (26/09/2026, soir) :**
+- Cerveau à régimes : **9/10, non validé** ([[EXP-009 — Régimes de marché]]). Même rendement que la v3,
+  mais pire chute un peu plus grande (-12,7 % contre -11,7 %). La v3 faisait déjà le travail.
+- Krachs simulés : un krach type 1987 le pire soir aurait donné -26,1 % ; avec 3 krachs au hasard en
+  20 ans, la limite de -25 % est dépassée dans 5 % des essais
+  ([[Leçon — un krach d'une nuit passe sous l'arrêt]]). À garder en tête avant le passage au réel.
+- Veto final : en place, il ne bloque rien d'un plan normal (vérifié par les tests).

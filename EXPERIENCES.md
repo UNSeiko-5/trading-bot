@@ -966,3 +966,43 @@ changements de régime par an, frais, montant échangé, part investie et Sharpe
 **Verdict prévu :** « v3 + régimes » remplace la v3 comme base à battre seulement si **les 10
 critères** sont réussis. Sinon, la v3 reste la base, le code est gardé mais désactivé
 (`regime=None`), et l'échec est noté ici.
+
+**Résultats** (lancement GitHub n°52 du 26/09/2026, `python experience_009.py`, données `1722713d093b`,
+2007-01-03 → 2026-09-25, 19,7 ans, frais compris) :
+
+| | Rendement/an | Pire chute | Note R/R | Sharpe | Investi | Frais/an | Échangé/an |
+|---|---|---|---|---|---|---|---|
+| **v3 + régimes** | **+7,8 %** | **-12,7 %** | **0,62** | 0,99 | 71 % | 0,52 % | 430 % |
+| v3 (base à battre) | +7,8 % | -11,7 % | 0,67 | 0,96 | 73 % | 0,48 % | 402 % |
+
+Pour information : régime agité de 5 % (Ethereum) à 34 % du temps (obligations 20 ans), 5 à 16
+changements de régime par an selon l'actif ; multiplicateur moyen 1,85 (v3 : 1,80).
+
+| # | Résultat | Verdict |
+|---|---|---|
+| M1 | Note 0,62 contre 0,67 : **7 % moins bonne**, alors qu'il fallait 10 % de mieux (seuil 0,73) | ❌ |
+| M2 | +7,8 % contre +7,8 % (+0,03 point) | ✅ |
+| P1 / P2 / P3 | -12,7 % · +7,8 % · 0,62 (meilleure référence : 0,38) | ✅ ✅ ✅ |
+| R1 | 10 variantes entre +7,0 % et +7,8 %/an, chutes entre -10,4 % et -13,6 %, note à 18 % au plus | ✅ |
+| R2 | 2007-2012 : +6,8 % · 2013-2019 : +7,3 % (60/40 meilleur) · 2020-2026 : +9,1 %. 2 sur 3 | ✅ |
+| R3 | Frais x3 : +6,7 %/an, perte de 1,11 point, chute -13,7 % | ✅ |
+| R4 | Sans la crypto : +5,1 %/an, chute -11,6 %, note 0,44 (60/40 : 0,26) | ✅ |
+| R5 | Meilleure que 100 % des 500 versions au hasard | ✅ |
+
+**Conclusion :**
+
+- **Verdict officiel : 9/10, EXP-009 n'est PAS validée.** Elle échoue sur le critère qui comptait :
+  la promesse de la vidéo (mieux protéger le capital). Au même rendement, la pire chute est même un
+  peu **plus grande** (-12,7 % contre -11,7 %).
+- **Ce qu'on attendait s'est produit** : la v3 réduit déjà chaque position quand son actif s'agite. Le
+  cerveau à régimes dit presque la même chose, avec quelques jours de retard (filtre de 3 jours), et
+  fait un peu plus d'échanges (+7 % de montant échangé). Deuxième cas de
+  « deux signaux qui disent la même chose », après EXP-003.
+- Les 9 autres critères sont réussis : le filtre ne casse rien (R5 à 100 %, sans crypto +5,1 %),
+  il n'apporte simplement rien de mesurable. Le Sharpe monte à peine (0,99 contre 0,96) : dans le bruit.
+- La variante « apprentissage sur 1 an » a une meilleure note (0,73) : on ne la choisit **pas** après
+  coup, ce serait du surapprentissage (10 variantes essayées, une sort forcément du lot).
+- 8e expérience sur les mêmes données quotidiennes : raison de plus de ne rien garder de limite.
+
+**Décision :** la v3 reste la base à battre. Le code est gardé mais désactivé (`regime=None`) ;
+`python -m robot.regimes` continue d'afficher le régime du jour pour information.

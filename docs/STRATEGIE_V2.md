@@ -179,6 +179,9 @@ on est payé pour le risque pris.
   même indice, mais une autre devise et d'autres frais. L'écart sera mesuré à l'étape 10.
 - **Frais fixes en réel.** Chez Interactive Brokers, une commission minimale par ordre pèse
   lourd sur de petits montants. Elle sera modélisée avant tout passage au réel.
+- **Krach d'une nuit.** L'arrêt à -25 % agit après la baisse. Les krachs simulés
+  (`krachs_simules.py`) montrent qu'un krach type 1987 tombé le pire soir aurait mené la v3 à
+  -26,1 %, et que 3 krachs de ce type en 20 ans dépassent -25 % dans 5 % des essais.
 
 ## 11. Organisation du code
 
