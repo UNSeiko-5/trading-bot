@@ -108,3 +108,20 @@ def test_message_explique_chaque_actif():
     texte = message("2026-09-25", 100_000, SURS, 1.8, d, [Ordre("SPY", "achat", 20_000), Ordre("TLT", "vente", 5_000, 50, True)])
     assert "SPY : 3/3 détecteurs haussiers" in texte and "achat de 20 000 $" in texte
     assert "vente complète" in texte and "x1,80" in texte
+
+
+def test_compte_sans_marge_les_achats_n_attendent_pas_l_argent_des_ventes():
+    # 90 000 $ en SPY à alléger à 20 000 $, 10 000 $ de cash, 50 000 $ d'EFA voulus
+    d = decision(SPY=0.20, EFA=0.50)
+    positions = {"SPY": (180.0, 90_000.0)}
+    prix = {"SPY": 500.0, "EFA": 80.0}
+    fr = {"SPY": True, "EFA": True}
+    avec = plan_ordres(d, positions, prix, 100_000, 10_000, fr, SURS)
+    sans = plan_ordres(d, positions, prix, 100_000, 10_000, fr, SURS, compter_ventes=False)
+    achat = lambda ordres: sum(o.montant for o in ordres if o.sens == "achat")
+    assert achat(avec) == pytest.approx(50_000)                    # la vente de 70 000 $ finance l'achat
+    assert achat(sans) == pytest.approx(0.99 * 10_000)            # seulement le cash déjà là
+    assert [o.symbole for o in sans if o.sens == "vente"] == ["SPY"]
+    from robot.decision import achats_reportes
+    assert achats_reportes(d, positions, 100_000, sans, SURS) == pytest.approx(50_000 - 9_900)
+    assert achats_reportes(d, positions, 100_000, sans, {**SURS, "bloquer_achats": True}) == 0

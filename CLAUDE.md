@@ -43,6 +43,9 @@
   on ne va qu'au bord) : `TAMPON`, `tampon_rapide`, `parts_normales` ; `strategie_v2(tampon=...)`.
 - **EXP-007 (H1 filtrée weekly, idée de l'utilisateur)** : `experience_007.py` + `robot/h1.py` (bougies H1 Alpaca,
   croisement EMA 20/50, filtre 10/40 semaines, stop 2 ATR, suiveur 3 ATR, risque 0,5 %/trade). Base à battre : v3.
+- **EXP-008 (cash rémunéré)** : `experience_008.py`. La v3 avec le cash placé au taux à 3 mois de la veille (`^IRX` - 0,15 %/an,
+  `FONDS_MONETAIRE`, `rendement_monetaire`), frais ETF sur chaque variation du cash ; `strategie_v2(monetaire=...)`.
+  Base à battre : v3, M1 à +0,2 point. Désactivé par défaut (`monetaire=None`).
 - `outils_experience.py` : déroulé commun des expériences (critères M1-M2, P1-P3, R1-R5, verdict).
 - **Tableau de bord** : `tableau_de_bord.py` calcule backtest, jour par jour, Monte Carlo (2 000 avenirs de 10 ans,
   blocs d'un mois), expériences et graphe du cerveau, puis remplit `tableau/modele.html` (d3 via cdnjs).
@@ -88,7 +91,9 @@
   **0/10, échec net.** Sur 2016-2026 : +5,0 %/an, chute -26 % contre +10,6 % et -11,7 % pour la v3. 33 % de gagnants,
   facteur de profit 0,74, frais 2,1 %/an, et des entrées au hasard font mieux dans 72 % des cas (R5). Code gardé, non branché.
 - Toujours proposé : moteur de décision, apprentissage walk-forward.
-- Point ouvert avant le réel : sur un compte cash, les ventes doivent être exécutées avant les achats.
+- Fait (26/09) : le robot n'achète qu'avec le cash déjà là (`compter_ventes=False`, `min(cash, buying_power)`) ;
+  les achats financés par des ventes d'ETF sont reportés au lendemain et signalés sur Telegram.
+- **EXP-008** (cash rémunéré) : critères publiés, résultats en attente.
 
 ## Prochaines étapes (choisies par l'utilisateur)
 
