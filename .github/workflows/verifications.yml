@@ -39,7 +39,7 @@ jobs:
       - name: Répartition v2 visée aujourd'hui
         run: python -m robot.portefeuille
 
-      - name: Régimes de marché du jour (EXP-007, pour information)
+      - name: Régimes de marché du jour (EXP-009, pour information)
         run: python -m robot.regimes
 
       - name: Krachs simulés (stress test de la v3, pour information)
@@ -73,5 +73,15 @@ jobs:
       - name: Expérience EXP-006 (budget de risque + zone tampon, critères M, P et R)
         run: python experience_006.py
 
-      - name: Expérience EXP-007 (v3 + régimes de marché, critères M, P et R)
+      - name: Expérience EXP-008 (v3 + cash rémunéré, critères M, P et R)
+        run: python experience_008.py
+
+      - name: Expérience EXP-007 (croisement H1 filtré weekly, critères M, P et R)
+        # Les clés Alpaca servent seulement à LIRE l'historique des bougies d'une heure (aucun ordre).
+        env:
+          ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
         run: python experience_007.py
+
+      - name: Expérience EXP-009 (v3 + régimes de marché de la vidéo, critères M, P et R)
+        run: python experience_009.py

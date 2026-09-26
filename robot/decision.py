@@ -111,12 +111,14 @@ def _quantite(montant, prix, fractionnable):
     return math.floor(brute * 1e6) / 1e6 if fractionnable else float(math.floor(brute))
 
 
-def plan_ordres(decision, positions, prix, capital, cash, fractionnable, securite, exclus=()):
+def plan_ordres(decision, positions, prix, capital, cash, fractionnable, securite, exclus=(), compter_ventes=True):
     """Ordres à transmettre pour passer des positions actuelles aux parts visées.
 
     `positions` : {symbole: (quantité, valeur en $)} ; `prix` : dernier prix connu ; `exclus` : actifs aux
     données douteuses (aucun ordre). Les ventes passent avant les achats, et les achats ne dépassent
     jamais le cash disponible plus le produit des ventes (jamais de levier).
+    `compter_ventes=False` (compte sans marge) : les achats ne dépassent pas le cash déjà là, car les ventes
+    d'ETF ne seront exécutées qu'à l'ouverture ; le reste des achats est fait le lendemain.
     """
     ventes, achats = [], []
     for symbole, ligne in decision.iterrows():
@@ -141,7 +143,7 @@ def plan_ordres(decision, positions, prix, capital, cash, fractionnable, securit
                 if q > 0:
                     achats.append(Ordre(symbole, "achat", q * prix[symbole], q))
 
-    disponible = MARGE_CASH * (max(cash, 0.0) + sum(o.montant for o in ventes))
+    disponible = MARGE_CASH * (max(cash, 0.0) + (sum(o.montant for o in ventes) if compter_ventes else 0.0))
     total = sum(o.montant for o in achats)
     if total > disponible:   # pas assez de cash : tous les achats sont réduits dans la même proportion
         facteur = disponible / total
@@ -159,13 +161,23 @@ def plan_ordres(decision, positions, prix, capital, cash, fractionnable, securit
     return ventes + achats
 
 
-def controle_final(ordres, positions, capital, cash, securite, marge=MARGE_VETO):
+def achats_reportes(decision, positions, capital, ordres, securite, exclus=()):
+    """Montant d'achats voulus mais pas encore passés faute de cash (ils le seront le lendemain)."""
+    if securite["bloquer_achats"] or securite["tout_vendre"]:
+        return 0.0
+    voulus = sum(max(l["visee"] * capital - positions.get(s, (0.0, 0.0))[1], 0.0)
+                 for s, l in decision.iterrows() if s not in exclus)
+    return max(voulus - sum(o.montant for o in ordres if o.sens == "achat"), 0.0)
+
+
+def controle_final(ordres, positions, capital, cash, securite, marge=MARGE_VETO, compter_ventes=True):
     """Veto final : revérifie le plan d'ordres, indépendamment du calcul qui l'a produit.
 
     Renvoie la liste des anomalies (vide si tout va bien). Contrôles : actif connu, montants et quantités
     positifs, pas de vente de plus que ce qu'on détient (jamais de vente à découvert), pas d'achat pendant
     un arrêt de sécurité, pas plus d'achats que le cash disponible (pas de levier), et, après les ordres,
     25 % au plus par actif acheté, 15 % au plus en crypto, 100 % au plus investi (plus `marge`).
+    `compter_ventes=False` (le robot, compte sans marge) : les achats doivent tenir dans le cash déjà là.
     """
     pct = lambda v: f"{v * 100:.0f} %"
     dollars = lambda v: f"{v:,.0f} $".replace(",", " ")
@@ -196,7 +208,7 @@ def controle_final(ordres, positions, capital, cash, securite, marge=MARGE_VETO)
 
     achats = [o for o in valides if o.sens == "achat"]
     if achats:
-        ventes = sum(o.montant for o in valides if o.sens == "vente")
+        ventes = sum(o.montant for o in valides if o.sens == "vente") if compter_ventes else 0.0
         total_achats = sum(o.montant for o in achats)
         if total_achats > MARGE_CASH * (max(cash, 0.0) + ventes) + 1.0:
             problemes.append(f"achats de {dollars(total_achats)} pour {dollars(cash + ventes)} disponibles (levier)")

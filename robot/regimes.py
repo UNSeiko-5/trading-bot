@@ -1,4 +1,4 @@
-"""Régimes de marché (EXP-007) : un modèle de Markov caché (HMM) par actif, idée de la vidéo de la boîte à idées.
+"""Régimes de marché (EXP-009) : un modèle de Markov caché (HMM) par actif, idée de la vidéo de la boîte à idées.
 
 Pour chaque actif :
 1. le modèle apprend (algorithme de Baum-Welch) sur les rendements quotidiens des `fenetre` derniers jours,
@@ -214,7 +214,7 @@ def appliquer_regime(notes, clotures, regime=None):
 def afficher(clotures, regime=REGIMES):
     date = clotures.index[-1].date()
     etats = regime["etats"]
-    print(f"RÉGIMES DE MARCHÉ (EXP-007, modèle de Markov caché à {etats} régimes) au {date}\n")
+    print(f"RÉGIMES DE MARCHÉ (EXP-009, modèle de Markov caché à {etats} régimes) au {date}\n")
     print(f"  {'Actif':<9} {'Régime':<11} " + " ".join(f"{nom:>11}" for nom in NOMS[etats]) + "   Facteur")
     for symbole in clotures.columns:
         probas = probabilites_regimes(rendements_log(clotures[symbole]), etats, regime["fenetre"], regime["reapprentissage"])

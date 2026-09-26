@@ -58,7 +58,7 @@ def decaler_au_hasard(notes, aleatoire, marge=252):
 
 def notes_du_reglage(clotures, reglage=None):
     """Les notes combinées de la version testée (`reglage` vide = la v2), avant le décalage au hasard.
-    Avec un filtre de régime (EXP-007), la note contient déjà le facteur de régime : le hasard décale
+    Avec un filtre de régime (EXP-009), la note contient déjà le facteur de régime : le hasard décale
     donc la tendance et le régime de chaque actif ensemble."""
     reglage = reglage or {}
     notes = calculer_notes(clotures, **{cle: reglage[cle] for cle in ("detecteurs", "cassures", "retour", "poids_retour")
@@ -130,7 +130,8 @@ def test_r5(ouvertures, clotures, risque, base, reglage=None, nom="la v2"):
     for _ in range(R5_TIRAGES):
         cibles, _, tampons = cibles_strategie(ouvertures, clotures, decaler_au_hasard(notes, aleatoire), risque,
                                               budget=budget, tampon=tampon)
-        m = mesures(simuler(ouvertures, clotures, cibles, tampons=tampons).valeur)
+        m = mesures(simuler(ouvertures, clotures, cibles, tampons=tampons,
+                            monetaire=(reglage or {}).get("monetaire")).valeur)
         notes_hasard.append(m["note_rendement_risque"])
         rendements_hasard.append(m["rendement_annuel"])
     part = float(np.mean(base["note_rendement_risque"] > np.array(notes_hasard)))

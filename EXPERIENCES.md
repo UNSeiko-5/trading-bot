@@ -689,9 +689,202 @@ version à brancher sur le robot en argent fictif (étape 7).
 
 ---
 
-## EXP-007 — Le « cerveau à régimes » de la vidéo (modèle de Markov caché)
+## EXP-007 — Croisement de moyennes en H1, filtré par la tendance weekly, avec stop et stop suiveur
+
+**Date :** 25/09/2026 · **Idée de l'utilisateur**
+
+**Pourquoi cette expérience :** tester une stratégie différente de la v3, qui entre sur un horizon
+court (bougies d'une heure) mais seulement dans le sens de la tendance de fond (weekly), et qui gère
+chaque position avec un stop calculé et un stop suiveur. Elle doit battre la **v3** (la base actuelle).
+
+**Règle testée (réglages fixés a priori, valeurs classiques, non ajustées sur les données) :**
+
+| Élément | Règle |
+|---|---|
+| Filtre de fond | Moyenne des 10 dernières clôtures hebdomadaires au-dessus de celle des 40 dernières. Uniquement des **semaines terminées** (clôtures quotidiennes Yahoo ajustées). Si le filtre est baissier : aucun nouvel achat. |
+| Déclencheur H1 | Moyenne exponentielle 20 bougies (« légère ») qui passe au-dessus de la moyenne exponentielle 50 bougies (« lissée »), constaté à la **clôture** d'une bougie d'une heure |
+| Entrée | Achat à l'**ouverture de la bougie suivante** (jamais avant la fin de la bougie du croisement) |
+| Stop initial | Prix d'entrée − 2 × l'agitation moyenne d'une bougie H1 (ATR de Wilder sur 14 bougies) |
+| Stop suiveur | Plus haut atteint depuis l'entrée − 3 × ATR, mis à jour à chaque clôture, ne redescend jamais. Pas de passage au prix d'entrée (pas de breakeven). |
+| Sortie | Uniquement quand le stop est touché. Si le prix ouvre déjà sous le stop (trou), la sortie se fait au prix d'ouverture, pas au prix du stop. |
+| Nouvelle entrée | Seulement sur un **nouveau** croisement haussier. |
+| Taille | Perte maximale de **0,5 % du capital** si le stop initial est touché ; au plus 25 % du capital par actif, 15 % en crypto, 100 % au total (jamais de levier). Pas de martingale, pas de grille. |
+| Marchés | Les 10 actifs de la v3 ; actions de 9h à 16h (heure de New York), crypto 24h/24 |
+| Frais | Identiques à la v3 : 0,10 % par transaction pour un ETF, 0,50 % pour la crypto |
+
+**Données et période :** bougies d'une heure ajustées (dividendes et divisions) de l'historique gratuit
+d'Alpaca, depuis 2016 si disponible. La v3 et les points de comparaison sont **recalculés sur la même
+période**. Si Alpaca fournit **moins de 6 ans** de bougies H1 pour les ETF, l'expérience est déclarée
+**non concluante** : trop court pour juger.
+
+**Ce qu'on attend honnêtement :** le filtre weekly et le stop suiveur sont de bonnes idées. Le risque
+principal : en H1, les moyennes se croisent souvent et un stop de 2 ATR H1 est serré (souvent moins
+qu'une journée normale de mouvement). Beaucoup de trades, beaucoup de frais, des sorties sur du bruit.
+Battre la v3 est possible mais incertain.
+
+**Hypothèse :** cette stratégie fait mieux que la v3 sur la même période et réussit les mêmes critères.
+
+**Critères de réussite (fixés avant les tests) :** les 10 critères d'EXP-006, avec la **v3** comme base.
+
+| # | Réussi si… |
+|---|---|
+| M1 | Rendement annuel supérieur d'au moins **0,5 point** à celui de la v3 (même période) |
+| M2 | Note rendement/risque au moins égale à **90 %** de celle de la v3 |
+| P1 | Pire chute meilleure que **-20 %** |
+| P2 | Rendement annuel d'au moins **6 %** |
+| P3 | Note rendement/risque meilleure que les 4 points de comparaison (même période) |
+| R1 | 10 variantes : moyennes H1 10/30 ; moyennes H1 40/100 ; stop initial 3 ATR ; stop suiveur 2 ATR ; stop suiveur 5 ATR ; risque de 0,25 % par trade ; risque de 1 % par trade ; sans filtre weekly ; filtre weekly 5/20 semaines ; sortie aussi dès que le filtre weekly devient baissier. Chaque variante : rendement d'au moins 4 %, pire chute meilleure que -25 %, note à ±30 % de la base |
+| R2 | Trois tiers égaux de la période : rendement positif dans les 3, note meilleure que le 60/40 dans au moins 2 |
+| R3 | Frais x3 : perte de moins de 1,5 point par an, pire chute meilleure que -20 % |
+| R4 | Sans la crypto : pire chute meilleure que -20 %, rendement d'au moins 5 %, note meilleure que le 60/40 |
+| R5 | Hasard : les signaux d'entrée de chaque actif décalés au hasard dans le temps (500 tirages), mêmes stops : note meilleure que 95 % des tirages |
+
+*Pour information :* nombre de trades, part de trades gagnants, facteur de profit, durée moyenne d'un
+trade, frais par an, part investie moyenne.
+
+**Verdict prévu :** la stratégie remplace la v3 seulement si **les 10 critères** sont réussis.
+
+**Résultats** (lancement GitHub du 25/09/2026, `python experience_007.py`, bougies H1 Alpaca flux SIP,
+ETF du 04/01/2016 au 23/09/2026, crypto depuis le 01/01/2021 seulement, période jugée 2016-02-03 → 2026-09-22,
+10,6 ans, frais compris) :
+
+| | Rendement/an | Pire chute | Note R/R |
+|---|---|---|---|
+| **H1 filtrée weekly** | **+5,0 %** | **-26,0 %** | **0,19** |
+| v3 (base à battre, même période) | +10,6 % | -11,7 % | 0,91 |
+| Acheter et garder SPY | +16,0 % | -33,7 % | 0,47 |
+| 60/40 (SPY/IEF) | +9,9 % | -21,2 % | 0,47 |
+| v1 (200 jours sur SPY) | +11,2 % | -19,5 % | 0,57 |
+| Même panier sans signaux | +10,2 % | -20,0 % | 0,51 |
+
+*Pour information :* 390 trades fermés (37 par an), **33 % de gagnants**, **facteur de profit 0,74**
+(les pertes dépassent les gains), durée moyenne 3,5 jours, **frais 2,08 %/an**, investi à 78 % en moyenne.
+
+| # | Résultat | Verdict |
+|---|---|---|
+| M1 | +5,0 % contre +10,6 % : -5,63 points | ❌ |
+| M2 | 0,19 contre 0,91 | ❌ |
+| P1 / P2 / P3 | -26,0 % · +5,0 % · 0,19 (battue par les 4 références) | ❌ ❌ ❌ |
+| R1 | 1 variante sur 10 réussie (risque 0,25 %). Meilleure : filtre weekly 5/20, +6,5 %/an, chute -21,4 % | ❌ |
+| R2 | 2016-2019 : -1,0 %/an · 2019-2023 : -0,9 %/an · 2023-2026 : +18,1 %/an | ❌ |
+| R3 | Frais x3 : +2,6 %/an, perte de 2,40 points, chute -38,9 % | ❌ |
+| R4 | Sans la crypto : +5,5 %/an, chute -20,6 %, note 0,27 (60/40 : 0,47) | ❌ |
+| R5 | Meilleure que seulement **28 %** des 500 versions aux entrées tirées au hasard (médiane du hasard : 0,25) | ❌ |
+
+**Conclusion :**
+
+- **Verdict officiel : 0/10. La v3 reste la base à battre.**
+- **Le point clé est R5 :** acheter à des moments tirés au hasard, avec les mêmes stops, fait **mieux** que
+  le croisement H1 dans 72 % des cas. Le croisement 20/50 en H1 n'apporte donc aucune information utile sur
+  la suite du prix : ce sont le filtre, les stops et la hausse générale des marchés qui font le peu de gain.
+- Ce qu'on craignait avant le test s'est produit : en H1, le stop de 2 ATR est touché par le bruit normal
+  d'une journée (trades de 3,5 jours en moyenne, 2 sur 3 perdants), et les allers-retours coûtent 2 %/an de frais.
+- Le dernier tiers (2023-2026 : +18 %/an) montre que la stratégie marche bien **dans un marché qui monte
+  fort et régulièrement** ; elle perd de l'argent dans les 7 années précédentes. Juger sur ces 3 ans seulement
+  aurait été un piège.
+- La variante « filtre weekly 5/20 » fait un peu mieux (+6,5 %) : on ne la choisit **pas** après coup, et
+  elle resterait loin de la v3.
+- Biais signalé : la crypto n'est disponible en H1 qu'à partir de 2021 chez Alpaca (la v3 l'a sur toute la
+  période). Sans effet sur le verdict : sans crypto du tout (R4), la stratégie H1 fait +5,5 %/an avec une note de 0,27, sous le simple 60/40 (0,47).
+
+**Décision :** code gardé (`robot/h1.py`, `experience_007.py`), non branché. La v3 reste en argent fictif.
+
+---
+
+## EXP-008 — Rémunérer le cash non investi (fonds monétaire)
+
+**Date :** 26/09/2026 · **Base à battre :** la v3 (EXP-006)
+
+**Constat :** la v3 laisse en moyenne ~27 % du compte en cash, qui ne rapporte rien dans la simulation.
+Dans la réalité, on peut placer ce cash dans un fonds monétaire (ETF de bons du Trésor à 3 mois, type BIL
+ou SGOV), presque sans risque. Ce n'est pas un nouveau signal : la décision de la v3 ne change pas.
+
+**Règle testée (fixée avant les tests) :**
+
+| Élément | Règle |
+|---|---|
+| Taux | Taux des bons du Trésor US à 3 mois (Yahoo `^IRX`) publié à la clôture de la **veille** |
+| Frais du fonds | 0,15 % par an retirés du taux (frais de gestion d'un fonds type BIL) ; jamais de taux négatif |
+| Rendement du jour | (taux − 0,15 %) ÷ 252, appliqué au cash chaque jour de bourse |
+| Frais de transaction | 0,10 % (frais ETF) sur chaque variation du cash lors d'un rééquilibrage (achat ou vente de parts du fonds) |
+| Reste | Identique à la v3 (mêmes signaux, multiplicateur, zone tampon, plafonds) |
+
+**Ce qu'on attend honnêtement :** taux moyen d'environ 1,5 %/an sur 2007-2026 (presque 0 de 2009 à 2016,
+environ 4-5 % depuis 2023), multiplié par ~27 % de cash : **+0,3 à +0,4 point par an**, presque sans risque en
+plus. Le gain est modeste mais « gratuit ».
+
+**Hypothèse :** placer le cash améliore le rendement de la v3 sans dégrader sa note rendement/risque.
+
+**Critères de réussite (fixés avant les tests) :** base = la v3. Le seuil M1 est abaissé à +0,2 point
+parce que le changement n'ajoute presque aucun risque : 0,2 point par an est le gain minimum qui justifie
+d'ajouter un produit et des ordres au robot. M2 est relevé à 100 % pour la même raison.
+
+| # | Réussi si… |
+|---|---|
+| M1 | Rendement annuel supérieur d'au moins **0,2 point** à celui de la v3 |
+| M2 | Note rendement/risque au moins **égale** à celle de la v3 |
+| P1 | Pire chute meilleure que **-20 %** |
+| P2 | Rendement annuel d'au moins **6 %** |
+| P3 | Note rendement/risque meilleure que les 4 points de comparaison (inchangés) |
+| R1 | Les 10 variantes d'EXP-006, chacune avec le cash rémunéré : rendement d'au moins 4 %, pire chute meilleure que -25 %, note à ±30 % de la base |
+| R2 | Trois périodes (2007-2012, 2013-2019, 2020-2026) : rendement positif dans les 3, note meilleure que le 60/40 dans au moins 2 |
+| R3 | Frais x3 (y compris les frais de transaction du fonds) : perte de moins de 1,5 point par an, pire chute meilleure que -20 % |
+| R4 | Sans la crypto : pire chute meilleure que -20 %, rendement d'au moins 5 %, note meilleure que le 60/40 |
+| R5 | Hasard : note meilleure que 95 % des 500 versions aux signaux décalés au hasard (cash rémunéré aussi) |
+
+*Pour information :* taux moyen du fonds, part moyenne en cash, gain apporté par le cash par an,
+frais de transaction du fonds par an.
+
+**Verdict prévu :** si les 10 critères sont réussis, la v3 + cash rémunéré devient la base à battre, et le
+robot achètera plus tard un fonds monétaire avec son cash (étape séparée, avec ses propres tests).
+
+**Résultats** (lancement GitHub du 26/09/2026, `python experience_008.py`, données `e1e69a237f6f`,
+2007-01-03 → 2026-09-25, 19,7 ans, frais compris) :
+
+| | Rendement/an | Pire chute | Note R/R | Sharpe | Investi | Frais/an |
+|---|---|---|---|---|---|---|
+| **v3 + cash rémunéré** | **+7,9 %** | **-10,5 %** | **0,75** | 0,98 | 73 % | **0,75 %** |
+| v3 (base à battre) | +7,8 % | -11,7 % | 0,67 | 0,97 | 73 % | 0,48 % |
+
+*Pour information :* taux net moyen du fonds 1,43 %/an, 27 % du compte en cash en moyenne, **gain net
+apporté par le cash : +0,13 %/an**. Les frais passent de 0,48 % à 0,75 %/an : chaque rééquilibrage fait
+aussi acheter ou vendre des parts du fonds.
+
+| # | Résultat | Verdict |
+|---|---|---|
+| M1 | +7,9 % contre +7,8 % : **+0,14 point** (minimum 0,2) | ❌ |
+| M2 | 0,75 contre 0,67 | ✅ |
+| P1 / P2 / P3 | -10,5 % · +7,9 % · 0,75 (meilleure référence : 0,38) | ✅ ✅ ✅ |
+| R1 | 10 variantes entre +6,5 % et +8,2 %/an, chutes entre -8,5 % et -11,6 %, note à 23 % au plus | ✅ |
+| R2 | 2007-2012 : +6,3 % · 2013-2019 : +7,5 % (60/40 meilleur) · 2020-2026 : +9,7 %. 2 périodes sur 3 | ✅ |
+| R3 | Frais x3 : +6,4 %/an, perte de **1,59 point** (maximum 1,5) | ❌ |
+| R4 | Sans la crypto : +5,3 %/an, chute -10,6 %, note 0,50 (60/40 : 0,25) | ✅ |
+| R5 | Meilleure que 100 % des 500 versions au hasard | ✅ |
+
+**Conclusion :**
+
+- **Verdict officiel : 8/10, non validée. La v3 reste la base à battre**, avec le cash à 0 %.
+- Les intérêts rapportent environ +0,4 point par an comme prévu, mais **les frais d'achat et de vente du
+  fonds en mangent les deux tiers** : le cash bouge à chaque rééquilibrage, et chaque mouvement coûte 0,10 %.
+- Point positif : la pire chute baisse (-10,5 % au lieu de -11,7 %), car le cash rapportait pendant les krachs.
+- Diagnostic pour une éventuelle suite (nouvelle expérience, critères à fixer avant) : ne pas faire suivre
+  chaque centime de cash par le fonds (zone tampon sur le fonds lui-même), ou utiliser les intérêts versés
+  directement sur le cash par certains courtiers, sans ordre à passer. On ne corrige **pas** cette
+  expérience après coup.
+
+**Décision :** code gardé, désactivé par défaut (`monetaire=None`). Le robot ne place pas son cash.
+
+---
+
+## EXP-009 — Le « cerveau à régimes » de la vidéo (modèle de Markov caché)
 
 **Date :** 26/09/2026
+
+**Numéro :** hypothèse et critères écrits et envoyés sur GitHub le 26/09/2026 sous le nom « EXP-007 »
+(commit « EXP-007 : hypothèse et critères (cerveau à régimes de la vidéo, HMM) »), avant tout code et tout
+test. Une autre session avait utilisé EXP-007 et EXP-008 en parallèle : l'expérience devient EXP-009.
+**Seul le numéro change, pas un mot des critères.** Précision : c'est donc la 9e expérience, et la 8e sur
+les mêmes données quotidiennes (le texte ci-dessous, écrit avant, dit « la 7e »).
 
 **D'où vient l'idée :** une vidéo YouTube (un robot de trading construit avec Claude Code), envoyée
 dans la boîte à idées. Son « cerveau » est un **modèle de Markov caché** (HMM, *Hidden Markov Model*) :

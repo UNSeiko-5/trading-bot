@@ -148,3 +148,28 @@ def test_veto_bloque_les_plans_anormaux(ordres, positions, securite, attendu):
 def test_veto_tolere_de_petits_ecarts_de_prix():
     # 26 % sur un actif après les ordres (le prix a bougé depuis la clôture) : sous la marge de 2 points
     assert controle_final([Ordre("SPY", "achat", 1_000)], {"SPY": (50.0, 25_000.0)}, 100_000, 30_000, SURS) == []
+
+
+def test_compte_sans_marge_les_achats_n_attendent_pas_l_argent_des_ventes():
+    # 90 000 $ en SPY à alléger à 20 000 $, 10 000 $ de cash, 50 000 $ d'EFA voulus
+    d = decision(SPY=0.20, EFA=0.50)
+    positions = {"SPY": (180.0, 90_000.0)}
+    prix = {"SPY": 500.0, "EFA": 80.0}
+    fr = {"SPY": True, "EFA": True}
+    avec = plan_ordres(d, positions, prix, 100_000, 10_000, fr, SURS)
+    sans = plan_ordres(d, positions, prix, 100_000, 10_000, fr, SURS, compter_ventes=False)
+    achat = lambda ordres: sum(o.montant for o in ordres if o.sens == "achat")
+    assert achat(avec) == pytest.approx(50_000)                    # la vente de 70 000 $ finance l'achat
+    assert achat(sans) == pytest.approx(0.99 * 10_000)            # seulement le cash déjà là
+    assert [o.symbole for o in sans if o.sens == "vente"] == ["SPY"]
+    from robot.decision import achats_reportes
+    assert achats_reportes(d, positions, 100_000, sans, SURS) == pytest.approx(50_000 - 9_900)
+    assert achats_reportes(d, positions, 100_000, sans, {**SURS, "bloquer_achats": True}) == 0
+
+
+def test_veto_compte_sans_marge_achats_limites_au_cash_deja_la():
+    ordres = [Ordre("SPY", "vente", 40_000, quantite=80.0), Ordre("EFA", "achat", 20_000)]
+    positions = {"SPY": (180.0, 90_000.0)}
+    assert controle_final(ordres, positions, 100_000, 10_000, SURS) == []          # ventes comptées : 50 000 $
+    problemes = controle_final(ordres, positions, 100_000, 10_000, SURS, compter_ventes=False)
+    assert any("levier" in p for p in problemes)                                    # 20 000 $ pour 10 000 $ de cash

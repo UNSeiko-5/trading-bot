@@ -1,10 +1,10 @@
-"""Tests des régimes de marché (EXP-007) : robot/regimes.py, branchement dans la stratégie, experience_007.py."""
+"""Tests des régimes de marché (EXP-009) : robot/regimes.py, branchement dans la stratégie, experience_009.py."""
 import numpy as np
 import pandas as pd
 import pytest
 
 import robustesse_v2
-from experience_007 import AVEC_REGIMES, M1_NOTE_MIN, M2_PERTE_MAX, V3, criteres_mieux, statistiques_regimes, variantes_reglages
+from experience_009 import AVEC_REGIMES, M1_NOTE_MIN, M2_PERTE_MAX, V3, criteres_mieux, statistiques_regimes, variantes_reglages
 from robot.parametres import BUDGET_RISQUE, REGIMES, TAMPON
 from robot.portefeuille import preparer_risque
 from robot.regimes import (

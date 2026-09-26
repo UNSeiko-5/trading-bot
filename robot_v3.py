@@ -18,7 +18,8 @@ from alpaca.trading.requests import GetOrdersRequest, GetPortfolioHistoryRequest
 from bot import derniere_seance_terminee, envoyer_alerte
 from connexion import client_alpaca
 from robot.decision import (
-    controle_final, decision_du_jour, etat_securite, message, plan_ordres, symbole_alpaca, symbole_depuis_position,
+    ORDRE_MINIMUM, achats_reportes, controle_final, decision_du_jour, etat_securite, message, plan_ordres,
+    symbole_alpaca, symbole_depuis_position,
 )
 from robot.donnees import charger
 from robot.portefeuille import est_crypto
@@ -73,7 +74,9 @@ def main(client=None, chargeur=charger):
 
     # 3. Le compte
     compte = client.get_account()
-    capital, cash, veille = float(compte.equity), float(compte.cash), float(compte.last_equity)
+    capital, veille = float(compte.equity), float(compte.last_equity)
+    # Comme sur un compte sans marge : jamais plus que le cash réel, ni que le pouvoir d'achat d'Alpaca
+    cash = min(float(compte.cash), float(compte.buying_power))
     if capital <= 0 or cash < 0:
         envoyer_alerte(f"⚠️ ROBOT v3 : AUCUN ORDRE, compte anormal (valeur {capital:.0f} $, cash {cash:.0f} $).")
         return
@@ -99,10 +102,12 @@ def main(client=None, chargeur=charger):
             fractionnable[symbole] = bool(client.get_asset(symbole_alpaca(symbole)).fractionable)
         except Exception:
             fractionnable[symbole] = False
-    ordres = plan_ordres(decision, positions, prix, capital, cash, fractionnable, securite, exclus)
+    ordres = plan_ordres(decision, positions, prix, capital, cash, fractionnable, securite, exclus,
+                         compter_ventes=False)
+    reporte = achats_reportes(decision, positions, capital, ordres, securite, exclus)
 
     # 5. Veto final : une sécurité indépendante revérifie le plan. Au moindre doute, AUCUN ordre ne part
-    problemes = controle_final(ordres, positions, capital, cash, securite)
+    problemes = controle_final(ordres, positions, capital, cash, securite, compter_ventes=False)
     if problemes:
         envoyer_alerte("🛑 ROBOT v3 : AUCUN ORDRE, le veto final a bloqué le plan du soir :\n- "
                        + "\n- ".join(problemes) + "\nC'est probablement un bug : vérifie le journal GitHub.")
@@ -116,6 +121,9 @@ def main(client=None, chargeur=charger):
             transmis.append(ordre)
         except Exception as e:
             remarques.append(f"❌ Ordre {ordre.sens} {ordre.symbole} refusé : {type(e).__name__} : {e}")
+    if reporte >= ORDRE_MINIMUM * 10:
+        remarques.append(f"💶 {reporte:,.0f} $ d'achats reportés à demain : ils attendent l'argent des ventes "
+                         "(exécutées à l'ouverture).".replace(",", " "))
     if exclus:
         remarques.append("⚠️ Données douteuses : " + ", ".join(sorted(exclus)) + " (voir le journal GitHub).")
     envoyer_alerte(message(seance, capital, securite, multiplicateur, decision, transmis, exclus, remarques))

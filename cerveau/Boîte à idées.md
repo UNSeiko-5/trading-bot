@@ -9,7 +9,7 @@ Retour au point de départ : [[Accueil]].
 - (exemple) Tester un filtre de panique avec le VIX. → Reporté : EXP-005 porte finalement sur le budget de risque.
 - (26/09/2026) Vidéo YouTube : un robot à « régimes de marché » construit avec Claude Code (cerveau HMM,
   allocation selon le régime, coupe-circuits, courtier Alpaca, tableau de bord). → Analysée ci-dessous ;
-  le cerveau devient [[EXP-007 — Régimes de marché]].
+  le cerveau devient [[EXP-009 — Régimes de marché]].
 
 ## Réponses de Claude
 
@@ -29,7 +29,7 @@ avec Claude Code jusqu'à ce que la stratégie marche », c'est-à-dire du [[Sur
 
 **Ce qu'on prend :**
 - le **cerveau à régimes** (modèle de Markov caché, [[Régimes de marché]]) : testé dans
-  [[EXP-007 — Régimes de marché]], avec critères fixés avant, comme toujours ;
+  [[EXP-009 — Régimes de marché]], avec critères fixés avant, comme toujours ;
 - la règle « jamais la fonction qui lit toute la série » ([[Biais du futur]]) : un test le vérifie ;
 - le **veto final** : une sécurité indépendante revérifie le plan d'ordres avant l'envoi ;
 - les **krachs simulés** (stress test) : on injecte des krachs de -20 % dans le passé pour voir si la
@@ -43,5 +43,5 @@ avec Claude Code jusqu'à ce que la stratégie marche », c'est-à-dire du [[Sur
 - « risque maximum 1 % par position avec un stop » : notre robot dose par l'agitation, sans stops.
 
 **À décider par toi plus tard :** des coupe-circuits rapides (-2 % ou -3 % en une journée : positions
-réduites ou fermées). Ce serait une expérience à part (EXP-008). Je m'attends plutôt à ce qu'ils
+réduites ou fermées). Ce serait une expérience à part (un prochain numéro libre). Je m'attends plutôt à ce qu'ils
 coûtent : après une journée de krach, ils font souvent vendre au plus bas.

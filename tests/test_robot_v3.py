@@ -28,7 +28,8 @@ class FauxCourtier:
         return self.en_attente
 
     def get_account(self):
-        return SimpleNamespace(equity=str(self.capital), cash=str(self.cash), last_equity=str(self.veille))
+        return SimpleNamespace(equity=str(self.capital), cash=str(self.cash), last_equity=str(self.veille),
+                               buying_power=str(getattr(self, "pouvoir", 2 * self.cash)))
 
     def get_all_positions(self):
         return [SimpleNamespace(symbol=s, qty=str(q), market_value=str(v)) for s, q, v in self.positions]
@@ -151,3 +152,13 @@ def test_le_veto_final_bloque_un_plan_bugue(messages, monkeypatch):
     robot_v3.main(courtier, chargeur())
     assert courtier.ordres == [] and courtier.fermetures == []
     assert "veto final" in messages[-1] and "BTC-USD" in messages[-1]
+
+
+def test_achats_limites_au_cash_reel_et_reportes(messages):
+    # Compte investi à 100 % en SPY (reste de la v1) : la vente passe, les achats attendent demain
+    courtier = FauxCourtier(cash=100, positions=[("SPY", 900.0, 99_900.0)])
+    courtier.pouvoir = 200_000                                          # marge du compte paper : ignorée
+    robot_v3.main(courtier, chargeur())
+    achats = [o for o in courtier.ordres if o.side.value == "buy"]
+    assert sum(float(o.notional or 0) for o in achats) <= 100
+    assert "reportés à demain" in messages[-1]
