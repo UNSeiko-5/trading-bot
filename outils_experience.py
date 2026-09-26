@@ -1,7 +1,8 @@
-"""Déroulé commun des expériences qui modifient la v2 (EXP-003 et suivantes).
+"""Déroulé commun des expériences (EXP-003 et suivantes).
 
-Chaque expérience compare une version modifiée à la v2 avec les mêmes 10 critères, fixés AVANT les
-tests dans EXPERIENCES.md : M1-M2 (mieux que la v2), P1-P3 et R1-R5 (mêmes seuils qu'EXP-002).
+Chaque expérience compare une version modifiée à la base à battre (la v2 jusqu'à EXP-006, la v3 ensuite)
+avec 10 critères fixés AVANT les tests dans EXPERIENCES.md : M1-M2 (mieux que la base), P1-P3 et R1-R5
+(mêmes seuils qu'EXP-002).
 """
 from backtest_v2 import verifier_performance
 from robot.donnees import charger
@@ -41,19 +42,22 @@ def frais_par_an(resultat):
     return resultat.frais.sum() / (len(resultat.frais) / 252)
 
 
-def lancer_experience(code, nom, reglage, variantes, informations=None, m2_part_min=1.0):
+def lancer_experience(code, nom, reglage, variantes, informations=None, m2_part_min=1.0, reglage_base=None,
+                      nom_base="v2", criteres_mieux=None):
     """Lance toute l'expérience sur les vraies données et affiche le verdict.
 
-    `reglage` : ce qui change par rapport à la v2 (arguments de strategie_v2).
+    `reglage` : la version testée (arguments de strategie_v2 ; vide = la v2).
     `variantes` : les variantes du test R1, chacune modifiant `reglage`.
     `informations(ouvertures, clotures, risque)` : affiche des chiffres pour information (pas des critères).
+    `reglage_base`, `nom_base` : la base à battre (vide = la v2).
+    `criteres_mieux(nouvelle, base)` : critères M propres à l'expérience (sinon `verifier_mieux`).
     """
     donnees = charger()
     o, c = donnees.ouvertures, donnees.clotures
     risque = preparer_risque(c)
-    v2 = strategie_v2(o, c, risque=risque)
+    reference = strategie_v2(o, c, risque=risque, **(reglage_base or {}))
     nouvelle = strategie_v2(o, c, risque=risque, **reglage)
-    base, m_v2 = mesures(nouvelle.valeur), mesures(v2.valeur)
+    base, m_reference = mesures(nouvelle.valeur), mesures(reference.valeur)
     references = points_de_comparaison(o, c, risque=risque)
     m_refs = {n: mesures(valeur) for n, valeur in references.items()}
 
@@ -63,17 +67,17 @@ def lancer_experience(code, nom, reglage, variantes, informations=None, m2_part_
     print(f"  {'':<27} {'Rend./an':>8} {'Pire chute':>10} {'Note R/R':>9} {'Agitation':>10} {'Sharpe':>7}"
           f" {'Investi':>9}")
     print(ligne_tableau(nom, base, nouvelle.poids.sum(axis=1).mean()))
-    print(ligne_tableau("v2 (base à battre)", m_v2, v2.poids.sum(axis=1).mean()))
+    print(ligne_tableau(f"{nom_base} (base à battre)", m_reference, reference.poids.sum(axis=1).mean()))
     for n, m in m_refs.items():
         print(ligne_tableau(n, m))
-    print(f"\n  Frais : {frais_par_an(nouvelle):.2%} par an (v2 : {frais_par_an(v2):.2%})")
+    print(f"\n  Frais : {frais_par_an(nouvelle):.2%} par an ({nom_base} : {frais_par_an(reference):.2%})")
 
     if informations:
         print("\nPour information (pas des critères)")
         informations(o, c, risque)
 
-    print("\nMieux que la v2")
-    mieux = verifier_mieux(base, m_v2, m2_part_min)
+    print(f"\nMieux que la {nom_base}")
+    mieux = criteres_mieux(base, m_reference) if criteres_mieux else verifier_mieux(base, m_reference, m2_part_min)
     afficher_criteres(mieux)
     print("\nPerformance")
     performance = verifier_performance(base, m_refs)
@@ -86,7 +90,8 @@ def lancer_experience(code, nom, reglage, variantes, informations=None, m2_part_
     note_60_40 = m_refs["60/40 (SPY/IEF)"]["note_rendement_risque"]
     resultats["R4 Sans la crypto"] = robustesse_v2.test_r4(o, c, note_60_40, reglage)
     sans = [s for s in c.columns if not s.endswith("-USD")]
-    print(robustesse_v2.ligne("(info) v2 sans la crypto", mesures(strategie_v2(o[sans], c[sans]).valeur)))
+    print(robustesse_v2.ligne(f"(info) {nom_base} sans la crypto",
+                              mesures(strategie_v2(o[sans], c[sans], **(reglage_base or {})).valeur)))
     resultats["R5 Hasard"] = robustesse_v2.test_r5(o, c, risque, base, reglage, nom=nom)
 
     print(f"\nVERDICT {code}")
@@ -95,5 +100,5 @@ def lancer_experience(code, nom, reglage, variantes, informations=None, m2_part_
     nb = sum(resultats.values())
     print(f"\n  {nb}/{len(resultats)} critères réussis -> "
           + (f"« {nom} » devient la base à battre." if nb == len(resultats)
-             else "la v2 reste la base à battre (voir les critères échoués)."))
+             else f"la {nom_base} reste la base à battre (voir les critères échoués)."))
     return resultats

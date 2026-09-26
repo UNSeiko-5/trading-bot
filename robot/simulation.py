@@ -16,6 +16,7 @@ from robot.parametres import (
     DEBUT_BACKTEST, DETECTEURS, FRAIS, JOURS_PAR_AN, POIDS_RETOUR_MOYENNE, SEUIL_TRANSACTION, VOL_CIBLE,
 )
 from robot.portefeuille import est_crypto, parts_cibles, parts_normales, preparer_risque, seuil_rapide, tampon_rapide
+from robot.regimes import appliquer_regime
 from robot.signaux import notes as calculer_notes
 from robot.univers import PAR_SYMBOLE
 
@@ -137,16 +138,18 @@ def cibles_strategie(ouvertures, clotures, notes, risque, vol_cible=VOL_CIBLE, s
 
 def strategie_v2(ouvertures, clotures, detecteurs=DETECTEURS, vol_cible=VOL_CIBLE,
                  seuil=SEUIL_TRANSACTION, frais=FRAIS, debut=DEBUT_BACKTEST, risque=None, cassures=(),
-                 retour=(), poids_retour=POIDS_RETOUR_MOYENNE, details=False, budget=None, tampon=None):
+                 retour=(), poids_retour=POIDS_RETOUR_MOYENNE, details=False, budget=None, tampon=None, regime=None):
     """La stratégie v2 complète : notes -> parts visées -> simulation.
 
     `risque` peut être fourni pour éviter de le recalculer (tests de robustesse).
     `cassures` : détecteurs de cassure ajoutés à la note combinée (EXP-003). Vide = la v2.
     `retour`, `poids_retour` : détecteurs de retour à la moyenne et leur part de la note (EXP-004). Vide = la v2.
     `budget` : réglages du multiplicateur de risque (EXP-005, voir BUDGET_RISQUE). None = la v2.
+    `regime` : réglages du filtre de régime (EXP-007, voir REGIMES), appliqué aux notes. None = pas de filtre.
     """
     risque = risque or preparer_risque(clotures)
     notes = calculer_notes(clotures, detecteurs, cassures=cassures, retour=retour, poids_retour=poids_retour)
+    notes = appliquer_regime(notes, clotures, regime)
     cibles, m, tampons = cibles_strategie(ouvertures, clotures, notes, risque, vol_cible, seuil, frais, budget, tampon)
     resultat = simuler(ouvertures, clotures, cibles, debut, seuil, frais, details, tampons)
     if m is not None:

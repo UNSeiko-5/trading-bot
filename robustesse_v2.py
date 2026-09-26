@@ -11,6 +11,7 @@ from backtest_v2 import verifier_performance
 from robot.donnees import charger
 from robot.parametres import DETECTEURS, FRAIS
 from robot.portefeuille import preparer_risque
+from robot.regimes import appliquer_regime
 from robot.signaux import notes as calculer_notes
 from robot.simulation import cibles_strategie, mesures, points_de_comparaison, simuler, strategie_v2
 
@@ -56,10 +57,13 @@ def decaler_au_hasard(notes, aleatoire, marge=252):
 
 
 def notes_du_reglage(clotures, reglage=None):
-    """Les notes combinées de la version testée (`reglage` vide = la v2), avant le décalage au hasard."""
+    """Les notes combinées de la version testée (`reglage` vide = la v2), avant le décalage au hasard.
+    Avec un filtre de régime (EXP-007), la note contient déjà le facteur de régime : le hasard décale
+    donc la tendance et le régime de chaque actif ensemble."""
     reglage = reglage or {}
-    return calculer_notes(clotures, **{cle: reglage[cle] for cle in ("detecteurs", "cassures", "retour", "poids_retour")
-                                       if cle in reglage})
+    notes = calculer_notes(clotures, **{cle: reglage[cle] for cle in ("detecteurs", "cassures", "retour", "poids_retour")
+                                        if cle in reglage})
+    return appliquer_regime(notes, clotures, reglage.get("regime"))
 
 
 def ligne(nom, m, ok=None):
