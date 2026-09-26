@@ -837,3 +837,41 @@ frais de transaction du fonds par an.
 
 **Verdict prévu :** si les 10 critères sont réussis, la v3 + cash rémunéré devient la base à battre, et le
 robot achètera plus tard un fonds monétaire avec son cash (étape séparée, avec ses propres tests).
+
+**Résultats** (lancement GitHub du 26/09/2026, `python experience_008.py`, données `e1e69a237f6f`,
+2007-01-03 → 2026-09-25, 19,7 ans, frais compris) :
+
+| | Rendement/an | Pire chute | Note R/R | Sharpe | Investi | Frais/an |
+|---|---|---|---|---|---|---|
+| **v3 + cash rémunéré** | **+7,9 %** | **-10,5 %** | **0,75** | 0,98 | 73 % | **0,75 %** |
+| v3 (base à battre) | +7,8 % | -11,7 % | 0,67 | 0,97 | 73 % | 0,48 % |
+
+*Pour information :* taux net moyen du fonds 1,43 %/an, 27 % du compte en cash en moyenne, **gain net
+apporté par le cash : +0,13 %/an**. Les frais passent de 0,48 % à 0,75 %/an : chaque rééquilibrage fait
+aussi acheter ou vendre des parts du fonds.
+
+| # | Résultat | Verdict |
+|---|---|---|
+| M1 | +7,9 % contre +7,8 % : **+0,14 point** (minimum 0,2) | ❌ |
+| M2 | 0,75 contre 0,67 | ✅ |
+| P1 / P2 / P3 | -10,5 % · +7,9 % · 0,75 (meilleure référence : 0,38) | ✅ ✅ ✅ |
+| R1 | 10 variantes entre +6,5 % et +8,2 %/an, chutes entre -8,5 % et -11,6 %, note à 23 % au plus | ✅ |
+| R2 | 2007-2012 : +6,3 % · 2013-2019 : +7,5 % (60/40 meilleur) · 2020-2026 : +9,7 %. 2 périodes sur 3 | ✅ |
+| R3 | Frais x3 : +6,4 %/an, perte de **1,59 point** (maximum 1,5) | ❌ |
+| R4 | Sans la crypto : +5,3 %/an, chute -10,6 %, note 0,50 (60/40 : 0,25) | ✅ |
+| R5 | Meilleure que 100 % des 500 versions au hasard | ✅ |
+
+**Conclusion :**
+
+- **Verdict officiel : 8/10, non validée. La v3 reste la base à battre**, avec le cash à 0 %.
+- Les intérêts rapportent environ +0,4 point par an comme prévu, mais **les frais d'achat et de vente du
+  fonds en mangent les deux tiers** : le cash bouge à chaque rééquilibrage, et chaque mouvement coûte 0,10 %.
+- Point positif : la pire chute baisse (-10,5 % au lieu de -11,7 %), car le cash rapportait pendant les krachs.
+- Diagnostic pour une éventuelle suite (nouvelle expérience, critères à fixer avant) : ne pas faire suivre
+  chaque centime de cash par le fonds (zone tampon sur le fonds lui-même), ou utiliser les intérêts versés
+  directement sur le cash par certains courtiers, sans ordre à passer. On ne corrige **pas** cette
+  expérience après coup.
+
+**Décision :** code gardé, désactivé par défaut (`monetaire=None`). Le robot ne place pas son cash.
+
+---

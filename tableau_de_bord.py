@@ -40,6 +40,8 @@ JOURNAL = [
      "lecon": "+7,8 %/an, chute -11,7 %, frais 0,48 %/an : validée, devient la v3."},
     {"code": "EXP-007", "titre": "Croisement H1 filtré weekly, stop et stop suiveur", "score": "0/10", "statut": "échec",
      "lecon": "+5,0 %/an, chute -26 %, frais 2,1 %/an ; entrées au hasard font mieux dans 72 % des cas."},
+    {"code": "EXP-008", "titre": "v3 + cash placé en fonds monétaire", "score": "8/10", "statut": "échec",
+     "lecon": "+0,14 point seulement : les frais d'achat et de vente du fonds mangent les intérêts."},
 ]
 
 

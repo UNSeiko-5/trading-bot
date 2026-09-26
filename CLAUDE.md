@@ -93,7 +93,10 @@
 - Toujours proposé : moteur de décision, apprentissage walk-forward.
 - Fait (26/09) : le robot n'achète qu'avec le cash déjà là (`compter_ventes=False`, `min(cash, buying_power)`) ;
   les achats financés par des ventes d'ETF sont reportés au lendemain et signalés sur Telegram.
-- **EXP-008** (cash rémunéré) : critères publiés, résultats en attente.
+- **EXP-008** (v3 + cash placé au taux à 3 mois) : **8/10, non validée.** +7,9 %/an (+0,14 point, minimum 0,2),
+  chute -10,5 %, note 0,75 ; frais x3 : perte 1,59 point (R3 ❌). Les frais du fonds (cash qui bouge à chaque
+  rééquilibrage) mangent les deux tiers des intérêts. Code gardé, désactivé.
+- Proposé à l'utilisateur : EXP-009, moteur court terme « Rebond » (RSI 2 de Connors) à côté de la v3.
 
 ## Prochaines étapes (choisies par l'utilisateur)
 

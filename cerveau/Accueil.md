@@ -6,7 +6,7 @@ Le cerveau du projet : tout ce qu'on a appris, relié. Ouvre ce dossier dans Obs
 - La règle d'or : [[Méthode — critères avant les tests]]
 - Les expériences : [[EXP-001 — Règle des 200 jours]], [[EXP-002 — Stratégie v2]],
   [[EXP-003 — Cassures]], [[EXP-004 — Retour à la moyenne]], [[EXP-005 — Budget de risque]], [[EXP-006 — Zone tampon]],
-  [[EXP-007 — Croisement H1]]
+  [[EXP-007 — Croisement H1]], [[EXP-008 — Cash rémunéré]]
 - Les leçons : [[Leçon — le robot est trop prudent]], [[Leçon — deux signaux qui disent la même chose]],
   [[Leçon — un signal qui contredit la tendance coûte cher]],
   [[Leçon — en H1 le bruit mange le signal]]
