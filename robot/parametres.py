@@ -49,3 +49,6 @@ FRAIS = {"ETF": 0.0010, "crypto": 0.0050}   # par transaction, en part du montan
 # --- Données (sections 3 et 8) -------------------------------------------------------
 JOURS_MIN_HISTORIQUE = 300    # un actif n'est utilisé qu'après 300 jours de données
 DEBUT_BACKTEST = "2007-01-01"
+
+# EXP-008 : le cash rapporte le taux des bons du Trésor à 3 mois (connu la veille), moins les frais d'un fonds
+FONDS_MONETAIRE = {"symbole": "^IRX", "frais_annuels": 0.0015}

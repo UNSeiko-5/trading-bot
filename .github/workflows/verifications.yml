@@ -67,6 +67,9 @@ jobs:
       - name: Expérience EXP-006 (budget de risque + zone tampon, critères M, P et R)
         run: python experience_006.py
 
+      - name: Expérience EXP-008 (v3 + cash rémunéré, critères M, P et R)
+        run: python experience_008.py
+
       - name: Expérience EXP-007 (croisement H1 filtré weekly, critères M, P et R)
         # Les clés Alpaca servent seulement à LIRE l'historique des bougies d'une heure (aucun ordre).
         env:

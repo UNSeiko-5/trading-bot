@@ -43,10 +43,12 @@ def frais_par_actif(symboles, frais=FRAIS):
 
 
 def simuler(ouvertures, clotures, cibles, debut=DEBUT_BACKTEST, seuil=SEUIL_TRANSACTION, frais=FRAIS, details=False,
-            tampons=None):
+            tampons=None, monetaire=None):
     """Simule la stratégie jour par jour. `cibles` : part visée de chaque actif, décidée chaque soir.
 
     `tampons` (EXP-006) : demi-largeur de la zone tampon de chaque actif chaque jour ; remplace le seuil.
+    `monetaire` (EXP-008) : rendement du jour du fonds monétaire (connu la veille) : le cash le reçoit chaque
+    jour, et chaque variation du cash à un rééquilibrage paie les frais d'un ETF (achat ou vente du fonds).
     `details=True` garde aussi le gain de chaque actif chaque jour et la liste des ordres (pour le rejeu
     et le rapport). Plus lent : réservé à l'affichage, pas aux tests de robustesse.
     """
@@ -58,6 +60,8 @@ def simuler(ouvertures, clotures, cibles, debut=DEBUT_BACKTEST, seuil=SEUIL_TRAN
     crypto = np.array([est_crypto(s) for s in symboles])
     b = None if tampons is None else tampons.reindex(index=dates, columns=symboles).fillna(0).to_numpy(dtype=float)
     taux = frais_par_actif(symboles, frais)
+    r_cash = (np.zeros(len(dates)) if monetaire is None
+              else monetaire.reindex(dates).fillna(0.0).to_numpy(dtype=float))
 
     n, k = c.shape
     positions, cash = np.zeros(k), 1.0   # montants investis dans chaque actif, et cash
@@ -79,7 +83,12 @@ def simuler(ouvertures, clotures, cibles, debut=DEBUT_BACKTEST, seuil=SEUIL_TRAN
                 nouvelles = np.where(bouger, decision * capital, positions)
                 echange = np.abs(nouvelles - positions)
                 cout = (echange * taux).sum()
-                cash = capital - nouvelles.sum() - cout
+                nouveau_cash = capital - nouvelles.sum() - cout
+                if monetaire is not None:   # parts du fonds monétaire achetées ou vendues
+                    cout_fonds = abs(nouveau_cash - cash) * frais["ETF"]
+                    cout += cout_fonds
+                    nouveau_cash -= cout_fonds
+                cash = nouveau_cash
                 if cash < 0:   # les frais dépassent le cash : on réduit un peu les positions (jamais de levier)
                     nouvelles *= (nouvelles.sum() + cash) / nouvelles.sum()
                     cash = 0.0
@@ -95,6 +104,7 @@ def simuler(ouvertures, clotures, cibles, debut=DEBUT_BACKTEST, seuil=SEUIL_TRAN
         positions = positions * _variation(c[t], o[t])              # 3. la séance
         if details:
             gains[t] += positions - avant
+        cash *= 1 + r_cash[t]                                       # 4. intérêts du cash (EXP-008)
         valeur[t] = cash + positions.sum()
         poids[t] = positions / valeur[t]
 
@@ -137,18 +147,20 @@ def cibles_strategie(ouvertures, clotures, notes, risque, vol_cible=VOL_CIBLE, s
 
 def strategie_v2(ouvertures, clotures, detecteurs=DETECTEURS, vol_cible=VOL_CIBLE,
                  seuil=SEUIL_TRANSACTION, frais=FRAIS, debut=DEBUT_BACKTEST, risque=None, cassures=(),
-                 retour=(), poids_retour=POIDS_RETOUR_MOYENNE, details=False, budget=None, tampon=None):
+                 retour=(), poids_retour=POIDS_RETOUR_MOYENNE, details=False, budget=None, tampon=None,
+                 monetaire=None):
     """La stratégie v2 complète : notes -> parts visées -> simulation.
 
     `risque` peut être fourni pour éviter de le recalculer (tests de robustesse).
     `cassures` : détecteurs de cassure ajoutés à la note combinée (EXP-003). Vide = la v2.
     `retour`, `poids_retour` : détecteurs de retour à la moyenne et leur part de la note (EXP-004). Vide = la v2.
     `budget` : réglages du multiplicateur de risque (EXP-005, voir BUDGET_RISQUE). None = la v2.
+    `monetaire` : rendement quotidien du fonds monétaire pour le cash (EXP-008). None = cash à 0 %.
     """
     risque = risque or preparer_risque(clotures)
     notes = calculer_notes(clotures, detecteurs, cassures=cassures, retour=retour, poids_retour=poids_retour)
     cibles, m, tampons = cibles_strategie(ouvertures, clotures, notes, risque, vol_cible, seuil, frais, budget, tampon)
-    resultat = simuler(ouvertures, clotures, cibles, debut, seuil, frais, details, tampons)
+    resultat = simuler(ouvertures, clotures, cibles, debut, seuil, frais, details, tampons, monetaire)
     if m is not None:
         resultat.multiplicateur = m.reindex(resultat.valeur.index)
     return resultat

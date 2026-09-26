@@ -126,7 +126,8 @@ def test_r5(ouvertures, clotures, risque, base, reglage=None, nom="la v2"):
     for _ in range(R5_TIRAGES):
         cibles, _, tampons = cibles_strategie(ouvertures, clotures, decaler_au_hasard(notes, aleatoire), risque,
                                               budget=budget, tampon=tampon)
-        m = mesures(simuler(ouvertures, clotures, cibles, tampons=tampons).valeur)
+        m = mesures(simuler(ouvertures, clotures, cibles, tampons=tampons,
+                            monetaire=(reglage or {}).get("monetaire")).valeur)
         notes_hasard.append(m["note_rendement_risque"])
         rendements_hasard.append(m["rendement_annuel"])
     part = float(np.mean(base["note_rendement_risque"] > np.array(notes_hasard)))

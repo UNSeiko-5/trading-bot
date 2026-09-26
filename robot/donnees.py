@@ -13,6 +13,7 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 import yfinance as yf
 
+from robot.parametres import FONDS_MONETAIRE, JOURS_PAR_AN
 from robot.univers import PAR_SYMBOLE, UNIVERS
 
 CALENDRIER = "SPY"   # les jours de bourse américains servent de calendrier commun
@@ -156,6 +157,19 @@ def charger(symboles=None, telechargeur=telecharger, maintenant=None):
         if manquants.get(symbole, 0):
             ligne["problemes"].append(f"{manquants[symbole]} jours manquants (trous de plus de {TROU_MAX} jours)")
     return Donnees(ouvertures, clotures, rapport)
+
+
+def rendement_monetaire(calendrier, telechargeur=telecharger, reglage=FONDS_MONETAIRE):
+    """EXP-008 : rendement du cash chaque jour de bourse. Taux à 3 mois (en %/an) publié à la clôture de la
+    VEILLE, moins les frais du fonds, jamais négatif, divisé par 252. 0 avant le début des données."""
+    historique = telechargeur(reglage["symbole"])
+    if historique.empty:
+        raise RuntimeError(f"Aucune donnée pour {reglage['symbole']} (taux du fonds monétaire).")
+    taux = historique["Close"].copy()
+    taux.index = dates_simples(taux.index)
+    taux = taux[~taux.index.duplicated(keep="last")].reindex(calendrier).ffill(limit=TROU_MAX)
+    net = (taux.shift(1) / 100 - reglage["frais_annuels"]).clip(lower=0) / JOURS_PAR_AN
+    return net.fillna(0.0)
 
 
 def afficher_rapport(donnees):
