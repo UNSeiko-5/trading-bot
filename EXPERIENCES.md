@@ -686,3 +686,90 @@ seulement si **les 10 critères** sont réussis.
 
 **Décision :** la v3 = v2 + multiplicateur de risque (EXP-005) + zone tampon (EXP-006) est la
 version à brancher sur le robot en argent fictif (étape 7).
+
+---
+
+## EXP-007 — Le « cerveau à régimes » de la vidéo (modèle de Markov caché)
+
+**Date :** 26/09/2026
+
+**D'où vient l'idée :** une vidéo YouTube (un robot de trading construit avec Claude Code), envoyée
+dans la boîte à idées. Son « cerveau » est un **modèle de Markov caché** (HMM, *Hidden Markov Model*) :
+il classe le marché en **régimes** (calme, normal, agité…) à partir des rendements passés, et le robot
+investit moins quand le marché est agité. **La vidéo ne montre aucun résultat chiffré** : on teste
+l'idée nous-mêmes, avec nos règles.
+
+**Règle testée :** la v3 (v2 + budget de risque + zone tampon) à l'identique, avec **une seule
+différence** : un filtre de régime, actif par actif.
+
+1. Pour chaque actif, un HMM gaussien à **3 régimes** apprend, sur les rendements quotidiens des
+   **504 derniers jours** (2 ans, comme dans la vidéo), trois « humeurs » de cet actif (chacune avec
+   son rendement moyen et son agitation) et la probabilité de passer de l'une à l'autre.
+2. Il est **réappris tous les 126 jours de bourse** (6 mois, la fenêtre « hors échantillon » de la
+   vidéo), uniquement avec le passé (*walk-forward*). Tant qu'un actif n'a pas 504 rendements : pas de filtre.
+3. Les régimes sont rangés par agitation : **calme, normal, agité**. La vidéo les range par rendement
+   moyen ; on range par agitation, plus stable, car c'est ce qu'un HMM reconnaît vraiment sur des
+   rendements quotidiens (la vidéo le dit elle-même : « un classificateur d'agitation »).
+4. Chaque soir, le régime est calculé avec l'**algorithme « forward » seulement** : les probabilités
+   n'utilisent que les prix connus ce soir-là. (La vidéo insiste à raison : la fonction habituelle
+   `predict` lit toute la série, donc le futur.)
+5. **Filtre de stabilité (vidéo)** : le robot ne change de régime que si le nouveau est le plus
+   probable **3 jours de suite**.
+6. **Allocation (vidéo, sans levier)** : en régime **agité**, la note de tendance de l'actif est
+   **divisée par 2**, donc sa position aussi. En régime calme ou normal, rien ne change.
+7. Le multiplicateur de risque est mesuré, comme toujours, sur la version « normale » testée (ici,
+   avec le filtre). Le robot garde donc le même budget de risque (12 % visés) : il le **déplace** des
+   périodes agitées vers les périodes calmes. Zone tampon et garde-fous inchangés.
+
+**Ce qu'on ne reprend pas de la vidéo, et pourquoi :**
+- le **levier** de 1,25 en marché calme : interdit par ton profil ;
+- des décisions toutes les **5 minutes** : une décision par jour ;
+- le **choix automatique du nombre de régimes** (de 3 à 7) : un réglage de plus, choisi sur les
+  données. On fixe 3 à l'avance, et on vérifie 2 et 4 dans les variantes ;
+- « faire des allers-retours avec Claude Code jusqu'à ce que la stratégie marche » : c'est exactement
+  le surapprentissage que notre méthode interdit.
+
+**Ce qu'on attend honnêtement (écrit avant les tests) :**
+- **Un effet probablement faible.** La v3 réduit déjà chaque position quand son actif s'agite
+  (agitation mesurée sur 35 jours). Le HMM dit en partie la même chose, et EXP-003 a montré que deux
+  signaux qui disent la même chose n'apportent rien.
+- Ce qu'il pourrait apporter : une réaction plus nette à une rupture brutale (krach), et un peu plus
+  de risque pris dans les périodes calmes grâce au multiplicateur.
+- Risques : le filtre de 3 jours retarde la réaction ; un peu plus d'échanges ; des régimes mal
+  appris sur seulement 2 ans ; et c'est la 7e expérience sur le même passé.
+
+**Hypothèse :** le filtre de régime améliore la note rendement/risque de la v3 d'au moins 10 %, sans
+lui faire perdre plus de 0,3 point de rendement par an, et réussit tous les critères de robustesse.
+
+**Critères de réussite (fixés avant les tests) :**
+
+*Mieux que la v3 (la base officielle), comparaison dans le même lancement, sur les mêmes données :*
+
+| # | Réussi si… |
+|---|---|
+| M1 | Note rendement/risque **au moins 10 % meilleure** que celle de la v3 |
+| M2 | Rendement annuel **au plus 0,3 point en dessous** de celui de la v3 |
+
+Pourquoi ces critères diffèrent d'EXP-005 et EXP-006 : la promesse de la vidéo n'est pas plus de
+rendement, mais de **meilleures chutes pour le même rendement** (protéger le capital). 10 % de mieux,
+c'est par exemple une pire chute de -10,6 % au lieu de -11,7 %, au même rendement.
+
+*Performance et robustesse, mêmes seuils qu'EXP-002 :*
+
+| # | Réussi si… |
+|---|---|
+| P1 | Pire chute meilleure que **-20 %** |
+| P2 | Rendement annuel d'au moins **6 %** |
+| P3 | Note rendement/risque meilleure que les 4 points de comparaison |
+| R1 | 10 variantes : 2 régimes ; 4 régimes ; sans filtre de stabilité (on agit dès le 1er jour) ; stabilité de 5 jours ; tout en cash en régime agité (x0) ; réduction légère (x0,75) ; apprentissage sur 1 an (252 jours) ; sur 4 ans (1 008 jours) ; réapprentissage chaque mois (21 jours) ; version « probabilités » (note x (1 - 0,5 x probabilité du régime agité), sans filtre de stabilité). Chaque variante : rendement d'au moins 4 %, pire chute meilleure que -25 %, note rendement/risque à ±30 % de la base |
+| R2 | Sous-périodes 2007-2012, 2013-2019, 2020-2026 : rendement positif dans les 3, note meilleure que le 60/40 dans au moins 2 |
+| R3 | Frais x3 : perte de moins de 1,5 point par an, pire chute meilleure que -20 % |
+| R4 | Sans la crypto : pire chute meilleure que -20 %, rendement d'au moins 5 %, note meilleure que le 60/40 |
+| R5 | Hasard (500 tirages) : pour chaque actif, note de tendance **et** régime décalés ensemble au hasard dans le temps, multiplicateur et zone tampon recalculés. Note meilleure que 95 % des tirages |
+
+*Pour information seulement (pas des critères) :* temps passé dans chaque régime, nombre de
+changements de régime par an, frais, montant échangé, part investie et Sharpe, comparés à la v3.
+
+**Verdict prévu :** « v3 + régimes » remplace la v3 comme base à battre seulement si **les 10
+critères** sont réussis. Sinon, la v3 reste la base, le code est gardé mais désactivé
+(`regime=None`), et l'échec est noté ici.
