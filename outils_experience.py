@@ -12,14 +12,15 @@ import robustesse_v2
 M1_GAIN_MIN = 0.005     # au moins +0,5 point de rendement par an par rapport à la v2
 
 
-def verifier_mieux(nouvelle, v2, m2_part_min=1.0):
+def verifier_mieux(nouvelle, v2, m2_part_min=1.0, base="la v2", m1_gain_min=M1_GAIN_MIN):
     """Renvoie les critères M1 et M2 : (nom, réussi, détail).
     `m2_part_min` : part minimale de la note rendement/risque de la v2 à garder (1 = au moins égale)."""
     gain = nouvelle["rendement_annuel"] - v2["rendement_annuel"]
-    nom_m2 = ("M2 Note rendement/risque au moins égale à celle de la v2" if m2_part_min == 1 else
-              f"M2 Note rendement/risque au moins égale à {m2_part_min * 100:.0f} % de celle de la v2")
+    nom_m2 = (f"M2 Note rendement/risque au moins égale à celle de {base}" if m2_part_min == 1 else
+              f"M2 Note rendement/risque au moins égale à {m2_part_min * 100:.0f} % de celle de {base}")
     return [
-        ("M1 Au moins +0,5 point de rendement par an de plus que la v2", gain >= M1_GAIN_MIN,
+        (f"M1 Au moins +{m1_gain_min * 100:.1f} point de rendement par an de plus que {base}".replace(".", ","),
+         gain >= m1_gain_min,
          f"{nouvelle['rendement_annuel']:+.1%} contre {v2['rendement_annuel']:+.1%} ({gain * 100:+.2f} point)"),
         (nom_m2, nouvelle["note_rendement_risque"] >= m2_part_min * v2["note_rendement_risque"],
          f"{nouvelle['note_rendement_risque']:.2f} contre {v2['note_rendement_risque']:.2f}"),
@@ -41,17 +42,19 @@ def frais_par_an(resultat):
     return resultat.frais.sum() / (len(resultat.frais) / 252)
 
 
-def lancer_experience(code, nom, reglage, variantes, informations=None, m2_part_min=1.0):
+def lancer_experience(code, nom, reglage, variantes, informations=None, m2_part_min=1.0, base_reglage=None,
+                      base_nom="v2", m1_gain_min=M1_GAIN_MIN, donnees=None):
     """Lance toute l'expérience sur les vraies données et affiche le verdict.
 
     `reglage` : ce qui change par rapport à la v2 (arguments de strategie_v2).
     `variantes` : les variantes du test R1, chacune modifiant `reglage`.
     `informations(ouvertures, clotures, risque)` : affiche des chiffres pour information (pas des critères).
+    `base_reglage`, `base_nom` : la version à battre (par défaut la v2 ; EXP-008 : la v3).
     """
-    donnees = charger()
+    donnees = donnees or charger()
     o, c = donnees.ouvertures, donnees.clotures
     risque = preparer_risque(c)
-    v2 = strategie_v2(o, c, risque=risque)
+    v2 = strategie_v2(o, c, risque=risque, **(base_reglage or {}))
     nouvelle = strategie_v2(o, c, risque=risque, **reglage)
     base, m_v2 = mesures(nouvelle.valeur), mesures(v2.valeur)
     references = points_de_comparaison(o, c, risque=risque)
@@ -63,17 +66,17 @@ def lancer_experience(code, nom, reglage, variantes, informations=None, m2_part_
     print(f"  {'':<27} {'Rend./an':>8} {'Pire chute':>10} {'Note R/R':>9} {'Agitation':>10} {'Sharpe':>7}"
           f" {'Investi':>9}")
     print(ligne_tableau(nom, base, nouvelle.poids.sum(axis=1).mean()))
-    print(ligne_tableau("v2 (base à battre)", m_v2, v2.poids.sum(axis=1).mean()))
+    print(ligne_tableau(f"{base_nom} (base à battre)", m_v2, v2.poids.sum(axis=1).mean()))
     for n, m in m_refs.items():
         print(ligne_tableau(n, m))
-    print(f"\n  Frais : {frais_par_an(nouvelle):.2%} par an (v2 : {frais_par_an(v2):.2%})")
+    print(f"\n  Frais : {frais_par_an(nouvelle):.2%} par an ({base_nom} : {frais_par_an(v2):.2%})")
 
     if informations:
         print("\nPour information (pas des critères)")
         informations(o, c, risque)
 
-    print("\nMieux que la v2")
-    mieux = verifier_mieux(base, m_v2, m2_part_min)
+    print(f"\nMieux que la {base_nom}")
+    mieux = verifier_mieux(base, m_v2, m2_part_min, base=f"la {base_nom}", m1_gain_min=m1_gain_min)
     afficher_criteres(mieux)
     print("\nPerformance")
     performance = verifier_performance(base, m_refs)
@@ -95,5 +98,5 @@ def lancer_experience(code, nom, reglage, variantes, informations=None, m2_part_
     nb = sum(resultats.values())
     print(f"\n  {nb}/{len(resultats)} critères réussis -> "
           + (f"« {nom} » devient la base à battre." if nb == len(resultats)
-             else "la v2 reste la base à battre (voir les critères échoués)."))
+             else f"la {base_nom} reste la base à battre (voir les critères échoués)."))
     return resultats

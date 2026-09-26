@@ -41,6 +41,11 @@
   `cibles_strategie` ; `strategie_v2(budget=...)`). Désactivé par défaut (`budget=None`).
 - **EXP-006 (zone tampon)** : `experience_006.py`. EXP-005 + zone tampon de Carver (±10 % de la position normale,
   on ne va qu'au bord) : `TAMPON`, `tampon_rapide`, `parts_normales` ; `strategie_v2(tampon=...)`.
+- **EXP-007 (H1 filtrée weekly, idée de l'utilisateur)** : `experience_007.py` + `robot/h1.py` (bougies H1 Alpaca,
+  croisement EMA 20/50, filtre 10/40 semaines, stop 2 ATR, suiveur 3 ATR, risque 0,5 %/trade). Base à battre : v3.
+- **EXP-008 (cash rémunéré)** : `experience_008.py`. La v3 avec le cash placé au taux à 3 mois de la veille (`^IRX` - 0,15 %/an,
+  `FONDS_MONETAIRE`, `rendement_monetaire`), frais ETF sur chaque variation du cash ; `strategie_v2(monetaire=...)`.
+  Base à battre : v3, M1 à +0,2 point. Désactivé par défaut (`monetaire=None`).
 - `outils_experience.py` : déroulé commun des expériences (critères M1-M2, P1-P3, R1-R5, verdict).
 - **Tableau de bord** : `tableau_de_bord.py` calcule backtest, jour par jour, Monte Carlo (2 000 avenirs de 10 ans,
   blocs d'un mois), expériences et graphe du cerveau, puis remplit `tableau/modele.html` (d3 via cdnjs).
@@ -48,7 +53,7 @@
 - **Testeur visuel** : `python rejeu.py` (sur l'ordinateur de l'utilisateur, où Yahoo marche) rejoue le backtest
   jour par jour dans le navigateur (`tableau/modele_rejeu.html`, serveur local port 8765) avec journal des ordres,
   positions, et rapport façon MetaTrader (`robot/rapport.py` ; simulation `details=True`). Options `--capital`, `--version`.
-- **TradingView** : `tradingview/tendance_v2.pine` (Pine Script v5) affiche la note de tendance de la v2 ;
+- **TradingView** : `tradingview/tendance_v2.pine` (Pine Script v5) affiche la note de tendance de la v2 ; `tradingview/strategie_h1.pine` rejoue EXP-007 dans le testeur de stratégie (pour voir les trades) ;
   `tests/test_tradingview.py` vérifie que ses réglages et sa formule suivent `robot/signaux.py`.
 - **Cerveau** : dossier `cerveau/` (notes Obsidian reliées par [[liens]] : Expériences, Concepts, Leçons).
   À compléter après chaque expérience ; aucun lien cassé ni note isolée (vérifié par les tests).
@@ -63,7 +68,7 @@
   Jamais de clé dans le code.
 - La fusion des pull requests est faite par l'utilisateur.
 
-## État du projet (25/09/2026)
+## État du projet (26/09/2026)
 
 - **EXP-001** (v1, moyenne 200 jours sur SPY) : 4/5, non jugée solide (trop dépendante du réglage).
 - **EXP-002** (v2, tendance multi-actifs pilotée par le risque) : **7/8, non validée.**
@@ -81,7 +86,17 @@
 - **EXP-006** (EXP-005 + zone tampon de Carver) : **10/10, validée.** +7,8 %/an, chute -11,7 %, note 0,67,
   frais 0,48 %/an, +5,1 % sans crypto, frais x3 OK. Prudence : 6e expérience sur le même passé.
 - **La v3 = v2 + `budget=BUDGET_RISQUE` + `tampon=TAMPON` est la nouvelle base à battre.** Prochaine étape :
-  la brancher au robot en argent fictif. Proposé à l'utilisateur : EXP-007 moteur de décision, EXP-008 apprentissage walk-forward.
+  branchée au robot en argent fictif (PR #4 fusionnée, premiers ordres le 25/09/2026).
+- **EXP-007** (croisement EMA 20/50 en H1, filtre weekly 10/40, stop 2 ATR, suiveur 3 ATR, idée de l'utilisateur) :
+  **0/10, échec net.** Sur 2016-2026 : +5,0 %/an, chute -26 % contre +10,6 % et -11,7 % pour la v3. 33 % de gagnants,
+  facteur de profit 0,74, frais 2,1 %/an, et des entrées au hasard font mieux dans 72 % des cas (R5). Code gardé, non branché.
+- Toujours proposé : moteur de décision, apprentissage walk-forward.
+- Fait (26/09) : le robot n'achète qu'avec le cash déjà là (`compter_ventes=False`, `min(cash, buying_power)`) ;
+  les achats financés par des ventes d'ETF sont reportés au lendemain et signalés sur Telegram.
+- **EXP-008** (v3 + cash placé au taux à 3 mois) : **8/10, non validée.** +7,9 %/an (+0,14 point, minimum 0,2),
+  chute -10,5 %, note 0,75 ; frais x3 : perte 1,59 point (R3 ❌). Les frais du fonds (cash qui bouge à chaque
+  rééquilibrage) mangent les deux tiers des intérêts. Code gardé, désactivé.
+- Proposé à l'utilisateur : EXP-009, moteur court terme « Rebond » (RSI 2 de Connors) à côté de la v3.
 
 ## Prochaines étapes (choisies par l'utilisateur)
 

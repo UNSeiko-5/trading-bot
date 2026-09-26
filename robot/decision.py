@@ -106,12 +106,14 @@ def _quantite(montant, prix, fractionnable):
     return math.floor(brute * 1e6) / 1e6 if fractionnable else float(math.floor(brute))
 
 
-def plan_ordres(decision, positions, prix, capital, cash, fractionnable, securite, exclus=()):
+def plan_ordres(decision, positions, prix, capital, cash, fractionnable, securite, exclus=(), compter_ventes=True):
     """Ordres à transmettre pour passer des positions actuelles aux parts visées.
 
     `positions` : {symbole: (quantité, valeur en $)} ; `prix` : dernier prix connu ; `exclus` : actifs aux
     données douteuses (aucun ordre). Les ventes passent avant les achats, et les achats ne dépassent
     jamais le cash disponible plus le produit des ventes (jamais de levier).
+    `compter_ventes=False` (compte sans marge) : les achats ne dépassent pas le cash déjà là, car les ventes
+    d'ETF ne seront exécutées qu'à l'ouverture ; le reste des achats est fait le lendemain.
     """
     ventes, achats = [], []
     for symbole, ligne in decision.iterrows():
@@ -136,7 +138,7 @@ def plan_ordres(decision, positions, prix, capital, cash, fractionnable, securit
                 if q > 0:
                     achats.append(Ordre(symbole, "achat", q * prix[symbole], q))
 
-    disponible = MARGE_CASH * (max(cash, 0.0) + sum(o.montant for o in ventes))
+    disponible = MARGE_CASH * (max(cash, 0.0) + (sum(o.montant for o in ventes) if compter_ventes else 0.0))
     total = sum(o.montant for o in achats)
     if total > disponible:   # pas assez de cash : tous les achats sont réduits dans la même proportion
         facteur = disponible / total
@@ -152,6 +154,15 @@ def plan_ordres(decision, positions, prix, capital, cash, fractionnable, securit
                     reduits.append(Ordre(o.symbole, "achat", q * o.montant / o.quantite, q))
         achats = reduits
     return ventes + achats
+
+
+def achats_reportes(decision, positions, capital, ordres, securite, exclus=()):
+    """Montant d'achats voulus mais pas encore passés faute de cash (ils le seront le lendemain)."""
+    if securite["bloquer_achats"] or securite["tout_vendre"]:
+        return 0.0
+    voulus = sum(max(l["visee"] * capital - positions.get(s, (0.0, 0.0))[1], 0.0)
+                 for s, l in decision.iterrows() if s not in exclus)
+    return max(voulus - sum(o.montant for o in ordres if o.sens == "achat"), 0.0)
 
 
 def message(seance, capital, securite, multiplicateur, decision, ordres, exclus=(), remarques=()):
