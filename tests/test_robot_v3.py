@@ -138,6 +138,22 @@ def test_envoi_des_ordres_selon_le_type_d_actif():
     assert courtier.fermetures == ["ETHUSD"]
 
 
+def test_le_veto_final_bloque_un_plan_bugue(messages, monkeypatch):
+    # On simule un bug dans la stratégie : elle veut mettre 60 % du capital sur le Bitcoin
+    original = robot_v3.decision_du_jour
+
+    def boguee(*args):
+        d, m = original(*args)
+        d.loc["BTC-USD", "visee"] = 0.60
+        return d, m
+
+    monkeypatch.setattr(robot_v3, "decision_du_jour", boguee)
+    courtier = FauxCourtier()
+    robot_v3.main(courtier, chargeur())
+    assert courtier.ordres == [] and courtier.fermetures == []
+    assert "veto final" in messages[-1] and "BTC-USD" in messages[-1]
+
+
 def test_achats_limites_au_cash_reel_et_reportes(messages):
     # Compte investi à 100 % en SPY (reste de la v1) : la vente passe, les achats attendent demain
     courtier = FauxCourtier(cash=100, positions=[("SPY", 900.0, 99_900.0)])

@@ -129,9 +129,14 @@ cash. Il ne concentre pas tout sur les rares actifs qui montent.
 | Perte de plus de 5 % en une journée | Alerte |
 | Compte à -20 % de son plus haut | Le robot n'achète plus rien et te prévient |
 | Compte à -25 % de son plus haut | Le robot vend tout, s'arrête, et attend ton redémarrage manuel |
+| Veto final : le plan d'ordres dépasserait une limite (plus de 25 % sur un actif, plus de 15 % en crypto, plus de 100 % investi, achats plus grands que le cash, vente à découvert, achat pendant un arrêt), avec 2 points de marge | Aucun ordre, alerte (c'est presque sûrement un bug) |
 
 Ces seuils ne doivent **jamais** se déclencher dans le backtest : c'est l'un des critères
 de réussite (pire chute meilleure que -20 %).
+
+Le veto final (idée de la vidéo de la boîte à idées, 26/09/2026) revérifie le plan sans réutiliser les
+calculs de la stratégie : si un bug lui faisait viser 60 % de Bitcoin, aucun ordre ne partirait.
+`krachs_simules.py` mesure en plus ce que coûterait un krach soudain de type 1987 (pour information).
 
 ## 7. Exécution et coûts
 
@@ -174,6 +179,9 @@ on est payé pour le risque pris.
   même indice, mais une autre devise et d'autres frais. L'écart sera mesuré à l'étape 10.
 - **Frais fixes en réel.** Chez Interactive Brokers, une commission minimale par ordre pèse
   lourd sur de petits montants. Elle sera modélisée avant tout passage au réel.
+- **Krach d'une nuit.** L'arrêt à -25 % agit après la baisse. Les krachs simulés
+  (`krachs_simules.py`) montrent qu'un krach type 1987 tombé le pire soir aurait mené la v3 à
+  -26,1 %, et que 3 krachs de ce type en 20 ans dépassent -25 % dans 5 % des essais.
 
 ## 11. Organisation du code
 

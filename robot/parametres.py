@@ -25,6 +25,12 @@ BUDGET_RISQUE = {"fenetre": 504, "borne_basse": 1.0, "borne_haute": 2.5, "histor
 # --- Zone tampon (EXP-006, en test) : demi-largeur = 10 % de la position « normale » (R. Carver) ---
 TAMPON = 0.10
 
+# --- Régimes de marché (EXP-009, en test : la v3 n'en utilise pas) -----------------------------
+# Modèle de Markov caché par actif (idée de la vidéo de la boîte à idées), réglages fixés avant les tests :
+# 3 régimes, apprentissage sur 2 ans refait tous les 6 mois, régime confirmé après 3 jours, position ÷ 2 si agité.
+REGIMES = {"etats": 3, "fenetre": 504, "reapprentissage": 126, "stabilite": 3, "facteur_agite": 0.5,
+           "probabilites": False}
+
 # --- Taille des positions (section 5) ------------------------------------------------
 VOL_CIBLE = 0.12              # agitation annuelle visée pour tout le portefeuille
 FENETRE_VOL = 35              # jours (moyenne exponentielle) pour mesurer l'agitation

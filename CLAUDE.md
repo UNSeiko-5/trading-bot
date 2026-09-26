@@ -46,7 +46,16 @@
 - **EXP-008 (cash rémunéré)** : `experience_008.py`. La v3 avec le cash placé au taux à 3 mois de la veille (`^IRX` - 0,15 %/an,
   `FONDS_MONETAIRE`, `rendement_monetaire`), frais ETF sur chaque variation du cash ; `strategie_v2(monetaire=...)`.
   Base à battre : v3, M1 à +0,2 point. Désactivé par défaut (`monetaire=None`).
-- `outils_experience.py` : déroulé commun des expériences (critères M1-M2, P1-P3, R1-R5, verdict).
+- **EXP-009 (régimes de marché, idée d'une vidéo)** : `experience_009.py`, contre la v3. Un modèle de Markov caché
+  gaussien par actif (`robot/regimes.py`, numpy seul) : 3 régimes rangés par agitation, appris sur 504 jours, réappris
+  tous les 126 jours, algorithme « forward » seul pour décider (jamais le futur), confirmé après 3 jours ; note ÷ 2
+  en régime agité (`REGIMES` ; `strategie_v2(regime=...)`). Désactivé par défaut (`regime=None`).
+- `outils_experience.py` : déroulé commun des expériences (critères M1-M2, P1-P3, R1-R5, verdict ; base à battre
+  réglable avec `base_reglage`, critères M propres avec `criteres_mieux`).
+- **Veto final** : `controle_final` (`robot/decision.py`) revérifie le plan d'ordres avant l'envoi (plafonds, levier,
+  découvert, arrêts) ; en cas d'anomalie, aucun ordre et alerte Telegram.
+- **Krachs simulés** : `krachs_simules.py` (stress test de la v3, pour information) : krach d'une nuit sur chaque soir
+  du backtest, et 3 krachs injectés au hasard (100 tirages). Krach type fixé d'après 1987 et mars 2020.
 - **Tableau de bord** : `tableau_de_bord.py` calcule backtest, jour par jour, Monte Carlo (2 000 avenirs de 10 ans,
   blocs d'un mois), expériences et graphe du cerveau, puis remplit `tableau/modele.html` (d3 via cdnjs).
   GitHub Actions l'envoie comme fichier `tableau-de-bord`. Le résumé `JOURNAL` est à mettre à jour après chaque expérience.
@@ -96,7 +105,14 @@
 - **EXP-008** (v3 + cash placé au taux à 3 mois) : **8/10, non validée.** +7,9 %/an (+0,14 point, minimum 0,2),
   chute -10,5 %, note 0,75 ; frais x3 : perte 1,59 point (R3 ❌). Les frais du fonds (cash qui bouge à chaque
   rééquilibrage) mangent les deux tiers des intérêts. Code gardé, désactivé.
-- Proposé à l'utilisateur : EXP-009, moteur court terme « Rebond » (RSI 2 de Connors) à côté de la v3.
+- Proposé à l'utilisateur : moteur court terme « Rebond » (RSI 2 de Connors) à côté de la v3 (deviendrait EXP-010).
+- **EXP-009** (v3 + régimes de marché HMM, idée d'une vidéo YouTube de la boîte à idées ; d'abord numérotée EXP-007,
+  renumérotée sans changer les critères) : **9/10, non validée.** +7,8 %/an comme la v3, mais chute -12,7 % et note
+  0,62 (M1 exigeait +10 %, soit 0,73). Le HMM redit ce que mesure déjà l'agitation de la v3. Code gardé, désactivé.
+- Fait (26/09, vidéo) : veto final des ordres (`controle_final`) et krachs simulés (`krachs_simules.py`).
+  **Krachs simulés (à signaler avant le réel)** : krach type 1987 (actions -20 %, crypto -40 %) le pire soir →
+  chute totale -26,1 % ; 3 krachs au hasard en 20 ans → médiane -17 %, au-delà de -25 % dans 5 % des 100 essais.
+  L'arrêt à -25 % ne protège pas d'un krach survenu pendant la nuit.
 
 ## Prochaines étapes (choisies par l'utilisateur)
 

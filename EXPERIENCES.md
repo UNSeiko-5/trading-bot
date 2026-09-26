@@ -875,3 +875,134 @@ aussi acheter ou vendre des parts du fonds.
 **Décision :** code gardé, désactivé par défaut (`monetaire=None`). Le robot ne place pas son cash.
 
 ---
+
+## EXP-009 — Le « cerveau à régimes » de la vidéo (modèle de Markov caché)
+
+**Date :** 26/09/2026
+
+**Numéro :** hypothèse et critères écrits et envoyés sur GitHub le 26/09/2026 sous le nom « EXP-007 »
+(commit « EXP-007 : hypothèse et critères (cerveau à régimes de la vidéo, HMM) »), avant tout code et tout
+test. Une autre session avait utilisé EXP-007 et EXP-008 en parallèle : l'expérience devient EXP-009.
+**Seul le numéro change, pas un mot des critères.** Précision : c'est donc la 9e expérience, et la 8e sur
+les mêmes données quotidiennes (le texte ci-dessous, écrit avant, dit « la 7e »).
+
+**D'où vient l'idée :** une vidéo YouTube (un robot de trading construit avec Claude Code), envoyée
+dans la boîte à idées. Son « cerveau » est un **modèle de Markov caché** (HMM, *Hidden Markov Model*) :
+il classe le marché en **régimes** (calme, normal, agité…) à partir des rendements passés, et le robot
+investit moins quand le marché est agité. **La vidéo ne montre aucun résultat chiffré** : on teste
+l'idée nous-mêmes, avec nos règles.
+
+**Règle testée :** la v3 (v2 + budget de risque + zone tampon) à l'identique, avec **une seule
+différence** : un filtre de régime, actif par actif.
+
+1. Pour chaque actif, un HMM gaussien à **3 régimes** apprend, sur les rendements quotidiens des
+   **504 derniers jours** (2 ans, comme dans la vidéo), trois « humeurs » de cet actif (chacune avec
+   son rendement moyen et son agitation) et la probabilité de passer de l'une à l'autre.
+2. Il est **réappris tous les 126 jours de bourse** (6 mois, la fenêtre « hors échantillon » de la
+   vidéo), uniquement avec le passé (*walk-forward*). Tant qu'un actif n'a pas 504 rendements : pas de filtre.
+3. Les régimes sont rangés par agitation : **calme, normal, agité**. La vidéo les range par rendement
+   moyen ; on range par agitation, plus stable, car c'est ce qu'un HMM reconnaît vraiment sur des
+   rendements quotidiens (la vidéo le dit elle-même : « un classificateur d'agitation »).
+4. Chaque soir, le régime est calculé avec l'**algorithme « forward » seulement** : les probabilités
+   n'utilisent que les prix connus ce soir-là. (La vidéo insiste à raison : la fonction habituelle
+   `predict` lit toute la série, donc le futur.)
+5. **Filtre de stabilité (vidéo)** : le robot ne change de régime que si le nouveau est le plus
+   probable **3 jours de suite**.
+6. **Allocation (vidéo, sans levier)** : en régime **agité**, la note de tendance de l'actif est
+   **divisée par 2**, donc sa position aussi. En régime calme ou normal, rien ne change.
+7. Le multiplicateur de risque est mesuré, comme toujours, sur la version « normale » testée (ici,
+   avec le filtre). Le robot garde donc le même budget de risque (12 % visés) : il le **déplace** des
+   périodes agitées vers les périodes calmes. Zone tampon et garde-fous inchangés.
+
+**Ce qu'on ne reprend pas de la vidéo, et pourquoi :**
+- le **levier** de 1,25 en marché calme : interdit par ton profil ;
+- des décisions toutes les **5 minutes** : une décision par jour ;
+- le **choix automatique du nombre de régimes** (de 3 à 7) : un réglage de plus, choisi sur les
+  données. On fixe 3 à l'avance, et on vérifie 2 et 4 dans les variantes ;
+- « faire des allers-retours avec Claude Code jusqu'à ce que la stratégie marche » : c'est exactement
+  le surapprentissage que notre méthode interdit.
+
+**Ce qu'on attend honnêtement (écrit avant les tests) :**
+- **Un effet probablement faible.** La v3 réduit déjà chaque position quand son actif s'agite
+  (agitation mesurée sur 35 jours). Le HMM dit en partie la même chose, et EXP-003 a montré que deux
+  signaux qui disent la même chose n'apportent rien.
+- Ce qu'il pourrait apporter : une réaction plus nette à une rupture brutale (krach), et un peu plus
+  de risque pris dans les périodes calmes grâce au multiplicateur.
+- Risques : le filtre de 3 jours retarde la réaction ; un peu plus d'échanges ; des régimes mal
+  appris sur seulement 2 ans ; et c'est la 7e expérience sur le même passé.
+
+**Hypothèse :** le filtre de régime améliore la note rendement/risque de la v3 d'au moins 10 %, sans
+lui faire perdre plus de 0,3 point de rendement par an, et réussit tous les critères de robustesse.
+
+**Critères de réussite (fixés avant les tests) :**
+
+*Mieux que la v3 (la base officielle), comparaison dans le même lancement, sur les mêmes données :*
+
+| # | Réussi si… |
+|---|---|
+| M1 | Note rendement/risque **au moins 10 % meilleure** que celle de la v3 |
+| M2 | Rendement annuel **au plus 0,3 point en dessous** de celui de la v3 |
+
+Pourquoi ces critères diffèrent d'EXP-005 et EXP-006 : la promesse de la vidéo n'est pas plus de
+rendement, mais de **meilleures chutes pour le même rendement** (protéger le capital). 10 % de mieux,
+c'est par exemple une pire chute de -10,6 % au lieu de -11,7 %, au même rendement.
+
+*Performance et robustesse, mêmes seuils qu'EXP-002 :*
+
+| # | Réussi si… |
+|---|---|
+| P1 | Pire chute meilleure que **-20 %** |
+| P2 | Rendement annuel d'au moins **6 %** |
+| P3 | Note rendement/risque meilleure que les 4 points de comparaison |
+| R1 | 10 variantes : 2 régimes ; 4 régimes ; sans filtre de stabilité (on agit dès le 1er jour) ; stabilité de 5 jours ; tout en cash en régime agité (x0) ; réduction légère (x0,75) ; apprentissage sur 1 an (252 jours) ; sur 4 ans (1 008 jours) ; réapprentissage chaque mois (21 jours) ; version « probabilités » (note x (1 - 0,5 x probabilité du régime agité), sans filtre de stabilité). Chaque variante : rendement d'au moins 4 %, pire chute meilleure que -25 %, note rendement/risque à ±30 % de la base |
+| R2 | Sous-périodes 2007-2012, 2013-2019, 2020-2026 : rendement positif dans les 3, note meilleure que le 60/40 dans au moins 2 |
+| R3 | Frais x3 : perte de moins de 1,5 point par an, pire chute meilleure que -20 % |
+| R4 | Sans la crypto : pire chute meilleure que -20 %, rendement d'au moins 5 %, note meilleure que le 60/40 |
+| R5 | Hasard (500 tirages) : pour chaque actif, note de tendance **et** régime décalés ensemble au hasard dans le temps, multiplicateur et zone tampon recalculés. Note meilleure que 95 % des tirages |
+
+*Pour information seulement (pas des critères) :* temps passé dans chaque régime, nombre de
+changements de régime par an, frais, montant échangé, part investie et Sharpe, comparés à la v3.
+
+**Verdict prévu :** « v3 + régimes » remplace la v3 comme base à battre seulement si **les 10
+critères** sont réussis. Sinon, la v3 reste la base, le code est gardé mais désactivé
+(`regime=None`), et l'échec est noté ici.
+
+**Résultats** (lancement GitHub n°52 du 26/09/2026, `python experience_009.py`, données `1722713d093b`,
+2007-01-03 → 2026-09-25, 19,7 ans, frais compris) :
+
+| | Rendement/an | Pire chute | Note R/R | Sharpe | Investi | Frais/an | Échangé/an |
+|---|---|---|---|---|---|---|---|
+| **v3 + régimes** | **+7,8 %** | **-12,7 %** | **0,62** | 0,99 | 71 % | 0,52 % | 430 % |
+| v3 (base à battre) | +7,8 % | -11,7 % | 0,67 | 0,96 | 73 % | 0,48 % | 402 % |
+
+Pour information : régime agité de 5 % (Ethereum) à 34 % du temps (obligations 20 ans), 5 à 16
+changements de régime par an selon l'actif ; multiplicateur moyen 1,85 (v3 : 1,80).
+
+| # | Résultat | Verdict |
+|---|---|---|
+| M1 | Note 0,62 contre 0,67 : **7 % moins bonne**, alors qu'il fallait 10 % de mieux (seuil 0,73) | ❌ |
+| M2 | +7,8 % contre +7,8 % (+0,03 point) | ✅ |
+| P1 / P2 / P3 | -12,7 % · +7,8 % · 0,62 (meilleure référence : 0,38) | ✅ ✅ ✅ |
+| R1 | 10 variantes entre +7,0 % et +7,8 %/an, chutes entre -10,4 % et -13,6 %, note à 18 % au plus | ✅ |
+| R2 | 2007-2012 : +6,8 % · 2013-2019 : +7,3 % (60/40 meilleur) · 2020-2026 : +9,1 %. 2 sur 3 | ✅ |
+| R3 | Frais x3 : +6,7 %/an, perte de 1,11 point, chute -13,7 % | ✅ |
+| R4 | Sans la crypto : +5,1 %/an, chute -11,6 %, note 0,44 (60/40 : 0,26) | ✅ |
+| R5 | Meilleure que 100 % des 500 versions au hasard | ✅ |
+
+**Conclusion :**
+
+- **Verdict officiel : 9/10, EXP-009 n'est PAS validée.** Elle échoue sur le critère qui comptait :
+  la promesse de la vidéo (mieux protéger le capital). Au même rendement, la pire chute est même un
+  peu **plus grande** (-12,7 % contre -11,7 %).
+- **Ce qu'on attendait s'est produit** : la v3 réduit déjà chaque position quand son actif s'agite. Le
+  cerveau à régimes dit presque la même chose, avec quelques jours de retard (filtre de 3 jours), et
+  fait un peu plus d'échanges (+7 % de montant échangé). Deuxième cas de
+  « deux signaux qui disent la même chose », après EXP-003.
+- Les 9 autres critères sont réussis : le filtre ne casse rien (R5 à 100 %, sans crypto +5,1 %),
+  il n'apporte simplement rien de mesurable. Le Sharpe monte à peine (0,99 contre 0,96) : dans le bruit.
+- La variante « apprentissage sur 1 an » a une meilleure note (0,73) : on ne la choisit **pas** après
+  coup, ce serait du surapprentissage (10 variantes essayées, une sort forcément du lot).
+- 8e expérience sur les mêmes données quotidiennes : raison de plus de ne rien garder de limite.
+
+**Décision :** la v3 reste la base à battre. Le code est gardé mais désactivé (`regime=None`) ;
+`python -m robot.regimes` continue d'afficher le régime du jour pour information.

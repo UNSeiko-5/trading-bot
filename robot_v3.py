@@ -18,8 +18,8 @@ from alpaca.trading.requests import GetOrdersRequest, GetPortfolioHistoryRequest
 from bot import derniere_seance_terminee, envoyer_alerte
 from connexion import client_alpaca
 from robot.decision import (
-    ORDRE_MINIMUM, achats_reportes, decision_du_jour, etat_securite, message, plan_ordres, symbole_alpaca,
-    symbole_depuis_position,
+    ORDRE_MINIMUM, achats_reportes, controle_final, decision_du_jour, etat_securite, message, plan_ordres,
+    symbole_alpaca, symbole_depuis_position,
 )
 from robot.donnees import charger
 from robot.portefeuille import est_crypto
@@ -106,7 +106,14 @@ def main(client=None, chargeur=charger):
                          compter_ventes=False)
     reporte = achats_reportes(decision, positions, capital, ordres, securite, exclus)
 
-    # 5. Transmission des ordres (une erreur sur un actif n'empêche pas les autres)
+    # 5. Veto final : une sécurité indépendante revérifie le plan. Au moindre doute, AUCUN ordre ne part
+    problemes = controle_final(ordres, positions, capital, cash, securite, compter_ventes=False)
+    if problemes:
+        envoyer_alerte("🛑 ROBOT v3 : AUCUN ORDRE, le veto final a bloqué le plan du soir :\n- "
+                       + "\n- ".join(problemes) + "\nC'est probablement un bug : vérifie le journal GitHub.")
+        return
+
+    # 6. Transmission des ordres (une erreur sur un actif n'empêche pas les autres)
     transmis = []
     for ordre in ordres:
         try:
