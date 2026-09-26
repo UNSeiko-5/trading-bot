@@ -39,6 +39,12 @@ jobs:
       - name: Répartition v2 visée aujourd'hui
         run: python -m robot.portefeuille
 
+      - name: Régimes de marché du jour (EXP-007, pour information)
+        run: python -m robot.regimes
+
+      - name: Krachs simulés (stress test de la v3, pour information)
+        run: python krachs_simules.py
+
       - name: Tableau de bord (graphiques, Monte Carlo, cerveau)
         run: python tableau_de_bord.py
 
@@ -66,3 +72,6 @@ jobs:
 
       - name: Expérience EXP-006 (budget de risque + zone tampon, critères M, P et R)
         run: python experience_006.py
+
+      - name: Expérience EXP-007 (v3 + régimes de marché, critères M, P et R)
+        run: python experience_007.py

@@ -8,7 +8,10 @@ Sécurités du robot (docs/STRATEGIE_V2.md, section 6) :
 - perte de plus de 5 % en une journée : alerte ;
 - compte à -20 % de son plus haut : plus aucun achat ;
 - compte à -25 % de son plus haut : tout est vendu, et plus rien n'est acheté tant que tu n'as pas
-  redonné une date de départ (variable ROBOT_V3_DEPART).
+  redonné une date de départ (variable ROBOT_V3_DEPART) ;
+- veto final (idée de la vidéo de la boîte à idées) : avant l'envoi, `controle_final` revérifie le plan
+  d'ordres contre les limites, sans réutiliser les calculs de la stratégie. S'il trouve une anomalie
+  (un bug, par exemple), aucun ordre ne part.
 """
 import math
 from dataclasses import dataclass
@@ -17,7 +20,8 @@ import numpy as np
 import pandas as pd
 
 from robot.parametres import (
-    ALERTE_PERTE_JOUR, ARRET_ACHATS_CHUTE, ARRET_TOTAL_CHUTE, BUDGET_RISQUE, DETECTEURS, TAMPON,
+    ALERTE_PERTE_JOUR, ARRET_ACHATS_CHUTE, ARRET_TOTAL_CHUTE, BUDGET_RISQUE, DETECTEURS, EXPOSITION_MAX,
+    PART_MAX_ACTIF, PART_MAX_CRYPTO, TAMPON,
 )
 from robot.portefeuille import est_crypto, preparer_risque, tampon_rapide
 from robot.signaux import notes as calculer_notes
@@ -28,6 +32,7 @@ from robot.univers import PAR_SYMBOLE
 ORDRE_MINIMUM = 5.0          # en dollars : en dessous, l'ordre n'en vaut pas la peine
 MARGE_CASH = 0.99            # on n'engage jamais plus de 99 % du cash disponible (pas de levier)
 ALPACA = {"BTC-USD": "BTC/USD", "ETH-USD": "ETH/USD"}   # symboles Alpaca de la crypto
+MARGE_VETO = 0.02            # le veto tolère 2 points au-dessus des plafonds (prix qui bougent) : il vise les vrais bugs
 
 
 def symbole_alpaca(symbole):
@@ -152,6 +157,60 @@ def plan_ordres(decision, positions, prix, capital, cash, fractionnable, securit
                     reduits.append(Ordre(o.symbole, "achat", q * o.montant / o.quantite, q))
         achats = reduits
     return ventes + achats
+
+
+def controle_final(ordres, positions, capital, cash, securite, marge=MARGE_VETO):
+    """Veto final : revérifie le plan d'ordres, indépendamment du calcul qui l'a produit.
+
+    Renvoie la liste des anomalies (vide si tout va bien). Contrôles : actif connu, montants et quantités
+    positifs, pas de vente de plus que ce qu'on détient (jamais de vente à découvert), pas d'achat pendant
+    un arrêt de sécurité, pas plus d'achats que le cash disponible (pas de levier), et, après les ordres,
+    25 % au plus par actif acheté, 15 % au plus en crypto, 100 % au plus investi (plus `marge`).
+    """
+    pct = lambda v: f"{v * 100:.0f} %"
+    dollars = lambda v: f"{v:,.0f} $".replace(",", " ")
+    problemes, valides = [], []
+    apres = {s: v for s, (_, v) in positions.items()}
+    for o in ordres:
+        if o.symbole not in PAR_SYMBOLE:
+            problemes.append(f"{o.symbole} : actif hors du panier")
+            continue
+        if not (math.isfinite(o.montant) and o.montant > 0) or (o.quantite is not None and not o.quantite > 0):
+            problemes.append(f"{o.symbole} : montant ou quantité invalide ({o.montant}, {o.quantite})")
+            continue
+        if o.sens == "vente":
+            detenue = positions.get(o.symbole, (0.0, 0.0))[0]
+            if o.quantite is not None and o.quantite > detenue * (1 + 1e-9):
+                problemes.append(f"{o.symbole} : vente de {o.quantite} parts pour {detenue} détenues (découvert)")
+            if securite["tout_vendre"] and not o.fermer:
+                problemes.append(f"{o.symbole} : arrêt à -25 %, la vente devrait être complète")
+            apres[o.symbole] = 0.0 if o.fermer else apres.get(o.symbole, 0.0) - o.montant
+        elif o.sens == "achat":
+            if securite["bloquer_achats"] or securite["tout_vendre"]:
+                problemes.append(f"{o.symbole} : achat interdit pendant un arrêt de sécurité")
+            apres[o.symbole] = apres.get(o.symbole, 0.0) + o.montant
+        else:
+            problemes.append(f"{o.symbole} : sens inconnu « {o.sens} »")
+            continue
+        valides.append(o)
+
+    achats = [o for o in valides if o.sens == "achat"]
+    if achats:
+        ventes = sum(o.montant for o in valides if o.sens == "vente")
+        total_achats = sum(o.montant for o in achats)
+        if total_achats > MARGE_CASH * (max(cash, 0.0) + ventes) + 1.0:
+            problemes.append(f"achats de {dollars(total_achats)} pour {dollars(cash + ventes)} disponibles (levier)")
+        for s in {o.symbole for o in achats}:
+            plafond = PART_MAX_CRYPTO if est_crypto(s) else PART_MAX_ACTIF
+            if apres[s] > (plafond + marge) * capital:
+                problemes.append(f"{s} : {pct(apres[s] / capital)} du capital après les ordres (plafond {pct(plafond)})")
+        crypto = sum(v for s, v in apres.items() if est_crypto(s))
+        if any(est_crypto(o.symbole) for o in achats) and crypto > (PART_MAX_CRYPTO + marge) * capital:
+            problemes.append(f"crypto : {pct(crypto / capital)} du capital après les ordres (plafond {pct(PART_MAX_CRYPTO)})")
+        investi = sum(apres.values())
+        if investi > (EXPOSITION_MAX + marge) * capital:
+            problemes.append(f"{pct(investi / capital)} du capital investi après les ordres (maximum {pct(EXPOSITION_MAX)})")
+    return problemes
 
 
 def message(seance, capital, securite, multiplicateur, decision, ordres, exclus=(), remarques=()):

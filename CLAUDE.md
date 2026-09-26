@@ -41,7 +41,16 @@
   `cibles_strategie` ; `strategie_v2(budget=...)`). Désactivé par défaut (`budget=None`).
 - **EXP-006 (zone tampon)** : `experience_006.py`. EXP-005 + zone tampon de Carver (±10 % de la position normale,
   on ne va qu'au bord) : `TAMPON`, `tampon_rapide`, `parts_normales` ; `strategie_v2(tampon=...)`.
-- `outils_experience.py` : déroulé commun des expériences (critères M1-M2, P1-P3, R1-R5, verdict).
+- **EXP-007 (régimes de marché, idée d'une vidéo)** : `experience_007.py`, contre la v3. Un modèle de Markov caché
+  gaussien par actif (`robot/regimes.py`, numpy seul) : 3 régimes rangés par agitation, appris sur 504 jours, réappris
+  tous les 126 jours, algorithme « forward » seul pour décider (jamais le futur), confirmé après 3 jours ; note ÷ 2
+  en régime agité (`REGIMES` ; `strategie_v2(regime=...)`). Désactivé par défaut (`regime=None`).
+- `outils_experience.py` : déroulé commun des expériences (critères M1-M2, P1-P3, R1-R5, verdict ; base à battre
+  réglable avec `reglage_base`, critères M propres avec `criteres_mieux`).
+- **Veto final** : `controle_final` (`robot/decision.py`) revérifie le plan d'ordres avant l'envoi (plafonds, levier,
+  découvert, arrêts) ; en cas d'anomalie, aucun ordre et alerte Telegram.
+- **Krachs simulés** : `krachs_simules.py` (stress test de la v3, pour information) : krach d'une nuit sur chaque soir
+  du backtest, et 3 krachs injectés au hasard (100 tirages). Krach type fixé d'après 1987 et mars 2020.
 - **Tableau de bord** : `tableau_de_bord.py` calcule backtest, jour par jour, Monte Carlo (2 000 avenirs de 10 ans,
   blocs d'un mois), expériences et graphe du cerveau, puis remplit `tableau/modele.html` (d3 via cdnjs).
   GitHub Actions l'envoie comme fichier `tableau-de-bord`. Le résumé `JOURNAL` est à mettre à jour après chaque expérience.

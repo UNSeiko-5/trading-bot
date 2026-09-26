@@ -4,7 +4,8 @@ import pandas as pd
 import pytest
 
 from robot.decision import (
-    ORDRE_MINIMUM, decision_du_jour, etat_securite, message, plan_ordres, symbole_alpaca, symbole_depuis_position,
+    ORDRE_MINIMUM, Ordre, controle_final, decision_du_jour, etat_securite, message, plan_ordres, symbole_alpaca,
+    symbole_depuis_position,
 )
 from robot.parametres import BUDGET_RISQUE, TAMPON
 from robot.simulation import strategie_v2
@@ -108,3 +109,42 @@ def test_message_explique_chaque_actif():
     texte = message("2026-09-25", 100_000, SURS, 1.8, d, [Ordre("SPY", "achat", 20_000), Ordre("TLT", "vente", 5_000, 50, True)])
     assert "SPY : 3/3 détecteurs haussiers" in texte and "achat de 20 000 $" in texte
     assert "vente complète" in texte and "x1,80" in texte
+
+
+# --- Veto final (controle_final) ---------------------------------------------------------------------------
+
+def test_veto_laisse_passer_un_plan_normal():
+    d = decision(SPY=0.20, TLT=0.05, GLD=0.0, **{"BTC-USD": 0.10})
+    positions = {"TLT": (100.0, 10_000.0), "GLD": (10.0, 2_000.0)}
+    ordres = plan_ordres(d, positions, {"SPY": 500.0, "TLT": 100.0, "GLD": 200.0, "BTC-USD": 60_000.0}, 100_000,
+                         50_000, {"SPY": True, "TLT": True, "GLD": True, "BTC-USD": True}, SURS)
+    assert controle_final(ordres, positions, 100_000, 50_000, SURS) == []
+    arret = dict(SURS, bloquer_achats=True, tout_vendre=True)
+    ventes = plan_ordres(d, positions, {"SPY": 500.0, "TLT": 100.0, "GLD": 200.0, "BTC-USD": 60_000.0}, 100_000,
+                         50_000, {"SPY": True, "TLT": True, "GLD": True, "BTC-USD": True}, arret)
+    assert ventes and controle_final(ventes, positions, 100_000, 50_000, arret) == []
+
+
+@pytest.mark.parametrize("ordres, positions, securite, attendu", [
+    ([Ordre("SPY", "achat", 40_000)], {}, SURS, "SPY : 40 %"),                                      # plafond 25 %
+    ([Ordre("BTC-USD", "achat", 20_000)], {}, SURS, "BTC-USD : 20 %"),                              # crypto 15 %
+    ([Ordre("BTC-USD", "achat", 12_000), Ordre("ETH-USD", "achat", 12_000)], {}, SURS, "crypto : 24 %"),
+    ([Ordre("SPY", "achat", 20_000)], {"TLT": (1.0, 25_000.0), "GLD": (1.0, 25_000.0), "IEF": (1.0, 25_000.0),
+                                       "EFA": (1.0, 20_000.0)}, SURS, "115 % du capital investi"),
+    ([Ordre("SPY", "achat", 20_000), Ordre("TLT", "achat", 20_000)], {}, SURS, "levier"),          # cash 30 000 $
+    ([Ordre("SPY", "achat", 5_000)], {}, dict(SURS, bloquer_achats=True), "achat interdit"),
+    ([Ordre("SPY", "vente", 1_000, quantite=2.0)], {"SPY": (1.0, 500.0)}, SURS, "découvert"),
+    ([Ordre("SPY", "vente", 250, quantite=0.5)], {"SPY": (1.0, 500.0)}, dict(SURS, tout_vendre=True), "complète"),
+    ([Ordre("AAPL", "achat", 1_000)], {}, SURS, "hors du panier"),
+    ([Ordre("SPY", "achat", float("nan"))], {}, SURS, "invalide"),
+    ([Ordre("SPY", "achat", -500)], {}, SURS, "invalide"),
+    ([Ordre("SPY", "vendre", 500)], {}, SURS, "sens inconnu"),
+])
+def test_veto_bloque_les_plans_anormaux(ordres, positions, securite, attendu):
+    problemes = controle_final(ordres, positions, 100_000, 30_000, securite)
+    assert problemes and any(attendu in p for p in problemes), problemes
+
+
+def test_veto_tolere_de_petits_ecarts_de_prix():
+    # 26 % sur un actif après les ordres (le prix a bougé depuis la clôture) : sous la marge de 2 points
+    assert controle_final([Ordre("SPY", "achat", 1_000)], {"SPY": (50.0, 25_000.0)}, 100_000, 30_000, SURS) == []
