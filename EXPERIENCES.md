@@ -790,3 +790,50 @@ ETF du 04/01/2016 au 23/09/2026, crypto depuis le 01/01/2021 seulement, période
 **Décision :** code gardé (`robot/h1.py`, `experience_007.py`), non branché. La v3 reste en argent fictif.
 
 ---
+
+## EXP-008 — Rémunérer le cash non investi (fonds monétaire)
+
+**Date :** 26/09/2026 · **Base à battre :** la v3 (EXP-006)
+
+**Constat :** la v3 laisse en moyenne ~27 % du compte en cash, qui ne rapporte rien dans la simulation.
+Dans la réalité, on peut placer ce cash dans un fonds monétaire (ETF de bons du Trésor à 3 mois, type BIL
+ou SGOV), presque sans risque. Ce n'est pas un nouveau signal : la décision de la v3 ne change pas.
+
+**Règle testée (fixée avant les tests) :**
+
+| Élément | Règle |
+|---|---|
+| Taux | Taux des bons du Trésor US à 3 mois (Yahoo `^IRX`) publié à la clôture de la **veille** |
+| Frais du fonds | 0,15 % par an retirés du taux (frais de gestion d'un fonds type BIL) ; jamais de taux négatif |
+| Rendement du jour | (taux − 0,15 %) ÷ 252, appliqué au cash chaque jour de bourse |
+| Frais de transaction | 0,10 % (frais ETF) sur chaque variation du cash lors d'un rééquilibrage (achat ou vente de parts du fonds) |
+| Reste | Identique à la v3 (mêmes signaux, multiplicateur, zone tampon, plafonds) |
+
+**Ce qu'on attend honnêtement :** taux moyen d'environ 1,5 %/an sur 2007-2026 (presque 0 de 2009 à 2016,
+environ 4-5 % depuis 2023), multiplié par ~27 % de cash : **+0,3 à +0,4 point par an**, presque sans risque en
+plus. Le gain est modeste mais « gratuit ».
+
+**Hypothèse :** placer le cash améliore le rendement de la v3 sans dégrader sa note rendement/risque.
+
+**Critères de réussite (fixés avant les tests) :** base = la v3. Le seuil M1 est abaissé à +0,2 point
+parce que le changement n'ajoute presque aucun risque : 0,2 point par an est le gain minimum qui justifie
+d'ajouter un produit et des ordres au robot. M2 est relevé à 100 % pour la même raison.
+
+| # | Réussi si… |
+|---|---|
+| M1 | Rendement annuel supérieur d'au moins **0,2 point** à celui de la v3 |
+| M2 | Note rendement/risque au moins **égale** à celle de la v3 |
+| P1 | Pire chute meilleure que **-20 %** |
+| P2 | Rendement annuel d'au moins **6 %** |
+| P3 | Note rendement/risque meilleure que les 4 points de comparaison (inchangés) |
+| R1 | Les 10 variantes d'EXP-006, chacune avec le cash rémunéré : rendement d'au moins 4 %, pire chute meilleure que -25 %, note à ±30 % de la base |
+| R2 | Trois périodes (2007-2012, 2013-2019, 2020-2026) : rendement positif dans les 3, note meilleure que le 60/40 dans au moins 2 |
+| R3 | Frais x3 (y compris les frais de transaction du fonds) : perte de moins de 1,5 point par an, pire chute meilleure que -20 % |
+| R4 | Sans la crypto : pire chute meilleure que -20 %, rendement d'au moins 5 %, note meilleure que le 60/40 |
+| R5 | Hasard : note meilleure que 95 % des 500 versions aux signaux décalés au hasard (cash rémunéré aussi) |
+
+*Pour information :* taux moyen du fonds, part moyenne en cash, gain apporté par le cash par an,
+frais de transaction du fonds par an.
+
+**Verdict prévu :** si les 10 critères sont réussis, la v3 + cash rémunéré devient la base à battre, et le
+robot achètera plus tard un fonds monétaire avec son cash (étape séparée, avec ses propres tests).
