@@ -1288,3 +1288,64 @@ passer sa propre expérience avant d'aller au robot.
 - Pour viser nettement plus, il faut une **autre stratégie** (par exemple plus concentrée), pas plus de liberté.
 
 **Décision :** la v3 reste la base à battre. `PLAFONDS_RELEVES` gardé, non utilisé.
+
+---
+
+## EXP-013 — Double momentum (G. Antonacci) : une stratégie concentrée, plus offensive
+
+**Date :** 27/09/2026
+
+**Pourquoi cette expérience :** EXP-011 et EXP-012 ont montré que la v3 plafonne vers +8 %/an quels que soient
+ses réglages. Tu la trouves trop sécuritaire. On teste donc une **autre stratégie**, publiée, plus concentrée :
+le « Global Equities Momentum » de Gary Antonacci (*Dual Momentum Investing*, 2014).
+
+**Règle testée (celle du livre, réglages de l'auteur, rien d'ajusté par nous) :**
+
+- Une décision par mois, à la **clôture du dernier jour de bourse du mois**, exécutée à l'ouverture suivante.
+- **Momentum absolu** : si le rendement des actions US (SPY) sur **12 mois** (252 jours de bourse) est
+  supérieur à celui des bons du Trésor à 3 mois sur la même période (taux `^IRX`, sans frais), on reste
+  en actions ; sinon on passe **100 % en obligations** (AGG, obligations US toutes catégories, celles du livre).
+- **Momentum relatif** : en actions, on met **100 %** sur le plus fort des deux sur 12 mois, **SPY** (US) ou
+  **EFA** (pays développés hors US).
+- Un seul actif à la fois, pas de levier, pas de crypto, pas de vente à découvert. Frais habituels (0,10 %
+  par ordre ETF). Les sécurités du robot (-20 % / -25 %, à décaler à -28 % / -35 %) ne font pas partie du test,
+  comme pour la v3.
+
+**Transparence (biais à signaler) :**
+
+- Le livre date de 2014 : **2007-2013 a servi à l'auteur** pour construire sa règle, seule la période
+  2014-2026 est vraiment « nouvelle ». Je sais aussi que cette stratégie a été critiquée pour de faux signaux
+  en 2018, 2020 et 2022 (sorties puis retours trop tardifs).
+- Je la propose parce qu'elle est connue, simple et offensive, pas parce que je connais son résultat exact
+  sur nos données.
+- Variante **Nasdaq (QQQ au lieu de SPY)** calculée **pour information seulement**, jamais retenue même si elle
+  gagne plus (ce serait choisir avec le recul : la technologie a été le meilleur marché de ces 20 ans).
+
+**Ce qu'on attend honnêtement (écrit avant les tests) :** +8 à +11 %/an, pire chute de -20 à -25 %, 2 à
+4 changements d'actif par an. Réussir M1 (au moins +9,3 %/an) est **incertain**.
+
+**Hypothèse :** le double momentum rapporte au moins 1,5 point par an de plus que la v3, avec une meilleure
+qualité que simplement acheter les actions US, en restant dans ta limite de -35 %.
+
+**Critères de réussite (fixés avant les tests) :** base à battre = la v3 (même période, mêmes données).
+Seuils de chute de ton profil à -35 % (comme EXP-010).
+
+| # | Réussi si… |
+|---|---|
+| M1 | Rendement annuel supérieur d'au moins **1,5 point** à celui de la v3 |
+| M2 | Sharpe supérieur à celui d'« acheter et garder SPY » (sinon, autant acheter les actions US) |
+| P1 | Pire chute meilleure que **-30 %** |
+| P2 | Rendement annuel d'au moins **6 %** |
+| P3 | Note rendement/risque meilleure que les 4 points de comparaison habituels |
+| R1 | 10 variantes : durée 6 mois ; 9 mois ; 15 mois ; seuil absolu 0 % (au lieu des bons du Trésor) ; obligations IEF au lieu d'AGG ; obligations TLT ; décision 10 jours de bourse avant la fin du mois ; décision 5 jours avant ; moyenne des rendements 3, 6 et 12 mois ; EEM (émergents) en 3e candidat actions. Chaque variante : rendement d'au moins 4 %, pire chute meilleure que **-35 %**, note à ±30 % de la base |
+| R2 | Sous-périodes 2007-2012, 2013-2019, 2020-2026 : rendement positif dans les 3, note meilleure que le 60/40 dans au moins 2 |
+| R3 | Frais x3 : perte de moins de 1,5 point par an, pire chute meilleure que **-30 %** |
+| R4 | Sans la crypto : automatique (la stratégie n'en utilise pas), vérifié quand même : chute meilleure que **-30 %**, rendement d'au moins 5 %, note meilleure que le 60/40 |
+| R5 | Hasard (500 tirages) : chaque mois, SPY, EFA ou AGG tiré au hasard ; note rendement/risque meilleure que 95 % des tirages |
+| K1 | Krachs simulés (krach type inchangé) : krach d'une nuit sur chaque soir → jamais au-delà de **-35 %** ; 3 krachs au hasard (100 tirages) → au plus **5 %** des tirages au-delà de **-35 %** |
+
+*Pour information :* nombre de changements par an, temps passé en SPY / EFA / AGG, résultat 2014-2026 seul
+(la période « nouvelle » pour l'auteur), variante Nasdaq, pire année.
+
+**Verdict prévu :** le double momentum remplace la v3 seulement si **les 11 critères** sont réussis, et après
+ton accord. Il faudrait alors adapter le robot (une décision par mois, un seul ETF) et ses sécurités.
