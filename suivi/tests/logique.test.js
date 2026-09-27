@@ -97,3 +97,30 @@ test("ordres en attente", () => {
   const o = ordresEnAttente([{ status: "new" }, { status: "filled" }, { status: "accepted" }, { status: "canceled" }]);
   assert.equal(o.length, 2);
 });
+
+import { dureeAvant, phraseEtat, prochainPassage } from "../logique.js";
+
+test("prochain passage du robot : 22h40 UTC en semaine", () => {
+  const iso = (d) => d.toISOString().slice(0, 16);
+  assert.equal(iso(prochainPassage(new Date("2026-09-28T10:00:00Z"))), "2026-09-28T22:40");   // lundi matin
+  assert.equal(iso(prochainPassage(new Date("2026-09-28T22:41:00Z"))), "2026-09-29T22:40");   // lundi, juste après
+  assert.equal(iso(prochainPassage(new Date("2026-10-02T23:00:00Z"))), "2026-10-05T22:40");   // vendredi soir -> lundi
+  assert.equal(iso(prochainPassage(new Date("2026-09-27T01:00:00Z"))), "2026-09-28T22:40");   // dimanche -> lundi
+});
+
+test("durée lisible", () => {
+  const t0 = new Date("2026-09-28T10:00:00Z");
+  assert.equal(dureeAvant(new Date("2026-09-28T13:05:00Z"), t0), "3 h 05 min");
+  assert.equal(dureeAvant(new Date("2026-09-28T10:45:00Z"), t0), "45 min");
+  assert.equal(dureeAvant(new Date("2026-09-30T14:00:00Z"), t0), "2 j 4 h");
+  assert.equal(dureeAvant(new Date("2026-09-28T09:00:00Z"), t0), "0 min");
+});
+
+test("phrase d'accueil en français courant", () => {
+  assert.equal(phraseEtat({ niveau: "normal", partInvestie: 0.704, nbPositions: 3 }),
+    "Tout est normal. Le robot est investi à 70 % sur 3 actifs.");
+  assert.equal(phraseEtat({ niveau: "normal", partInvestie: 0, nbPositions: 0 }),
+    "Tout est normal. Le robot est entièrement en cash.");
+  assert.match(phraseEtat({ niveau: "achats bloqués", partInvestie: 0.5, nbPositions: 1, veto: true }),
+    /n'achète plus.*1 actif\..*veto final/);
+});

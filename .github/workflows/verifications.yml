@@ -88,3 +88,6 @@ jobs:
 
       - name: Expérience EXP-009 (v3 + régimes de marché de la vidéo, critères M, P et R)
         run: python experience_009.py
+
+      - name: Expérience EXP-010 (v3 offensive, agitation visée 17 %, limite -35 %)
+        run: python experience_010.py

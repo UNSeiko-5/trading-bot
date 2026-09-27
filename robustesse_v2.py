@@ -9,7 +9,7 @@ import numpy as np
 
 from backtest_v2 import verifier_performance
 from robot.donnees import charger
-from robot.parametres import DETECTEURS, FRAIS
+from robot.parametres import DETECTEURS, FRAIS, VOL_CIBLE
 from robot.portefeuille import preparer_risque
 from robot.regimes import appliquer_regime
 from robot.signaux import notes as calculer_notes
@@ -72,7 +72,7 @@ def ligne(nom, m, ok=None):
             f"   note R/R {m['note_rendement_risque']:5.2f}{fin}")
 
 
-def test_r1(ouvertures, clotures, risque, base, variantes=None, reglage=None):
+def test_r1(ouvertures, clotures, risque, base, variantes=None, reglage=None, chute_min=R1_CHUTE_MIN):
     """`reglage` : réglages de la version testée (vide = la v2) ; chaque variante les modifie."""
     variantes, reglage = variantes or variantes_reglages(), reglage or {}
     print("\nR1 — Autres réglages")
@@ -81,7 +81,7 @@ def test_r1(ouvertures, clotures, risque, base, variantes=None, reglage=None):
     for nom, variante in variantes.items():
         m = mesures(strategie_v2(ouvertures, clotures, risque=risque, **{**reglage, **variante}).valeur)
         ecart = abs(m["note_rendement_risque"] / base["note_rendement_risque"] - 1)
-        ok = m["rendement_annuel"] >= R1_RENDEMENT_MIN and m["pire_chute"] > R1_CHUTE_MIN and ecart <= R1_ECART_NOTE_MAX
+        ok = m["rendement_annuel"] >= R1_RENDEMENT_MIN and m["pire_chute"] > chute_min and ecart <= R1_ECART_NOTE_MAX
         tous &= ok
         print(ligne(nom, m, ok) + f"   (écart de note {ecart:.0%})")
     return tous
@@ -100,21 +100,21 @@ def test_r2(valeur_v2, valeur_60_40):
     return tous_positifs and nb_meilleur >= 2
 
 
-def test_r3(ouvertures, clotures, risque, base, reglage=None):
+def test_r3(ouvertures, clotures, risque, base, reglage=None, chute_min=R3_CHUTE_MIN):
     print("\nR3 — Frais multipliés par 3")
     triples = {cle: 3 * taux for cle, taux in FRAIS.items()}
     m = mesures(strategie_v2(ouvertures, clotures, risque=risque, frais=triples, **(reglage or {})).valeur)
     perte = base["rendement_annuel"] - m["rendement_annuel"]
-    ok = perte < R3_PERTE_MAX and m["pire_chute"] > R3_CHUTE_MIN
+    ok = perte < R3_PERTE_MAX and m["pire_chute"] > chute_min
     print(ligne("Frais x3 (ETF 0,30 %, crypto 1,50 %)", m, ok) + f"   (perte : {perte:.2%} par an)")
     return ok
 
 
-def test_r4(ouvertures, clotures, note_60_40, reglage=None):
+def test_r4(ouvertures, clotures, note_60_40, reglage=None, chute_min=R4_CHUTE_MIN):
     print("\nR4 — Sans la crypto")
     sans = [s for s in clotures.columns if not s.endswith("-USD")]
     m = mesures(strategie_v2(ouvertures[sans], clotures[sans], **(reglage or {})).valeur)
-    ok = m["pire_chute"] > R4_CHUTE_MIN and m["rendement_annuel"] >= R4_RENDEMENT_MIN and \
+    ok = m["pire_chute"] > chute_min and m["rendement_annuel"] >= R4_RENDEMENT_MIN and \
         m["note_rendement_risque"] > note_60_40
     print(ligne("8 actifs, sans Bitcoin ni Ethereum", m, ok) + f"   (60/40 : note {note_60_40:.2f})")
     return ok
@@ -125,11 +125,12 @@ def test_r5(ouvertures, clotures, risque, base, reglage=None, nom="la v2"):
     notes = notes_du_reglage(clotures, reglage)
     budget = (reglage or {}).get("budget")   # EXP-005 : multiplicateur recalculé pour chaque version au hasard
     tampon = (reglage or {}).get("tampon")   # EXP-006 : zone tampon appliquée à chaque version au hasard
+    vol_cible = (reglage or {}).get("vol_cible", VOL_CIBLE)   # EXP-010 : même agitation visée que la version testée
     aleatoire = np.random.default_rng(42)  # graine fixe : même résultat à chaque lancement
     notes_hasard, rendements_hasard = [], []
     for _ in range(R5_TIRAGES):
         cibles, _, tampons = cibles_strategie(ouvertures, clotures, decaler_au_hasard(notes, aleatoire), risque,
-                                              budget=budget, tampon=tampon)
+                                              vol_cible=vol_cible, budget=budget, tampon=tampon)
         m = mesures(simuler(ouvertures, clotures, cibles, tampons=tampons,
                             monetaire=(reglage or {}).get("monetaire")).valeur)
         notes_hasard.append(m["note_rendement_risque"])

@@ -157,3 +157,35 @@ export function ordresEnAttente(ordres) {
   const ouverts = ["new", "accepted", "pending_new", "partially_filled", "held", "accepted_for_bidding"];
   return (ordres ?? []).filter((o) => ouverts.includes(o.status));
 }
+
+/** Prochain passage du robot : du lundi au vendredi à 22h40 UTC (.github/workflows/trading_v3.yml). */
+export function prochainPassage(maintenant = new Date()) {
+  const d = new Date(Date.UTC(maintenant.getUTCFullYear(), maintenant.getUTCMonth(), maintenant.getUTCDate(), 22, 40));
+  while (d <= maintenant || d.getUTCDay() === 0 || d.getUTCDay() === 6) d.setUTCDate(d.getUTCDate() + 1);
+  return d;
+}
+
+/** Durée lisible entre maintenant et une date future : « 3 h 12 min », « 45 min », « 2 j 4 h ». */
+export function dureeAvant(cible, maintenant = new Date()) {
+  const minutes = Math.max(0, Math.round((cible - maintenant) / 60_000));
+  const jours = Math.floor(minutes / 1440);
+  const heures = Math.floor((minutes % 1440) / 60);
+  const reste = minutes % 60;
+  if (jours > 0) return `${jours} j ${heures} h`;
+  if (heures > 0) return `${heures} h ${String(reste).padStart(2, "0")} min`;
+  return `${reste} min`;
+}
+
+/** La phrase d'accueil : l'état du robot en français courant. */
+export function phraseEtat({ niveau, partInvestie, nbPositions, veto = false }) {
+  const debut = {
+    "normal": "Tout est normal.",
+    "alerte du jour": "Journée difficile : plus de 5 % de perte aujourd'hui.",
+    "achats bloqués": "Sécurité active : le compte est à plus de 20 % sous son sommet, le robot n'achète plus.",
+    "arrêt total": "Arrêt total : tout est vendu, le robot attend ton redémarrage manuel.",
+  }[niveau] ?? "État inconnu.";
+  const investi = nbPositions === 0
+    ? "Le robot est entièrement en cash."
+    : `Le robot est investi à ${Math.round(partInvestie * 100)} % sur ${nbPositions} actif${nbPositions > 1 ? "s" : ""}.`;
+  return `${debut} ${investi}${veto ? " Le veto final a bloqué le dernier plan : regarde le journal." : ""}`;
+}

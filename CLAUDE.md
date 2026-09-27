@@ -5,7 +5,8 @@
 - Débutant complet (programmation, trading, statistiques) : expliquer simplement, en français, en le tutoyant.
 - Veut des réponses directes, structurées, orientées action. Pas de jargon inutile.
 - **0 € d'outils et d'abonnements.** Capital réel envisagé plus tard : 2 000 à 10 000 €. Résident fiscal en France.
-- Profil : pire chute acceptable **-25 %**, objectif « très bon rendement avec risque limité ».
+- Profil : pire chute acceptable **-35 %** (changé le 27/09/2026, avant : -25 %), objectif « se rapprocher de
+  50 %/an » (irréaliste sans levier : lui rappeler honnêtement les ordres de grandeur). Toujours sans levier.
 - Robot autonome, une décision par jour, pas de pari à la baisse, pas de levier.
 - Ne jamais promettre de gains. Signaler immédiatement tout biais statistique ou technique.
 
@@ -50,8 +51,12 @@
   gaussien par actif (`robot/regimes.py`, numpy seul) : 3 régimes rangés par agitation, appris sur 504 jours, réappris
   tous les 126 jours, algorithme « forward » seul pour décider (jamais le futur), confirmé après 3 jours ; note ÷ 2
   en régime agité (`REGIMES` ; `strategie_v2(regime=...)`). Désactivé par défaut (`regime=None`).
+- **EXP-010 (v3 offensive)** : `experience_010.py`, contre la v3. Seule différence : `vol_cible=VOL_CIBLE_OFFENSIVE` (17 %).
+  Seuils de chute décalés de 10 points (`SEUILS_CHUTE`), critère K1 krachs simulés (`critere_krachs`). Attention :
+  la zone tampon s'élargit avec l'agitation visée (plafonds fixes) et peut freiner l'investissement.
 - `outils_experience.py` : déroulé commun des expériences (critères M1-M2, P1-P3, R1-R5, verdict ; base à battre
-  réglable avec `base_reglage`, critères M propres avec `criteres_mieux`).
+  réglable avec `base_reglage`, critères M propres avec `criteres_mieux`, seuils de chute `seuils_chute`,
+  critères ajoutés `criteres_supplementaires`).
 - **Veto final** : `controle_final` (`robot/decision.py`) revérifie le plan d'ordres avant l'envoi (plafonds, levier,
   découvert, arrêts) ; en cas d'anomalie, aucun ordre et alerte Telegram.
 - **Krachs simulés** : `krachs_simules.py` (stress test de la v3, pour information) : krach d'une nuit sur chaque soir
@@ -110,7 +115,11 @@
 - **EXP-008** (v3 + cash placé au taux à 3 mois) : **8/10, non validée.** +7,9 %/an (+0,14 point, minimum 0,2),
   chute -10,5 %, note 0,75 ; frais x3 : perte 1,59 point (R3 ❌). Les frais du fonds (cash qui bouge à chaque
   rééquilibrage) mangent les deux tiers des intérêts. Code gardé, désactivé.
-- Proposé à l'utilisateur : moteur court terme « Rebond » (RSI 2 de Connors) à côté de la v3 (deviendrait EXP-010).
+- Proposé à l'utilisateur : moteur court terme « Rebond » (RSI 2 de Connors) à côté de la v3 (prochain numéro libre).
+- **EXP-010** (v3 offensive : agitation visée 17 % au lieu de 12 %, même proportion que 12/25 pour la nouvelle limite
+  de -35 %) : **10/11, non validée.** +8,3 %/an (+0,5 point, M1 exigeait +1,5), chute -12,4 %, krachs OK (pire nuit
+  -27,2 %). Agitation réalisée 8,7 % seulement : les plafonds (100 % investi, 25 %/actif, 15 % crypto) freinent, pas
+  l'agitation visée. Piste suivante possible : changer les plafonds (à décider avec l'utilisateur, biais crypto).
 - **EXP-009** (v3 + régimes de marché HMM, idée d'une vidéo YouTube de la boîte à idées ; d'abord numérotée EXP-007,
   renumérotée sans changer les critères) : **9/10, non validée.** +7,8 %/an comme la v3, mais chute -12,7 % et note
   0,62 (M1 exigeait +10 %, soit 0,73). Le HMM redit ce que mesure déjà l'agitation de la v3. Code gardé, désactivé.

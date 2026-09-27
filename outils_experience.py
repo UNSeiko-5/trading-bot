@@ -43,7 +43,8 @@ def frais_par_an(resultat):
 
 
 def lancer_experience(code, nom, reglage, variantes, informations=None, m2_part_min=1.0, base_reglage=None,
-                      base_nom="v2", m1_gain_min=M1_GAIN_MIN, donnees=None, criteres_mieux=None):
+                      base_nom="v2", m1_gain_min=M1_GAIN_MIN, donnees=None, criteres_mieux=None, seuils_chute=None,
+                      criteres_supplementaires=None):
     """Lance toute l'expérience sur les vraies données et affiche le verdict.
 
     `reglage` : ce qui change par rapport à la v2 (arguments de strategie_v2).
@@ -51,7 +52,10 @@ def lancer_experience(code, nom, reglage, variantes, informations=None, m2_part_
     `informations(ouvertures, clotures, risque)` : affiche des chiffres pour information (pas des critères).
     `base_reglage`, `base_nom` : la version à battre (par défaut la v2 ; EXP-008 : la v3).
     `criteres_mieux(nouvelle, base)` : critères M propres à l'expérience (EXP-009), à la place de `verifier_mieux`.
+    `seuils_chute` : {"P1", "R1", "R3", "R4"} -> pire chute minimale (EXP-010 : limite passée à -35 %).
+    `criteres_supplementaires(ouvertures, clotures, risque)` : {nom: réussi} ajoutés au verdict (EXP-010 : K1).
     """
+    seuils = seuils_chute or {}
     donnees = donnees or charger()
     o, c = donnees.ouvertures, donnees.clotures
     risque = preparer_risque(c)
@@ -81,19 +85,24 @@ def lancer_experience(code, nom, reglage, variantes, informations=None, m2_part_
              else verifier_mieux(base, m_v2, m2_part_min, base=f"la {base_nom}", m1_gain_min=m1_gain_min))
     afficher_criteres(mieux)
     print("\nPerformance")
-    performance = verifier_performance(base, m_refs)
+    performance = verifier_performance(base, m_refs, **({"pire_chute_min": seuils["P1"]} if "P1" in seuils else {}))
     afficher_criteres(performance)
     resultats = {n: ok for n, ok, _ in mieux + performance}
 
-    resultats["R1 Autres réglages"] = robustesse_v2.test_r1(o, c, risque, base, variantes, reglage)
+    resultats["R1 Autres réglages"] = robustesse_v2.test_r1(o, c, risque, base, variantes, reglage,
+                                                        **({"chute_min": seuils["R1"]} if "R1" in seuils else {}))
     resultats["R2 Sous-périodes"] = robustesse_v2.test_r2(nouvelle.valeur, references["60/40 (SPY/IEF)"])
-    resultats["R3 Frais x3"] = robustesse_v2.test_r3(o, c, risque, base, reglage)
+    resultats["R3 Frais x3"] = robustesse_v2.test_r3(o, c, risque, base, reglage,
+                                                 **({"chute_min": seuils["R3"]} if "R3" in seuils else {}))
     note_60_40 = m_refs["60/40 (SPY/IEF)"]["note_rendement_risque"]
-    resultats["R4 Sans la crypto"] = robustesse_v2.test_r4(o, c, note_60_40, reglage)
+    resultats["R4 Sans la crypto"] = robustesse_v2.test_r4(o, c, note_60_40, reglage,
+                                                       **({"chute_min": seuils["R4"]} if "R4" in seuils else {}))
     sans = [s for s in c.columns if not s.endswith("-USD")]
     print(robustesse_v2.ligne(f"(info) {base_nom} sans la crypto",
                               mesures(strategie_v2(o[sans], c[sans], **(base_reglage or {})).valeur)))
     resultats["R5 Hasard"] = robustesse_v2.test_r5(o, c, risque, base, reglage, nom=nom)
+    if criteres_supplementaires:
+        resultats.update(criteres_supplementaires(o, c, risque))
 
     print(f"\nVERDICT {code}")
     for n, ok in resultats.items():

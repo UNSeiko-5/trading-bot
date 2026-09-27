@@ -44,6 +44,8 @@ JOURNAL = [
      "lecon": "+0,14 point seulement : les frais d'achat et de vente du fonds mangent les intérêts."},
     {"code": "EXP-009", "titre": "v3 + régimes de marché (HMM, idée d'une vidéo)", "score": "9/10", "statut": "échec",
      "lecon": "Même rendement, chute -12,7 % au lieu de -11,7 % : la v3 mesurait déjà l'agitation."},
+    {"code": "EXP-010", "titre": "v3 offensive (agitation visée 17 %, limite -35 %)", "score": "10/11", "statut": "échec",
+     "lecon": "+8,3 %/an seulement : les plafonds (100 %, 25 %/actif) freinent plus que l'agitation visée."},
 ]
 
 
