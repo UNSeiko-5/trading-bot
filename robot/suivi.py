@@ -77,6 +77,15 @@ def regimes_du_jour(clotures):
     return resultat
 
 
+def entetes(cle):
+    """En-têtes Supabase. Anciennes clés (« service_role », qui commencent par eyJ) : aussi en « Bearer ».
+    Nouvelles clés (« sb_secret_… ») : seulement dans « apikey », Supabase refuse de les voir en « Bearer »."""
+    resultat = {"apikey": cle, "Content-Type": "application/json", "Prefer": "return=minimal"}
+    if cle.startswith("eyJ"):
+        resultat["Authorization"] = f"Bearer {cle}"
+    return resultat
+
+
 def envoyer_rapport(rapport, url=None, cle=None, poster=requests.post):
     """Envoie le rapport à Supabase. Renvoie None si tout va bien (ou si Supabase n'est pas configuré),
     sinon un texte d'erreur. Ne lève jamais d'exception : le robot ne doit pas s'arrêter pour ça."""
@@ -88,8 +97,7 @@ def envoyer_rapport(rapport, url=None, cle=None, poster=requests.post):
         reponse = poster(
             f"{url.rstrip('/')}/rest/v1/{TABLE}",
             json=rapport,
-            headers={"apikey": cle, "Authorization": f"Bearer {cle}", "Content-Type": "application/json",
-                     "Prefer": "return=minimal"},
+            headers=entetes(cle),
             timeout=15,
         )
         if not reponse.ok:

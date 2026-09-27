@@ -49,10 +49,12 @@ def test_nan_et_infini_remplaces_par_rien():
 def test_envoi_a_supabase_avec_la_cle_de_service():
     vus = []
     poster = lambda url, **k: (vus.append((url, k)), SimpleNamespace(ok=True))[1]
-    assert envoyer_rapport(rapport(), "https://abc.supabase.co/", "cle-secrete", poster) is None
+    assert envoyer_rapport(rapport(), "https://abc.supabase.co/", "eyJancienne", poster) is None
     url, k = vus[0]
     assert url == f"https://abc.supabase.co/rest/v1/{TABLE}"
-    assert k["headers"]["Authorization"] == "Bearer cle-secrete" and k["json"]["statut"] == "ordres transmis"
+    assert k["headers"]["Authorization"] == "Bearer eyJancienne" and k["json"]["statut"] == "ordres transmis"
+    envoyer_rapport(rapport(), "https://abc.supabase.co", "sb_secret_nouvelle", poster)   # nouvelle clé : pas de Bearer
+    assert vus[1][1]["headers"]["apikey"] == "sb_secret_nouvelle" and "Authorization" not in vus[1][1]["headers"]
 
 
 def test_sans_configuration_rien_n_est_envoye(monkeypatch):
