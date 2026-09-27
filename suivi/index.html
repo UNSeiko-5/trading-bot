@@ -4,89 +4,141 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
-  <title>Suivi robot v3</title>
+  <meta name="theme-color" content="#000000">
+  <title>Robot v3 · suivi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
 </head>
 <body>
+  <!-- Connexion -->
   <section id="connexion" hidden>
-    <form id="formulaire">
-      <h1>Suivi du robot v3</h1>
-      <p>Accès réservé. Connecte-toi avec le compte créé dans Supabase.</p>
+    <form id="formulaire" class="apparait">
+      <div class="logo">v3</div>
+      <h1>Robot v3</h1>
+      <p>Ton tableau de bord privé. Connecte-toi pour voir ton compte en direct.</p>
       <input id="email" type="email" autocomplete="username" placeholder="E-mail" required>
       <input id="motdepasse" type="password" autocomplete="current-password" placeholder="Mot de passe" required>
-      <button class="principal" type="submit">Se connecter</button>
-      <p id="erreur-connexion" class="rouge"></p>
+      <button class="bouton blanc" type="submit">Se connecter</button>
+      <p id="erreur-connexion" role="alert"></p>
     </form>
   </section>
 
+  <!-- Tableau de bord -->
   <main id="tableau" hidden>
-    <header>
-      <h1>Robot v3</h1>
-      <span class="badge orange">ARGENT FICTIF (paper)</span>
-      <span id="marche" class="badge">marché : …</span>
-      <span class="espace"></span>
-      <span id="maj" class="doux">…</span>
-      <button id="deconnexion">Se déconnecter</button>
-    </header>
-
-    <div id="bandeau" hidden></div>
-
-    <section id="tuiles" class="tuiles"></section>
-
-    <section class="carte">
-      <div class="outils">
-        <h2 style="margin:0">Courbe du compte</h2>
+    <div class="entete">
+      <div class="ligne-haut">
+        <div class="logo">v3</div>
+        <span class="nom">Robot v3</span>
+        <span class="pastille">Argent fictif</span>
+        <span id="marche" class="pastille">Marché : …</span>
         <span class="espace"></span>
-        <button data-periode="annee" class="actif">1 an</button>
-        <button data-periode="jour">Aujourd'hui</button>
-        <label class="doux"><input id="comparer" type="checkbox" checked> comparer à SPY</label>
+        <span class="direct"><i></i><span id="maj">connexion…</span></span>
+        <button id="deconnexion" class="bouton">Quitter</button>
       </div>
-      <div id="graphe-compte" class="graphe"></div>
-      <div id="legende-compte" class="legende"></div>
+      <nav class="menu" aria-label="Sections">
+        <a href="#vue" class="actif">Vue d'ensemble</a>
+        <a href="#positions">Positions</a>
+        <a href="#graphique">Graphique</a>
+        <a href="#ordres">Ordres</a>
+        <a href="#journal">Journal</a>
+      </nav>
+    </div>
+
+    <div id="bandeau" role="alert" hidden></div>
+
+    <!-- 1. Vue d'ensemble -->
+    <section id="vue" class="bloc" style="margin-top:8px">
+      <div class="carte hero apparait">
+        <div class="hero-haut">
+          <div>
+            <h3>Valeur du compte</h3>
+            <div id="valeur" class="valeur-principale">—</div>
+            <div id="variation" class="variation">—</div>
+            <p id="phrase" class="phrase">Chargement de ton compte…</p>
+          </div>
+          <div class="hero-droite">
+            <span class="petit">Prochaine décision du robot</span>
+            <span id="rebours" class="compte-a-rebours">—</span>
+            <span id="rebours-heure" class="petit"></span>
+          </div>
+        </div>
+        <div class="outils">
+          <div class="segments" role="group" aria-label="Période">
+            <button data-periode="annee" class="actif">1 an</button>
+            <button data-periode="jour">Aujourd'hui</button>
+          </div>
+          <label class="legende"><span><input id="comparer" type="checkbox" checked style="width:auto;accent-color:#fff"> comparer à SPY</span></label>
+          <span class="espace"></span>
+          <div id="legende-compte" class="legende"></div>
+        </div>
+        <div id="lecture-compte" class="lecture"></div>
+        <div id="graphe-compte" class="graphe"></div>
+      </div>
+
+      <div id="tuiles" class="grille quatre apparait" style="margin-top:14px"></div>
+
+      <div class="grille deux" style="margin-top:14px">
+        <div class="carte apparait">
+          <h3>Sécurités</h3>
+          <div id="securites"></div>
+        </div>
+        <div class="carte apparait">
+          <h3>Dernière décision du robot</h3>
+          <div id="decision"></div>
+        </div>
+      </div>
     </section>
 
-    <section class="grille2">
-      <div class="carte">
-        <h2>Sécurités</h2>
-        <div id="securites"></div>
+    <!-- 2. Positions -->
+    <section id="positions" class="bloc">
+      <div class="titre-bloc">
+        <h2>Positions</h2>
+        <span class="aide">La barre montre la part du compte ; le trait blanc, la part que vise le robot. Clique sur un actif pour voir son graphique.</span>
       </div>
-      <div class="carte">
-        <h2>Dernière décision du robot</h2>
-        <div id="decision"></div>
-      </div>
+      <div class="entetes-positions"><span>Actif</span><span>Part du compte · visée</span><span>Valeur</span><span>Gain</span><span>Tendance</span></div>
+      <div id="liste-positions" class="positions"></div>
     </section>
 
-    <section class="carte">
-      <h2>Positions et raisons <span class="doux" style="font-weight:400">(clique sur une ligne pour voir son graphique)</span></h2>
-      <div class="defile"><table id="positions"></table></div>
-      <p class="legende">Part visée, note et régime : dernière décision du robot. Quantité, valeur et gains : en direct chez Alpaca.
-        Note de tendance : 0 = cash, 10 = tendance normale, 20 = très forte. Le régime est affiché pour information (EXP-009 non validée).</p>
-    </section>
-
-    <section class="carte">
-      <div class="outils">
-        <h2 style="margin:0">Graphique : <span id="titre-actif">SPY</span></h2>
+    <!-- 3. Graphique -->
+    <section id="graphique" class="bloc">
+      <div class="titre-bloc">
+        <h2 id="titre-actif">Graphique</h2>
+        <span class="aide">▲ achat · ▼ vente · pointillés : ton prix moyen d'achat</span>
         <span class="espace"></span>
-        <select id="choix-actif"></select>
-        <button data-echelle="jour" class="actif">Jours</button>
-        <button data-echelle="heure">Heures</button>
+        <div class="segments" role="group" aria-label="Échelle">
+          <button data-echelle="jour" class="actif">Jours</button>
+          <button data-echelle="heure">Heures</button>
+        </div>
       </div>
-      <div id="graphe-actif" class="graphe"></div>
-      <div id="legende-actif" class="legende"></div>
+      <div class="carte">
+        <div id="choix-actifs" class="choix-actifs"></div>
+        <div id="lecture-actif" class="lecture" style="margin:12px 0 6px"></div>
+        <div id="graphe-actif" class="graphe"></div>
+      </div>
     </section>
 
-    <section class="carte">
-      <h2>Ordres</h2>
-      <h3>En attente d'exécution</h3>
-      <div class="defile"><table id="attente"></table></div>
-      <h3>Historique (200 derniers)</h3>
-      <div class="defile"><table id="historique"></table></div>
+    <!-- 4. Ordres -->
+    <section id="ordres" class="bloc">
+      <div class="titre-bloc">
+        <h2>Ordres</h2>
+        <span class="aide">Les ordres sur les ETF partent à l'ouverture de New York (15h30 à Paris), la crypto tout de suite.</span>
+      </div>
+      <div class="grille" style="gap:14px">
+        <div class="carte"><h3>En attente d'exécution</h3><div class="defile"><table id="attente"></table></div></div>
+        <div class="carte"><h3>Historique</h3><div class="defile"><table id="historique"></table></div></div>
+      </div>
     </section>
 
-    <section class="carte">
-      <h2>Journal du robot <span class="doux" style="font-weight:400">(un rapport par soir, mis à jour en direct)</span></h2>
-      <div id="journal"></div>
+    <!-- 5. Journal -->
+    <section id="journal" class="bloc">
+      <div class="titre-bloc">
+        <h2>Journal du robot</h2>
+        <span class="aide">Un rapport par soir de semaine, avec ce qu'il a vu et décidé. Arrive en direct.</span>
+      </div>
+      <div id="liste-journal" class="journal"></div>
     </section>
   </main>
 
