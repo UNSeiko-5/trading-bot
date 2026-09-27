@@ -1006,3 +1006,74 @@ changements de régime par an selon l'actif ; multiplicateur moyen 1,85 (v3 : 1,
 
 **Décision :** la v3 reste la base à battre. Le code est gardé mais désactivé (`regime=None`) ;
 `python -m robot.regimes` continue d'afficher le régime du jour pour information.
+
+---
+
+## EXP-010 — Robot plus offensif : utiliser la nouvelle limite de -35 %
+
+**Date :** 27/09/2026
+
+**Pourquoi cette expérience :** tu veux te rapprocher de 50 % par an. Le 27/09/2026, tu as **changé ton
+profil** : pire chute acceptée **-35 %** (au lieu de -25 %), **toujours sans levier**. La v3 n'utilise
+même pas son ancienne limite (pire chute -11,7 %, agitation réalisée 8,1 %) : elle peut prendre plus de risque.
+
+**Règle testée :** la v3 à l'identique, avec **une seule différence** : l'agitation visée passe de
+**12 % à 17 %** par an. Tout le reste est inchangé : multiplicateur de risque (qui vise désormais 17 %,
+borné entre 1 et 2,5), zone tampon, 25 % maximum par actif, 15 % maximum en crypto, **100 % investi au
+maximum (pas de levier)**.
+
+**Pourquoi 17 %, fixé a priori :** la spécification d'origine visait 12 % pour une limite de -25 %.
+On garde exactement la même proportion pour la nouvelle limite : 12/25 × 35 = 16,8 %, arrondi à 17 %.
+Si la version est adoptée, les sécurités du robot suivent la même proportion : plus d'achats à -28 %
+(20/25 × 35), tout vendu à -35 %.
+
+**Transparence (biais à signaler) :** on sait déjà, par les variantes « agitation visée 14 % »
+d'EXP-002, EXP-005 et EXP-006, que plus de risque a rapporté plus sur ce passé. La question n'est donc
+pas « le rendement monte-t-il ? » (presque sûr), mais « les chutes, les krachs et la qualité
+restent-ils acceptables ? ». Le chiffre de 17 % vient de la règle ci-dessus, pas de ces résultats.
+
+**Pourquoi pas 50 % :** sans levier, le robot ne peut jamais investir plus de 100 % de son capital, et
+les plafonds par actif l'empêchent de tout miser sur un seul marché. Viser 50 % par an demanderait
+environ 50 % d'agitation, donc des chutes de -50 à -70 % : incompatible avec -35 %.
+
+**Ce qu'on attend honnêtement (écrit avant les tests) :**
+- Rendement plus élevé, de l'ordre de **+9 à +11 %/an** (pas 50 %).
+- Pire chute plus grande, de l'ordre de **-15 à -20 %**.
+- Agitation réalisée autour de 10-11 % seulement : le plafond de 100 % investi freine toujours.
+- Plus de crypto (plafond de 15 % atteint plus souvent), un peu plus de frais, et un krach d'une nuit
+  qui fait plus mal.
+
+**Hypothèse :** viser 17 % d'agitation augmente le rendement de la v3 d'au moins 1,5 point par an sans
+dégrader sa qualité (Sharpe), et reste dans la limite de -35 %, y compris face aux krachs simulés.
+
+**Critères de réussite (fixés avant les tests) :** mêmes critères que les expériences précédentes, avec
+**seulement les seuils de chute décalés de 10 points** pour suivre la nouvelle limite (-20 % → -30 %,
+-25 % → -35 %), et un critère de krach ajouté.
+
+*Mieux que la v3 (base officielle), dans le même lancement :*
+
+| # | Réussi si… |
+|---|---|
+| M1 | Rendement annuel supérieur d'au moins **1,5 point** à celui de la v3 |
+| M2 | Sharpe au moins égal à **90 %** de celui de la v3 (on augmente le risque : la qualité doit tenir) |
+
+*Performance et robustesse :*
+
+| # | Réussi si… |
+|---|---|
+| P1 | Pire chute meilleure que **-30 %** |
+| P2 | Rendement annuel d'au moins **6 %** |
+| P3 | Note rendement/risque meilleure que les 4 points de comparaison |
+| R1 | 10 variantes : agitation visée 15 % ; 20 % ; sans multiplicateur ; borne haute 2 ; borne haute 3 ; fenêtre de mesure 1 an ; 4 ans ; zone tampon 5 % ; 20 % ; moyennes x1,5. Chaque variante : rendement d'au moins 4 %, pire chute meilleure que **-35 %**, note rendement/risque à ±30 % de la base |
+| R2 | Sous-périodes 2007-2012, 2013-2019, 2020-2026 : rendement positif dans les 3, note meilleure que le 60/40 dans au moins 2 |
+| R3 | Frais x3 : perte de moins de 1,5 point par an, pire chute meilleure que **-30 %** |
+| R4 | Sans la crypto : pire chute meilleure que **-30 %**, rendement d'au moins 5 %, note meilleure que le 60/40 |
+| R5 | Hasard (500 tirages, agitation visée de 17 %, multiplicateur et zone tampon appliqués) : note meilleure que 95 % des tirages |
+| K1 | Krachs simulés (krach type de `krachs_simules.py`, inchangé) : krach d'une nuit placé sur chaque soir → chute totale jamais au-delà de **-35 %** ; 3 krachs au hasard (100 tirages) → au plus **5 %** des tirages au-delà de **-35 %** |
+
+*Pour information :* agitation réalisée, part investie, part moyenne en crypto, frais et montant
+échangé, comparés à la v3.
+
+**Verdict prévu :** « v3 offensive » remplace la v3 seulement si **les 11 critères** sont réussis. Même
+en cas de réussite, le robot ne change qu'après ton accord (et ses sécurités passent à -28 % / -35 %).
+Sinon, la v3 reste la base et l'échec est noté ici.

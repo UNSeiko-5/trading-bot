@@ -5,7 +5,8 @@
 - Débutant complet (programmation, trading, statistiques) : expliquer simplement, en français, en le tutoyant.
 - Veut des réponses directes, structurées, orientées action. Pas de jargon inutile.
 - **0 € d'outils et d'abonnements.** Capital réel envisagé plus tard : 2 000 à 10 000 €. Résident fiscal en France.
-- Profil : pire chute acceptable **-25 %**, objectif « très bon rendement avec risque limité ».
+- Profil : pire chute acceptable **-35 %** (changé le 27/09/2026, avant : -25 %), objectif « se rapprocher de
+  50 %/an » (irréaliste sans levier : lui rappeler honnêtement les ordres de grandeur). Toujours sans levier.
 - Robot autonome, une décision par jour, pas de pari à la baisse, pas de levier.
 - Ne jamais promettre de gains. Signaler immédiatement tout biais statistique ou technique.
 
@@ -110,7 +111,9 @@
 - **EXP-008** (v3 + cash placé au taux à 3 mois) : **8/10, non validée.** +7,9 %/an (+0,14 point, minimum 0,2),
   chute -10,5 %, note 0,75 ; frais x3 : perte 1,59 point (R3 ❌). Les frais du fonds (cash qui bouge à chaque
   rééquilibrage) mangent les deux tiers des intérêts. Code gardé, désactivé.
-- Proposé à l'utilisateur : moteur court terme « Rebond » (RSI 2 de Connors) à côté de la v3 (deviendrait EXP-010).
+- Proposé à l'utilisateur : moteur court terme « Rebond » (RSI 2 de Connors) à côté de la v3 (prochain numéro libre).
+- **EXP-010** (v3 offensive : agitation visée 17 % au lieu de 12 %, même proportion que 12/25 pour la nouvelle limite
+  de -35 %) : critères fixés le 27/09 (seuils de chute décalés de 10 points, + critère K1 krachs simulés). En cours.
 - **EXP-009** (v3 + régimes de marché HMM, idée d'une vidéo YouTube de la boîte à idées ; d'abord numérotée EXP-007,
   renumérotée sans changer les critères) : **9/10, non validée.** +7,8 %/an comme la v3, mais chute -12,7 % et note
   0,62 (M1 exigeait +10 %, soit 0,73). Le HMM redit ce que mesure déjà l'agitation de la v3. Code gardé, désactivé.
