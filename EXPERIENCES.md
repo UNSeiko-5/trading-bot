@@ -1077,3 +1077,37 @@ dégrader sa qualité (Sharpe), et reste dans la limite de -35 %, y compris face
 **Verdict prévu :** « v3 offensive » remplace la v3 seulement si **les 11 critères** sont réussis. Même
 en cas de réussite, le robot ne change qu'après ton accord (et ses sécurités passent à -28 % / -35 %).
 Sinon, la v3 reste la base et l'échec est noté ici.
+
+**Résultats** (lancement GitHub n°61 du 27/09/2026, `python experience_010.py`, données `06dc073feaeb`,
+2007-01-03 → 2026-09-25, 19,7 ans, frais compris) :
+
+| | Rendement/an | Pire chute | Note R/R | Sharpe | Agitation | Investi | Crypto | Frais/an |
+|---|---|---|---|---|---|---|---|---|
+| **v3 offensive (17 %)** | **+8,3 %** | **-12,4 %** | 0,67 | 0,96 | 8,7 % | 75 % | 3,0 % | 0,42 % |
+| v3 (12 %) | +7,8 % | -11,7 % | 0,67 | 0,96 | 8,1 % | 73 % | 2,5 % | 0,48 % |
+
+| # | Résultat | Verdict |
+|---|---|---|
+| M1 | +8,3 % contre +7,8 % : **+0,52 point** (il en fallait 1,5) | ❌ |
+| M2 | Sharpe 0,96 contre 0,96 | ✅ |
+| P1 / P2 / P3 | -12,4 % · +8,3 % · 0,67 (meilleure référence : 0,38) | ✅ ✅ ✅ |
+| R1 | 10 variantes entre +7,3 % et +8,8 %/an, chutes entre -10,4 % et -13,3 % ; même 20 % visés : +8,8 % seulement | ✅ |
+| R2 | 2007-2012 : +7,0 % · 2013-2019 : +8,1 % (60/40 meilleur) · 2020-2026 : +9,5 %. 2 sur 3 | ✅ |
+| R3 | Frais x3 : +7,4 %/an, perte 0,88 point, chute -13,7 % | ✅ |
+| R4 | Sans la crypto : +5,6 %/an, chute -11,2 % | ✅ |
+| R5 | Meilleure que 100 % des 500 versions au hasard | ✅ |
+| K1 | Krach d'une nuit, pire soir : -27,2 % ; 3 krachs au hasard : médiane -18,3 %, pire -33,0 %, 0 % au-delà de -35 % | ✅ |
+
+**Conclusion :**
+
+- **Verdict officiel : 10/11, EXP-010 n'est PAS validée.** Viser 17 % d'agitation au lieu de 12 % ne fait
+  presque rien : l'agitation réalisée passe seulement de 8,1 % à 8,7 %, le rendement de +7,8 % à +8,3 %.
+- **La vraie leçon : le robot n'est pas freiné par son agitation visée, mais par ses plafonds.** Il ne peut
+  pas dépasser 100 % investi, ni 25 % par actif, ni 15 % en crypto. Il y est déjà presque tout le temps
+  quand les tendances sont bonnes : lui demander plus de risque ne change rien. Même 20 % visés : +8,8 %.
+- Bonne nouvelle : tout le reste passe, y compris les krachs simulés (jamais au-delà de -35 %).
+- Pour prendre vraiment plus de risque sans levier, il faudrait changer les **plafonds** (plus de poids
+  sur les actifs agités : actions, crypto), ce qui augmente la dépendance à la crypto (biais du recul) : une
+  autre expérience, à décider avec l'utilisateur.
+
+**Décision :** la v3 reste la base à battre ; `VOL_CIBLE_OFFENSIVE` gardé, non utilisé.

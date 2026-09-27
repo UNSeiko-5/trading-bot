@@ -63,3 +63,6 @@ demanderait des chutes de -50 à -70 %. Les meilleurs fonds font 10 à 20 %/an. 
 50 % sont presque toujours du [[Surapprentissage]], une période chanceuse ou du levier.
 Tu as choisi d'accepter **-35 %** sans levier : [[EXP-010 — Robot offensif]] teste un robot qui utilise
 ce risque (attendu : +9 à +11 %/an, pas 50 %).
+
+**Résultat (27/09/2026) :** 10/11, non validé. +8,3 %/an au lieu de +7,8 % : le robot était déjà
+bloqué par ses plafonds ([[Leçon — les plafonds freinent plus que l'agitation visée]]).

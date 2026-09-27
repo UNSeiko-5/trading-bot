@@ -117,7 +117,9 @@
   rééquilibrage) mangent les deux tiers des intérêts. Code gardé, désactivé.
 - Proposé à l'utilisateur : moteur court terme « Rebond » (RSI 2 de Connors) à côté de la v3 (prochain numéro libre).
 - **EXP-010** (v3 offensive : agitation visée 17 % au lieu de 12 %, même proportion que 12/25 pour la nouvelle limite
-  de -35 %) : critères fixés le 27/09 (seuils de chute décalés de 10 points, + critère K1 krachs simulés). En cours.
+  de -35 %) : **10/11, non validée.** +8,3 %/an (+0,5 point, M1 exigeait +1,5), chute -12,4 %, krachs OK (pire nuit
+  -27,2 %). Agitation réalisée 8,7 % seulement : les plafonds (100 % investi, 25 %/actif, 15 % crypto) freinent, pas
+  l'agitation visée. Piste suivante possible : changer les plafonds (à décider avec l'utilisateur, biais crypto).
 - **EXP-009** (v3 + régimes de marché HMM, idée d'une vidéo YouTube de la boîte à idées ; d'abord numérotée EXP-007,
   renumérotée sans changer les critères) : **9/10, non validée.** +7,8 %/an comme la v3, mais chute -12,7 % et note
   0,62 (M1 exigeait +10 %, soit 0,73). Le HMM redit ce que mesure déjà l'agitation de la v3. Code gardé, désactivé.
