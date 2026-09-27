@@ -47,8 +47,10 @@ def injecter_krach(ouvertures, clotures, date, choc=CHOC):
     return o, c
 
 
-def krachs_au_hasard(ouvertures, clotures, reglage=V3, krachs=KRACHS, tirages=TIRAGES, graine=GRAINE, debut=DEBUT_BACKTEST):
-    """Pire chute de la version `reglage` rejouée avec `krachs` krachs placés au hasard, pour chaque tirage."""
+def krachs_au_hasard(ouvertures, clotures, reglage=V3, krachs=KRACHS, tirages=TIRAGES, graine=GRAINE, debut=DEBUT_BACKTEST,
+                     strategie=None):
+    """Pire chute de la version `reglage` rejouée avec `krachs` krachs placés au hasard, pour chaque tirage.
+    `strategie(ouvertures, clotures)` -> courbe de valeur : une autre stratégie que la v2 (EXP-013)."""
     aleatoire = np.random.default_rng(graine)
     dates = clotures.loc[debut:].index[1:]
     pires = []
@@ -56,7 +58,8 @@ def krachs_au_hasard(ouvertures, clotures, reglage=V3, krachs=KRACHS, tirages=TI
         o, c = ouvertures, clotures
         for date in sorted(aleatoire.choice(dates, size=krachs, replace=False)):
             o, c = injecter_krach(o, c, date)
-        pires.append(mesures(strategie_v2(o, c, debut=debut, **reglage).valeur)["pire_chute"])
+        valeur = strategie(o, c) if strategie else strategie_v2(o, c, debut=debut, **reglage).valeur
+        pires.append(mesures(valeur)["pire_chute"])
     return np.array(pires)
 
 

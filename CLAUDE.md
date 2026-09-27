@@ -59,6 +59,10 @@
   Le robot n'utilise toujours que `UNIVERS`.
 - **EXP-012 (plafonds 40 %)** : `experience_012.py`. v3 offensive (17 %) + `PLAFONDS_RELEVES` (40 % par actif, crypto 15 %,
   total 100 %) ; `strategie_v2(plafonds=...)` passe jusqu'à `parts_cibles`, `simuler` et le multiplicateur. Critères d'EXP-010.
+- **EXP-013 (double momentum, G. Antonacci 2014)** : `experience_013.py` + `robot/momentum.py` (`MOMENTUM`, `choix`,
+  `cibles_depuis_choix`, `strategie_momentum`). Fin de mois : SPY bat le Trésor 12 mois (`^IRX` sans frais) → 100 % sur
+  le plus fort de SPY/EFA, sinon 100 % AGG. Déroulé propre (pas `lancer_experience`), critères M/P/R/K1 avec limite -35 %.
+  `krachs_au_hasard(strategie=...)` accepte une autre stratégie.
 - `outils_experience.py` : déroulé commun des expériences (critères M1-M2, P1-P3, R1-R5, verdict ; base à battre
   réglable avec `base_reglage`, critères M propres avec `criteres_mieux`, seuils de chute `seuils_chute`,
   critères ajoutés `criteres_supplementaires`).

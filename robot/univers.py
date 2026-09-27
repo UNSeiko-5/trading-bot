@@ -37,7 +37,9 @@ AJOUTS_EXP_011 = [
     Actif("FXY", "Yen", "Devises", "ETF"),
 ]
 UNIVERS_ELARGI = UNIVERS + AJOUTS_EXP_011
-PAR_SYMBOLE = {actif.symbole: actif for actif in UNIVERS_ELARGI}
+# EXP-013 (double momentum) : les obligations du livre d'Antonacci
+AJOUTS_EXP_013 = [Actif("AGG", "Obligations US toutes catégories", "Obligations", "ETF")]
+PAR_SYMBOLE = {actif.symbole: actif for actif in UNIVERS_ELARGI + AJOUTS_EXP_013}
 
 
 def budgets_de_risque(symboles_disponibles):

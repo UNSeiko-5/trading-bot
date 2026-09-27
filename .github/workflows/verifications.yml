@@ -97,3 +97,6 @@ jobs:
 
       - name: Expérience EXP-012 (v3 offensive, plafond 40 % par actif)
         run: python experience_012.py
+
+      - name: Expérience EXP-013 (double momentum d'Antonacci, limite -35 %)
+        run: python experience_013.py
