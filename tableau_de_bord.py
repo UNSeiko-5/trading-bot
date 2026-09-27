@@ -46,6 +46,10 @@ JOURNAL = [
      "lecon": "Même rendement, chute -12,7 % au lieu de -11,7 % : la v3 mesurait déjà l'agitation."},
     {"code": "EXP-010", "titre": "v3 offensive (agitation visée 17 %, limite -35 %)", "score": "10/11", "statut": "échec",
      "lecon": "+8,3 %/an seulement : les plafonds (100 %, 25 %/actif) freinent plus que l'agitation visée."},
+    {"code": "EXP-011", "titre": "v3 sur 21 marchés (devises, pétrole, Nasdaq…)", "score": "7/10", "statut": "échec",
+     "lecon": "+6,1 %/an : plus actif (85 % investi, 2x plus d'ordres) mais gagne moins que la v3."},
+    {"code": "EXP-012", "titre": "v3 offensive, plafond 40 % par actif", "score": "10/11", "statut": "échec",
+     "lecon": "+8,3 %/an, chute -15,5 % : plus de liberté = plus de risque, pas plus de rendement."},
 ]
 
 

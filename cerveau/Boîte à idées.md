@@ -12,6 +12,8 @@ Retour au point de départ : [[Accueil]].
   le cerveau devient [[EXP-009 — Régimes de marché]].
 - (27/09/2026) Faire 50 % par an. → Irréaliste sans levier (voir la réponse) ; profil changé à -35 % de
   pire chute acceptée : devient [[EXP-010 — Robot offensif]].
+- (27/09/2026) « Le robot est trop passif, trop sécuritaire. » → Testé : [[EXP-011 — 21 marchés]] et
+  [[EXP-012 — Plafonds relevés]]. Réponse ci-dessous.
 
 ## Réponses de Claude
 
@@ -66,3 +68,12 @@ ce risque (attendu : +9 à +11 %/an, pas 50 %).
 
 **Résultat (27/09/2026) :** 10/11, non validé. +8,3 %/an au lieu de +7,8 % : le robot était déjà
 bloqué par ses plafonds ([[Leçon — les plafonds freinent plus que l'agitation visée]]).
+
+### Robot trop passif et trop sécuritaire ? (27/09/2026)
+
+On a testé les deux façons de lui donner plus de liberté. Résultat : plus d'activité et plus de risque, mais
+pas plus de rendement ([[Leçon — plus de liberté ne crée pas de rendement]]) :
+- 21 marchés au lieu de 10 : +6,1 %/an au lieu de +7,8 % ;
+- plafonds à 40 % : +8,3 %/an, chute -15,5 % au lieu de -11,7 %.
+Tu avais raison sur un point : c'est la stratégie elle-même qui plafonne vers 8 %. Pour viser plus, il faut
+tester une stratégie différente, plus concentrée (proposée : le « double momentum » d'Antonacci).

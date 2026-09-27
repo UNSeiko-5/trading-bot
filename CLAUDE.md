@@ -133,6 +133,13 @@
   chute totale -26,1 % ; 3 krachs au hasard en 20 ans → médiane -17 %, au-delà de -25 % dans 5 % des 100 essais.
   L'arrêt à -25 % ne protège pas d'un krach survenu pendant la nuit.
 
+- **EXP-011** (v3 sur 21 marchés) : **7/10, échec net.** +6,1 %/an, chute -13,2 %, 85 % investi, 924 ordres/an ;
+  sans crypto +4,5 % (R4 ❌). Plus actif mais moins rentable.
+- **EXP-012** (v3 offensive 17 % + plafond 40 %/actif) : **10/11, non validée.** +8,3 %/an (M1 exigeait +9,3), chute
+  -15,5 %, krach d'une nuit -30,1 %. Plafond 50 % : +8,3 %, -17,7 %. Le frein est la stratégie, pas les plafonds.
+- L'utilisateur juge la v3 « mauvaise et trop sécuritaire ». Proposé : EXP-013, double momentum d'Antonacci
+  (100 % sur le marché le plus fort sur 12 mois, sinon obligations), à tester contre la v3 avec la limite -35 %.
+
 ## Prochaines étapes (choisies par l'utilisateur)
 
 1. ~~EXP-003 : cassures~~ : fait, échec (voir ci-dessus).

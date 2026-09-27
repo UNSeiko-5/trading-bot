@@ -1175,6 +1175,36 @@ actifs), avec les seuils d'origine (-20 % / -25 %) : on ne touche qu'au panier.
 **Verdict prévu :** le panier élargi remplace celui de la v3 seulement si **les 10 critères** sont réussis,
 et après ton accord (le robot devra alors pouvoir acheter les nouveaux ETF sur Alpaca).
 
+**Résultats** (lancement GitHub n°65 du 27/09/2026, `python experience_011.py`, données `582807a09084`,
+2007-01-03 → 2026-09-25, 19,7 ans, frais compris) :
+
+| | Rendement/an | Pire chute | Note R/R | Sharpe | Investi | Ordres/an | Frais/an |
+|---|---|---|---|---|---|---|---|
+| **v3 sur 21 marchés** | **+6,1 %** | **-13,2 %** | 0,46 | 0,87 | 85 % | 924 | 0,58 % |
+| v3 (10 actifs) | +7,8 % | -11,7 % | 0,67 | 0,96 | 73 % | 485 | 0,48 % |
+
+| # | Résultat | Verdict |
+|---|---|---|
+| M1 | +6,1 % contre +7,8 % : **-1,68 point** | ❌ |
+| M2 | Note 0,46 contre 0,67 | ❌ |
+| P1 / P2 / P3 | -13,2 % · +6,1 % · 0,46 (meilleure référence : 0,32) | ✅ ✅ ✅ |
+| R1 | 10 variantes entre +5,6 % et +6,3 %/an, chutes entre -10,2 % et -13,5 % | ✅ |
+| R2 | 2007-2012 : +5,8 % · 2013-2019 : +5,4 % (60/40 meilleur) · 2020-2026 : +7,0 %. 2 sur 3 | ✅ |
+| R3 | Frais x3 : +4,9 %/an, perte 1,25 point | ✅ |
+| R4 | Sans la crypto (19 actifs) : +4,5 %/an (minimum 5 %) | ❌ |
+| R5 | Meilleure que 100 % des 500 versions au hasard | ✅ |
+
+**Conclusion :**
+
+- **Verdict officiel : 7/10, échec net.** Le robot est bien plus actif (85 % investi au lieu de 73 %,
+  deux fois plus d'ordres), mais il **gagne moins** : -1,7 point par an, qualité en baisse.
+- Pourquoi : les nouveaux marchés (devises, pétrole, agriculture, argent, obligations d'entreprises) ont
+  eu peu de tendances durables sur 2007-2026, et ils prennent du risque aux marchés qui rapportaient
+  (actions, or, crypto). Le partage égal par classe donne 1/7 du risque aux devises, qui ont peu rapporté.
+- Être plus actif ne veut pas dire gagner plus : c'est la même leçon qu'EXP-004 et EXP-007.
+
+**Décision :** la v3 garde ses 10 actifs. Code gardé (`UNIVERS_ELARGI`), non utilisé par le robot.
+
 ---
 
 ## EXP-012 — Plafonds relevés : laisser le robot utiliser sa limite de -35 %
@@ -1225,3 +1255,36 @@ pire chute de **-15 à -20 %**, davantage d'obligations et d'or quand leurs tend
 **Verdict prévu :** adoptée seulement si **les 11 critères** sont réussis, et après ton accord (sécurités du
 robot alors à -28 % / -35 %). Si EXP-011 **et** EXP-012 réussissent toutes les deux, leur combinaison devra
 passer sa propre expérience avant d'aller au robot.
+
+**Résultats** (lancement GitHub n°65 du 27/09/2026, `python experience_012.py`, données `403a6487971c`,
+2007-01-03 → 2026-09-25, 19,7 ans, frais compris) :
+
+| | Rendement/an | Pire chute | Note R/R | Sharpe | Agitation | Investi | Plus grosse part | Frais/an |
+|---|---|---|---|---|---|---|---|---|
+| **v3 offensive, plafonds 40 %** | **+8,3 %** | **-15,5 %** | 0,54 | 0,91 | 9,2 % | 82 % | 25 % (max 40 %) | 0,50 % |
+| v3 offensive (EXP-010) | +8,3 % | -12,4 % | 0,67 | 0,96 | 8,7 % | 75 % | 19 % (max 25 %) | 0,42 % |
+| v3 | +7,8 % | -11,7 % | 0,67 | 0,96 | 8,1 % | 73 % | 20 % (max 26 %) | 0,48 % |
+
+| # | Résultat | Verdict |
+|---|---|---|
+| M1 | +8,3 % contre +7,8 % : **+0,52 point** (il en fallait 1,5) | ❌ |
+| M2 | Sharpe 0,91 contre 0,96 (seuil 0,87) | ✅ |
+| P1 / P2 / P3 | -15,5 % · +8,3 % · 0,54 (meilleure référence : 0,38) | ✅ ✅ ✅ |
+| R1 | 12 variantes entre +7,6 % et +8,6 %/an ; plafond 50 % : +8,3 %, chute -17,7 % | ✅ |
+| R2 | 2007-2012 : +7,6 % · 2013-2019 : +6,9 % (60/40 meilleur) · 2020-2026 : +10,3 %. 2 sur 3 | ✅ |
+| R3 | Frais x3 : +7,3 %/an, perte 1,07 point | ✅ |
+| R4 | Sans la crypto : +6,0 %/an, chute -13,9 % | ✅ |
+| R5 | Meilleure que 100 % des 500 versions au hasard | ✅ |
+| K1 | Krach d'une nuit, pire soir : -30,1 % ; 3 krachs au hasard : médiane -20,1 %, pire -37,9 %, 1 % au-delà de -35 % | ✅ |
+
+**Conclusion :**
+
+- **Verdict officiel : 10/11, non validée.** Avec des plafonds à 40 %, le robot investit plus (82 %) et
+  prend plus de risque (chute -15,5 %), mais le rendement **ne bouge pas** : +8,3 %, comme EXP-010.
+  Même à 50 % : +8,3 %, avec une chute de -17,7 %.
+- **La leçon d'EXP-010 était donc incomplète** : les plafonds ne sont pas le vrai frein. Le frein est la
+  **stratégie elle-même** : ce suivi de tendance sur ces marchés rapporte environ 8 % par an ; lui donner plus
+  de liberté ajoute du risque sans ajouter de rendement.
+- Pour viser nettement plus, il faut une **autre stratégie** (par exemple plus concentrée), pas plus de liberté.
+
+**Décision :** la v3 reste la base à battre. `PLAFONDS_RELEVES` gardé, non utilisé.

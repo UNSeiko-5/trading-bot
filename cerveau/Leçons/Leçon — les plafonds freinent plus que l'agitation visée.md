@@ -5,3 +5,5 @@ presque rien : il est déjà bloqué par ses plafonds (100 % investi, 25 % par a
 - Sans levier, gagner plus demanderait de changer les plafonds, donc plus d'actions et de crypto
   ([[Biais du recul sur la crypto]]).
 - Confirme que le robot reste loin de sa limite de [[Pire chute]].
+- Mise à jour ([[EXP-012 — Plafonds relevés]]) : relever les plafonds n'a pas aidé non plus. Voir
+  [[Leçon — plus de liberté ne crée pas de rendement]].
