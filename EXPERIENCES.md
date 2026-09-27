@@ -1111,3 +1111,117 @@ Sinon, la v3 reste la base et l'échec est noté ici.
   autre expérience, à décider avec l'utilisateur.
 
 **Décision :** la v3 reste la base à battre ; `VOL_CIBLE_OFFENSIVE` gardé, non utilisé.
+
+---
+
+## EXP-011 — Plus de marchés différents (panier élargi de 10 à 21 actifs)
+
+**Date :** 27/09/2026
+
+**Pourquoi cette expérience :** tu trouves le robot trop passif. Avec 10 actifs, dont plusieurs qui bougent
+ensemble, il n'a souvent que peu de tendances à suivre et laisse du cash. Chez les suiveurs de tendance
+professionnels (R. Carver, *Systematic Trading* ; les fonds « CTA »), le levier le plus fiable n'est pas de
+trader plus vite, mais de suivre **plus de marchés différents** : plus de tendances indépendantes, donc
+plus d'occasions et un risque mieux réparti.
+
+**Règle testée :** la v3 à l'identique (agitation visée 12 %, multiplicateur, zone tampon, plafonds 25 % /
+15 % crypto / 100 %), avec **une seule différence** : le panier passe de 10 à 21 actifs.
+
+**Les 11 actifs ajoutés, choisis avant les tests** selon 3 règles fixées à l'avance : ETF américain très
+échangé (donc disponible sur Alpaca), coté avant fin 2007 (utilisable presque tout le backtest), et marché
+**différent** de ceux déjà présents :
+
+| Classe | Ajouts |
+|---|---|
+| Actions | QQQ (Nasdaq 100, technologie US), EWJ (Japon) |
+| Obligations | TIP (obligations US indexées sur l'inflation), LQD (obligations d'entreprises) |
+| Matières premières | USO (pétrole), SLV (argent), DBA (agriculture) |
+| Immobilier | RWX (immobilier hors États-Unis) |
+| **Devises** (nouvelle classe) | UUP (dollar), FXE (euro), FXY (yen) |
+
+Le partage du risque ne change pas de règle : chaque classe reçoit la même part, partagée à égalité entre ses
+actifs (7 classes au lieu de 6). Comme le robot n'achète jamais à la baisse, le dollar **et** l'euro sont
+tous deux présents : la tendance de l'un ou de l'autre peut être suivie.
+
+**Transparence (biais à signaler) :** la liste est choisie par principe, pas en regardant les résultats.
+Mais je connais une partie de l'histoire de ces marchés (le pétrole a beaucoup perdu, USO paie en plus un
+coût de roulement) : je les garde quand même, pour ne pas trier après coup.
+
+**Ce qu'on attend honnêtement (écrit avant les tests) :** qualité meilleure (note rendement/risque et
+Sharpe en hausse), rendement de +0 à +1 point par an, part investie plus élevée, plus d'ordres, frais un
+peu plus élevés.
+
+**Hypothèse :** suivre 21 marchés au lieu de 10 améliore le rendement de la v3 d'au moins 0,5 point par an
+sans dégrader sa note rendement/risque.
+
+**Critères de réussite (fixés avant les tests) :** les mêmes que pour EXP-006, contre la v3 (sur ses 10
+actifs), avec les seuils d'origine (-20 % / -25 %) : on ne touche qu'au panier.
+
+| # | Réussi si… |
+|---|---|
+| M1 | Rendement annuel supérieur d'au moins **0,5 point** à celui de la v3 |
+| M2 | Note rendement/risque au moins égale à celle de la v3 |
+| P1 | Pire chute meilleure que **-20 %** |
+| P2 | Rendement annuel d'au moins **6 %** |
+| P3 | Note rendement/risque meilleure que les 4 points de comparaison |
+| R1 | 10 variantes : zone tampon 5 % ; 20 % ; sans multiplicateur ; fenêtre de mesure 1 an ; 4 ans ; borne haute 2 ; 3 ; moyennes x1,5 ; agitation visée 10 % ; 14 %. Chaque variante : rendement d'au moins 4 %, pire chute meilleure que **-25 %**, note à ±30 % de la base |
+| R2 | Sous-périodes 2007-2012, 2013-2019, 2020-2026 : rendement positif dans les 3, note meilleure que le 60/40 dans au moins 2 |
+| R3 | Frais x3 : perte de moins de 1,5 point par an, pire chute meilleure que **-20 %** |
+| R4 | Sans la crypto : pire chute meilleure que **-20 %**, rendement d'au moins 5 %, note meilleure que le 60/40 |
+| R5 | Hasard (500 tirages, même panier de 21 actifs) : note meilleure que 95 % des tirages |
+
+*Pour information :* part investie, nombre d'ordres et montant échangé par an, frais, comparés à la v3.
+
+**Verdict prévu :** le panier élargi remplace celui de la v3 seulement si **les 10 critères** sont réussis,
+et après ton accord (le robot devra alors pouvoir acheter les nouveaux ETF sur Alpaca).
+
+---
+
+## EXP-012 — Plafonds relevés : laisser le robot utiliser sa limite de -35 %
+
+**Date :** 27/09/2026
+
+**Pourquoi cette expérience :** EXP-010 a montré que viser 17 % d'agitation ne change presque rien, parce que
+le robot bute sur ses **plafonds** : 25 % maximum par actif (les obligations et l'or, peu agités, l'atteignent
+souvent), 15 % en crypto, 100 % investi.
+
+**Règle testée :** la « v3 offensive » d'EXP-010 (agitation visée **17 %**), avec **une seule différence** :
+le plafond par actif passe de **25 % à 40 %**. Le plafond crypto **reste à 15 %** (sinon le résultat
+dépendrait surtout des années exceptionnelles du Bitcoin, un biais du recul), et le total reste à
+**100 % (pas de levier)**. Même panier de 10 actifs que la v3.
+
+**Pourquoi 40 %, fixé a priori :** avec 25 %, 4 actifs suffisent à être investi à 100 %. On veut plus de
+liberté tout en gardant de la diversification : 40 % impose au moins **3 actifs** pour être investi à 100 %,
+et aucun actif ne peut peser près de la moitié du compte.
+
+**Transparence (biais à signaler) :** le choix de relever les plafonds vient du résultat d'EXP-010 (sur le
+même passé). C'est la 12e expérience sur les mêmes 20 ans : un succès sera à confirmer en argent fictif.
+
+**Ce qu'on attend honnêtement (écrit avant les tests) :** rendement de **+8,5 à +10 %/an** (pas 50 %),
+pire chute de **-15 à -20 %**, davantage d'obligations et d'or quand leurs tendances sont bonnes.
+
+**Hypothèse :** avec des plafonds à 40 %, viser 17 % d'agitation augmente le rendement de la v3 d'au moins
+1,5 point par an sans dégrader sa qualité, et reste dans la limite de -35 %, krachs simulés compris.
+
+**Critères de réussite (fixés avant les tests) :** exactement ceux d'EXP-010 (seuils de chute décalés de
+10 points pour la limite de -35 %), contre la v3 :
+
+| # | Réussi si… |
+|---|---|
+| M1 | Rendement annuel supérieur d'au moins **1,5 point** à celui de la v3 |
+| M2 | Sharpe au moins égal à **90 %** de celui de la v3 |
+| P1 | Pire chute meilleure que **-30 %** |
+| P2 | Rendement annuel d'au moins **6 %** |
+| P3 | Note rendement/risque meilleure que les 4 points de comparaison |
+| R1 | 12 variantes : les 10 d'EXP-010 (agitation visée 15 % ; 20 % ; sans multiplicateur ; borne haute 2 ; 3 ; fenêtre 1 an ; 4 ans ; zone tampon 5 % ; 20 % ; moyennes x1,5) + **plafond 30 %** ; **plafond 50 %**. Chaque variante : rendement d'au moins 4 %, pire chute meilleure que **-35 %**, note à ±30 % de la base |
+| R2 | Sous-périodes : rendement positif dans les 3, note meilleure que le 60/40 dans au moins 2 |
+| R3 | Frais x3 : perte de moins de 1,5 point par an, pire chute meilleure que **-30 %** |
+| R4 | Sans la crypto : pire chute meilleure que **-30 %**, rendement d'au moins 5 %, note meilleure que le 60/40 |
+| R5 | Hasard (500 tirages, mêmes agitation visée et plafonds) : note meilleure que 95 % des tirages |
+| K1 | Krachs simulés (krach type inchangé) : krach d'une nuit sur chaque soir → jamais au-delà de **-35 %** ; 3 krachs au hasard (100 tirages) → au plus **5 %** des tirages au-delà de **-35 %** |
+
+*Pour information :* agitation réalisée, part investie, part la plus grosse, crypto, frais, ordres par an.
+
+**Verdict prévu :** adoptée seulement si **les 11 critères** sont réussis, et après ton accord (sécurités du
+robot alors à -28 % / -35 %). Si EXP-011 **et** EXP-012 réussissent toutes les deux, leur combinaison devra
+passer sa propre expérience avant d'aller au robot.
