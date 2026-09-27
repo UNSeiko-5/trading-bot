@@ -24,6 +24,9 @@ jobs:
       - name: Tests automatiques
         run: python -m pytest
 
+      - name: Tests de la page de suivi (JavaScript, sans Internet)
+        run: cd suivi && node --test tests/*.test.js
+
       - name: Backtest sur tout l'historique de SPY
         run: python backtest.py
 

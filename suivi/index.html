@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Suivi robot v3</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+</head>
+<body>
+  <section id="connexion" hidden>
+    <form id="formulaire">
+      <h1>Suivi du robot v3</h1>
+      <p>Accès réservé. Connecte-toi avec le compte créé dans Supabase.</p>
+      <input id="email" type="email" autocomplete="username" placeholder="E-mail" required>
+      <input id="motdepasse" type="password" autocomplete="current-password" placeholder="Mot de passe" required>
+      <button class="principal" type="submit">Se connecter</button>
+      <p id="erreur-connexion" class="rouge"></p>
+    </form>
+  </section>
+
+  <main id="tableau" hidden>
+    <header>
+      <h1>Robot v3</h1>
+      <span class="badge orange">ARGENT FICTIF (paper)</span>
+      <span id="marche" class="badge">marché : …</span>
+      <span class="espace"></span>
+      <span id="maj" class="doux">…</span>
+      <button id="deconnexion">Se déconnecter</button>
+    </header>
+
+    <div id="bandeau" hidden></div>
+
+    <section id="tuiles" class="tuiles"></section>
+
+    <section class="carte">
+      <div class="outils">
+        <h2 style="margin:0">Courbe du compte</h2>
+        <span class="espace"></span>
+        <button data-periode="annee" class="actif">1 an</button>
+        <button data-periode="jour">Aujourd'hui</button>
+        <label class="doux"><input id="comparer" type="checkbox" checked> comparer à SPY</label>
+      </div>
+      <div id="graphe-compte" class="graphe"></div>
+      <div id="legende-compte" class="legende"></div>
+    </section>
+
+    <section class="grille2">
+      <div class="carte">
+        <h2>Sécurités</h2>
+        <div id="securites"></div>
+      </div>
+      <div class="carte">
+        <h2>Dernière décision du robot</h2>
+        <div id="decision"></div>
+      </div>
+    </section>
+
+    <section class="carte">
+      <h2>Positions et raisons <span class="doux" style="font-weight:400">(clique sur une ligne pour voir son graphique)</span></h2>
+      <div class="defile"><table id="positions"></table></div>
+      <p class="legende">Part visée, note et régime : dernière décision du robot. Quantité, valeur et gains : en direct chez Alpaca.
+        Note de tendance : 0 = cash, 10 = tendance normale, 20 = très forte. Le régime est affiché pour information (EXP-009 non validée).</p>
+    </section>
+
+    <section class="carte">
+      <div class="outils">
+        <h2 style="margin:0">Graphique : <span id="titre-actif">SPY</span></h2>
+        <span class="espace"></span>
+        <select id="choix-actif"></select>
+        <button data-echelle="jour" class="actif">Jours</button>
+        <button data-echelle="heure">Heures</button>
+      </div>
+      <div id="graphe-actif" class="graphe"></div>
+      <div id="legende-actif" class="legende"></div>
+    </section>
+
+    <section class="carte">
+      <h2>Ordres</h2>
+      <h3>En attente d'exécution</h3>
+      <div class="defile"><table id="attente"></table></div>
+      <h3>Historique (200 derniers)</h3>
+      <div class="defile"><table id="historique"></table></div>
+    </section>
+
+    <section class="carte">
+      <h2>Journal du robot <span class="doux" style="font-weight:400">(un rapport par soir, mis à jour en direct)</span></h2>
+      <div id="journal"></div>
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
