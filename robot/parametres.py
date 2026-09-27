@@ -33,6 +33,7 @@ REGIMES = {"etats": 3, "fenetre": 504, "reapprentissage": 126, "stabilite": 3, "
 
 # --- Taille des positions (section 5) ------------------------------------------------
 VOL_CIBLE = 0.12              # agitation annuelle visée pour tout le portefeuille
+VOL_CIBLE_OFFENSIVE = 0.17    # EXP-010, en test : 12 % x 35/25 pour la limite de -35 % (arrondi)
 FENETRE_VOL = 35              # jours (moyenne exponentielle) pour mesurer l'agitation
 JOURS_PAR_AN = 252
 FENETRE_CORRELATION = 504     # 2 ans de bourse pour le bonus de diversification (IDM)

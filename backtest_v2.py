@@ -11,12 +11,15 @@ PIRE_CHUTE_MIN = -0.20
 RENDEMENT_MIN = 0.06
 
 
-def verifier_performance(v2, references):
-    """Renvoie la liste des critères P1 à P3 : (nom, réussi, détail)."""
+def verifier_performance(v2, references, pire_chute_min=PIRE_CHUTE_MIN, rendement_min=RENDEMENT_MIN):
+    """Renvoie la liste des critères P1 à P3 : (nom, réussi, détail).
+    `pire_chute_min` : -20 % par défaut ; -30 % depuis que la limite est de -35 % (EXP-010)."""
     moins_bons = [nom for nom, m in references.items() if m["note_rendement_risque"] >= v2["note_rendement_risque"]]
     return [
-        ("P1 Pire chute meilleure que -20 %", v2["pire_chute"] > PIRE_CHUTE_MIN, f"{v2['pire_chute']:.1%}"),
-        ("P2 Rendement d'au moins 6 % par an", v2["rendement_annuel"] >= RENDEMENT_MIN, f"{v2['rendement_annuel']:+.1%}"),
+        (f"P1 Pire chute meilleure que {pire_chute_min * 100:.0f} %", v2["pire_chute"] > pire_chute_min,
+         f"{v2['pire_chute']:.1%}"),
+        (f"P2 Rendement d'au moins {rendement_min * 100:.0f} % par an", v2["rendement_annuel"] >= rendement_min,
+         f"{v2['rendement_annuel']:+.1%}"),
         ("P3 Meilleure note rendement/risque que les 4 références", not moins_bons,
          f"{v2['note_rendement_risque']:.2f}" + (f" (battue par : {', '.join(moins_bons)})" if moins_bons else "")),
     ]

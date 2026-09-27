@@ -51,8 +51,12 @@
   gaussien par actif (`robot/regimes.py`, numpy seul) : 3 régimes rangés par agitation, appris sur 504 jours, réappris
   tous les 126 jours, algorithme « forward » seul pour décider (jamais le futur), confirmé après 3 jours ; note ÷ 2
   en régime agité (`REGIMES` ; `strategie_v2(regime=...)`). Désactivé par défaut (`regime=None`).
+- **EXP-010 (v3 offensive)** : `experience_010.py`, contre la v3. Seule différence : `vol_cible=VOL_CIBLE_OFFENSIVE` (17 %).
+  Seuils de chute décalés de 10 points (`SEUILS_CHUTE`), critère K1 krachs simulés (`critere_krachs`). Attention :
+  la zone tampon s'élargit avec l'agitation visée (plafonds fixes) et peut freiner l'investissement.
 - `outils_experience.py` : déroulé commun des expériences (critères M1-M2, P1-P3, R1-R5, verdict ; base à battre
-  réglable avec `base_reglage`, critères M propres avec `criteres_mieux`).
+  réglable avec `base_reglage`, critères M propres avec `criteres_mieux`, seuils de chute `seuils_chute`,
+  critères ajoutés `criteres_supplementaires`).
 - **Veto final** : `controle_final` (`robot/decision.py`) revérifie le plan d'ordres avant l'envoi (plafonds, levier,
   découvert, arrêts) ; en cas d'anomalie, aucun ordre et alerte Telegram.
 - **Krachs simulés** : `krachs_simules.py` (stress test de la v3, pour information) : krach d'une nuit sur chaque soir
