@@ -116,7 +116,7 @@ def test_r4(ouvertures, clotures, note_60_40, reglage=None, chute_min=R4_CHUTE_M
     m = mesures(strategie_v2(ouvertures[sans], clotures[sans], **(reglage or {})).valeur)
     ok = m["pire_chute"] > chute_min and m["rendement_annuel"] >= R4_RENDEMENT_MIN and \
         m["note_rendement_risque"] > note_60_40
-    print(ligne("8 actifs, sans Bitcoin ni Ethereum", m, ok) + f"   (60/40 : note {note_60_40:.2f})")
+    print(ligne(f"{len(sans)} actifs, sans Bitcoin ni Ethereum", m, ok) + f"   (60/40 : note {note_60_40:.2f})")
     return ok
 
 
@@ -126,13 +126,14 @@ def test_r5(ouvertures, clotures, risque, base, reglage=None, nom="la v2"):
     budget = (reglage or {}).get("budget")   # EXP-005 : multiplicateur recalculé pour chaque version au hasard
     tampon = (reglage or {}).get("tampon")   # EXP-006 : zone tampon appliquée à chaque version au hasard
     vol_cible = (reglage or {}).get("vol_cible", VOL_CIBLE)   # EXP-010 : même agitation visée que la version testée
+    plafonds = (reglage or {}).get("plafonds")   # EXP-012 : mêmes garde-fous que la version testée
     aleatoire = np.random.default_rng(42)  # graine fixe : même résultat à chaque lancement
     notes_hasard, rendements_hasard = [], []
     for _ in range(R5_TIRAGES):
         cibles, _, tampons = cibles_strategie(ouvertures, clotures, decaler_au_hasard(notes, aleatoire), risque,
-                                              vol_cible=vol_cible, budget=budget, tampon=tampon)
+                                              vol_cible=vol_cible, budget=budget, tampon=tampon, plafonds=plafonds)
         m = mesures(simuler(ouvertures, clotures, cibles, tampons=tampons,
-                            monetaire=(reglage or {}).get("monetaire")).valeur)
+                            monetaire=(reglage or {}).get("monetaire"), plafonds=plafonds).valeur)
         notes_hasard.append(m["note_rendement_risque"])
         rendements_hasard.append(m["rendement_annuel"])
     part = float(np.mean(base["note_rendement_risque"] > np.array(notes_hasard)))

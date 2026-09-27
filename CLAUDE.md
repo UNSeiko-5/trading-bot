@@ -54,6 +54,11 @@
 - **EXP-010 (v3 offensive)** : `experience_010.py`, contre la v3. Seule différence : `vol_cible=VOL_CIBLE_OFFENSIVE` (17 %).
   Seuils de chute décalés de 10 points (`SEUILS_CHUTE`), critère K1 krachs simulés (`critere_krachs`). Attention :
   la zone tampon s'élargit avec l'agitation visée (plafonds fixes) et peut freiner l'investissement.
+- **EXP-011 (21 marchés)** : `experience_011.py`. La v3 sur `UNIVERS_ELARGI` (`AJOUTS_EXP_011` : QQQ, EWJ, TIP, LQD, USO,
+  SLV, DBA, RWX, classe Devises UUP/FXE/FXY), contre la v3 sur ses 10 actifs (`lancer_experience(symboles=, base_symboles=)`).
+  Le robot n'utilise toujours que `UNIVERS`.
+- **EXP-012 (plafonds 40 %)** : `experience_012.py`. v3 offensive (17 %) + `PLAFONDS_RELEVES` (40 % par actif, crypto 15 %,
+  total 100 %) ; `strategie_v2(plafonds=...)` passe jusqu'à `parts_cibles`, `simuler` et le multiplicateur. Critères d'EXP-010.
 - `outils_experience.py` : déroulé commun des expériences (critères M1-M2, P1-P3, R1-R5, verdict ; base à battre
   réglable avec `base_reglage`, critères M propres avec `criteres_mieux`, seuils de chute `seuils_chute`,
   critères ajoutés `criteres_supplementaires`).

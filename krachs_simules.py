@@ -21,7 +21,7 @@ from robot.univers import PAR_SYMBOLE
 
 V3 = {"budget": BUDGET_RISQUE, "tampon": TAMPON}
 CHOC = {"Actions": -0.20, "Immobilier": -0.20, "Matières premières": -0.10, "Or": -0.05, "Obligations": 0.0,
-        "Crypto": -0.40}
+        "Crypto": -0.40, "Devises": 0.0}   # Devises : EXP-011 (dollar et yen montent plutôt pendant un krach)
 KRACHS, TIRAGES, GRAINE = 3, 100, 42
 
 

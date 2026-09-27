@@ -91,3 +91,9 @@ jobs:
 
       - name: Expérience EXP-010 (v3 offensive, agitation visée 17 %, limite -35 %)
         run: python experience_010.py
+
+      - name: Expérience EXP-011 (v3 sur 21 marchés)
+        run: python experience_011.py
+
+      - name: Expérience EXP-012 (v3 offensive, plafond 40 % par actif)
+        run: python experience_012.py

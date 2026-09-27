@@ -100,8 +100,8 @@ def test_resume_quotidien():
 # --- Assemblage et page -------------------------------------------------------------------------
 
 def marche_fictif(jours=900):
-    from robot.univers import PAR_SYMBOLE
-    symboles = list(PAR_SYMBOLE)
+    from robot.univers import UNIVERS
+    symboles = [a.symbole for a in UNIVERS]
     aleatoire = np.random.default_rng(1)
     dates = pd.bdate_range("2004-06-01", periods=jours * 4)
     clotures = pd.DataFrame(100 * np.cumprod(1 + aleatoire.normal(0.0003, 0.01, (len(dates), len(symboles))), axis=0),

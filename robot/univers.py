@@ -22,7 +22,22 @@ UNIVERS = [
     Actif("BTC-USD", "Bitcoin", "Crypto", "crypto"),
     Actif("ETH-USD", "Ethereum", "Crypto", "crypto"),
 ]
-PAR_SYMBOLE = {actif.symbole: actif for actif in UNIVERS}
+# EXP-011 (en test, la v3 ne les utilise pas) : 11 marchés de plus, choisis avant les tests (EXPERIENCES.md).
+AJOUTS_EXP_011 = [
+    Actif("QQQ", "Actions Nasdaq 100 (technologie US)", "Actions", "ETF"),
+    Actif("EWJ", "Actions Japon", "Actions", "ETF"),
+    Actif("TIP", "Obligations US indexées sur l'inflation", "Obligations", "ETF"),
+    Actif("LQD", "Obligations d'entreprises US", "Obligations", "ETF"),
+    Actif("USO", "Pétrole", "Matières premières", "ETF"),
+    Actif("SLV", "Argent (métal)", "Matières premières", "ETF"),
+    Actif("DBA", "Agriculture", "Matières premières", "ETF"),
+    Actif("RWX", "Immobilier hors États-Unis", "Immobilier", "ETF"),
+    Actif("UUP", "Dollar US", "Devises", "ETF"),
+    Actif("FXE", "Euro", "Devises", "ETF"),
+    Actif("FXY", "Yen", "Devises", "ETF"),
+]
+UNIVERS_ELARGI = UNIVERS + AJOUTS_EXP_011
+PAR_SYMBOLE = {actif.symbole: actif for actif in UNIVERS_ELARGI}
 
 
 def budgets_de_risque(symboles_disponibles):
@@ -30,7 +45,7 @@ def budgets_de_risque(symboles_disponibles):
 
     Une classe absente (par exemple la crypto avant 2014) laisse sa part aux autres.
     """
-    disponibles = [actif for actif in UNIVERS if actif.symbole in set(symboles_disponibles)]
+    disponibles = [PAR_SYMBOLE[s] for s in symboles_disponibles if s in PAR_SYMBOLE]
     classes = {actif.classe for actif in disponibles}
     budgets = {}
     for classe in classes:

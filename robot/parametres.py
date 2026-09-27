@@ -43,6 +43,9 @@ IDM_MIN, IDM_MAX = 1.0, 2.5
 PART_MAX_ACTIF = 0.25
 PART_MAX_CRYPTO = 0.15
 EXPOSITION_MAX = 1.0          # pas de levier
+# EXP-012, en test : plafond par actif relevé à 40 % (au moins 3 actifs pour être investi à 100 %),
+# crypto et total inchangés
+PLAFONDS_RELEVES = {"part_max": 0.40, "crypto_max": 0.15, "exposition_max": 1.0}
 SEUIL_TRANSACTION = 0.02      # on ne bouge une position que si l'écart dépasse 2 % du capital
 
 # --- Garde-fous du robot uniquement (section 6) --------------------------------------

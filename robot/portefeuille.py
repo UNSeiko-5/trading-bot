@@ -126,16 +126,17 @@ def tampon_rapide(cibles, actuelles, largeurs, crypto,
     return nouvelles if respecte else cibles.copy()
 
 
-def parts_cibles(notes, risque, vol_cible=VOL_CIBLE, multiplicateur=None):
+def parts_cibles(notes, risque, vol_cible=VOL_CIBLE, multiplicateur=None, plafonds=None):
     """Part du capital visée pour chaque actif et chaque jour (garde-fous compris).
 
     `multiplicateur` (EXP-005) : un nombre par jour qui multiplie toutes les parts avant les garde-fous.
+    `plafonds` (EXP-012) : {"part_max", "crypto_max", "exposition_max"} à la place des garde-fous par défaut.
     """
     brutes = risque.budgets.mul(risque.idm, axis=0) * vol_cible * (notes.fillna(0) / 10) / risque.volatilites
     if multiplicateur is not None:
         brutes = brutes.mul(multiplicateur.reindex(brutes.index).fillna(1.0), axis=0)
     brutes = brutes.where(risque.budgets > 0, 0.0).fillna(0.0)
-    return appliquer_garde_fous(brutes)
+    return appliquer_garde_fous(brutes, **(plafonds or {}))
 
 
 def seuil_rapide(cibles, actuelles, crypto, seuil=SEUIL_TRANSACTION,

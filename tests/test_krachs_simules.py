@@ -9,7 +9,7 @@ from robot.simulation import Resultat, mesures, strategie_v2
 
 def test_krach_type_fixe_a_l_avance():
     assert CHOC == {"Actions": -0.20, "Immobilier": -0.20, "Matières premières": -0.10, "Or": -0.05,
-                    "Obligations": 0.0, "Crypto": -0.40}
+                    "Obligations": 0.0, "Crypto": -0.40, "Devises": 0.0}
     assert (KRACHS, TIRAGES) == (3, 100)
     assert chocs(["SPY", "VNQ", "DBC", "GLD", "TLT", "ETH-USD"]).tolist() == [-0.2, -0.2, -0.1, -0.05, 0.0, -0.4]
 

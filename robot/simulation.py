@@ -44,12 +44,13 @@ def frais_par_actif(symboles, frais=FRAIS):
 
 
 def simuler(ouvertures, clotures, cibles, debut=DEBUT_BACKTEST, seuil=SEUIL_TRANSACTION, frais=FRAIS, details=False,
-            tampons=None, monetaire=None):
+            tampons=None, monetaire=None, plafonds=None):
     """Simule la stratégie jour par jour. `cibles` : part visée de chaque actif, décidée chaque soir.
 
     `tampons` (EXP-006) : demi-largeur de la zone tampon de chaque actif chaque jour ; remplace le seuil.
     `monetaire` (EXP-008) : rendement du jour du fonds monétaire (connu la veille) : le cash le reçoit chaque
     jour, et chaque variation du cash à un rééquilibrage paie les frais d'un ETF (achat ou vente du fonds).
+    `plafonds` (EXP-012) : garde-fous utilisés par le seuil et la zone tampon (défaut : ceux de la v2).
     `details=True` garde aussi le gain de chaque actif chaque jour et la liste des ordres (pour le rejeu
     et le rapport). Plus lent : réservé à l'affichage, pas aux tests de robustesse.
     """
@@ -76,8 +77,8 @@ def simuler(ouvertures, clotures, cibles, debut=DEBUT_BACKTEST, seuil=SEUIL_TRAN
             positions = positions * _variation(o[t], c[t - 1])      # 1. la nuit
             if details:
                 gains[t] += positions - avant
-            decision = (seuil_rapide(w[t - 1], poids[t - 1], crypto, seuil) if b is None
-                        else tampon_rapide(w[t - 1], poids[t - 1], b[t - 1], crypto))
+            decision = (seuil_rapide(w[t - 1], poids[t - 1], crypto, seuil, **(plafonds or {})) if b is None
+                        else tampon_rapide(w[t - 1], poids[t - 1], b[t - 1], crypto, **(plafonds or {})))
             bouger = decision != poids[t - 1]
             if bouger.any():                                         # 2. exécution à l'ouverture
                 capital = cash + positions.sum()
@@ -131,17 +132,19 @@ def multiplicateur_risque(rendements, vol_cible=VOL_CIBLE, fenetre=504, borne_ba
 
 
 def cibles_strategie(ouvertures, clotures, notes, risque, vol_cible=VOL_CIBLE, seuil=SEUIL_TRANSACTION,
-                     frais=FRAIS, budget=None, tampon=None):
+                     frais=FRAIS, budget=None, tampon=None, plafonds=None):
     """Parts visées à partir des notes. Avec `budget` (EXP-005), la v2 normale est d'abord simulée depuis
     le début des données pour mesurer son agitation réalisée, puis toutes les parts sont multipliées.
     Avec `tampon` (EXP-006), calcule aussi la demi-largeur de la zone tampon = tampon x part « normale ».
+    `plafonds` (EXP-012) : garde-fous à utiliser, y compris pour la v2 normale qui mesure l'agitation.
     Renvoie (parts visées, multiplicateur ou None, zones tampons ou None)."""
     m = None
     if budget is not None:
-        base = parts_cibles(notes, risque, vol_cible)
-        normale = simuler(ouvertures, clotures, base, debut=clotures.index[0], seuil=seuil, frais=frais)
+        base = parts_cibles(notes, risque, vol_cible, plafonds=plafonds)
+        normale = simuler(ouvertures, clotures, base, debut=clotures.index[0], seuil=seuil, frais=frais,
+                          plafonds=plafonds)
         m = multiplicateur_risque(normale.valeur.pct_change(), vol_cible, **budget)
-    cibles = parts_cibles(notes, risque, vol_cible, multiplicateur=m)
+    cibles = parts_cibles(notes, risque, vol_cible, multiplicateur=m, plafonds=plafonds)
     tampons = None if tampon is None else tampon * parts_normales(risque, vol_cible, m)
     return cibles, m, tampons
 
@@ -149,7 +152,7 @@ def cibles_strategie(ouvertures, clotures, notes, risque, vol_cible=VOL_CIBLE, s
 def strategie_v2(ouvertures, clotures, detecteurs=DETECTEURS, vol_cible=VOL_CIBLE,
                  seuil=SEUIL_TRANSACTION, frais=FRAIS, debut=DEBUT_BACKTEST, risque=None, cassures=(),
                  retour=(), poids_retour=POIDS_RETOUR_MOYENNE, details=False, budget=None, tampon=None,
-                 monetaire=None, regime=None):
+                 monetaire=None, regime=None, plafonds=None):
     """La stratégie v2 complète : notes -> parts visées -> simulation.
 
     `risque` peut être fourni pour éviter de le recalculer (tests de robustesse).
@@ -158,12 +161,14 @@ def strategie_v2(ouvertures, clotures, detecteurs=DETECTEURS, vol_cible=VOL_CIBL
     `budget` : réglages du multiplicateur de risque (EXP-005, voir BUDGET_RISQUE). None = la v2.
     `monetaire` : rendement quotidien du fonds monétaire pour le cash (EXP-008). None = cash à 0 %.
     `regime` : réglages du filtre de régime (EXP-009, voir REGIMES), appliqué aux notes. None = pas de filtre.
+    `plafonds` : garde-fous (EXP-012, voir PLAFONDS_RELEVES). None = ceux de la v2 (25 %, 15 % crypto, 100 %).
     """
     risque = risque or preparer_risque(clotures)
     notes = calculer_notes(clotures, detecteurs, cassures=cassures, retour=retour, poids_retour=poids_retour)
     notes = appliquer_regime(notes, clotures, regime)
-    cibles, m, tampons = cibles_strategie(ouvertures, clotures, notes, risque, vol_cible, seuil, frais, budget, tampon)
-    resultat = simuler(ouvertures, clotures, cibles, debut, seuil, frais, details, tampons, monetaire)
+    cibles, m, tampons = cibles_strategie(ouvertures, clotures, notes, risque, vol_cible, seuil, frais, budget, tampon,
+                                          plafonds)
+    resultat = simuler(ouvertures, clotures, cibles, debut, seuil, frais, details, tampons, monetaire, plafonds)
     if m is not None:
         resultat.multiplicateur = m.reindex(resultat.valeur.index)
     return resultat
