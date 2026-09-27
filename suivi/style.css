@@ -1,0 +1,120 @@
+:root {
+  --fond: #0b1017;
+  --carte: #121a24;
+  --bord: #223041;
+  --texte: #e6edf5;
+  --doux: #8ea0b5;
+  --accent: #4f8cff;
+  --vert: #22c55e;
+  --rouge: #ef4444;
+  --orange: #f59e0b;
+  --rayon: 12px;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --fond: #f4f6f9;
+    --carte: #ffffff;
+    --bord: #dbe2ea;
+    --texte: #111827;
+    --doux: #5b6b7f;
+    --accent: #2563eb;
+    --vert: #16a34a;
+    --rouge: #dc2626;
+    --orange: #d97706;
+    color-scheme: light;
+  }
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--fond);
+  color: var(--texte);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+[hidden] { display: none !important; }
+h1 { font-size: 18px; margin: 0; }
+h2 { font-size: 15px; margin: 0 0 12px; }
+h3 { font-size: 13px; margin: 16px 0 8px; color: var(--doux); font-weight: 600; }
+button, input, select {
+  font: inherit;
+  color: var(--texte);
+  background: var(--fond);
+  border: 1px solid var(--bord);
+  border-radius: 8px;
+  padding: 7px 12px;
+}
+button { cursor: pointer; }
+button.principal { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+button.actif { border-color: var(--accent); color: var(--accent); }
+
+/* Connexion */
+#connexion { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
+#connexion form {
+  width: min(380px, 100%);
+  background: var(--carte);
+  border: 1px solid var(--bord);
+  border-radius: var(--rayon);
+  padding: 24px;
+  display: grid;
+  gap: 12px;
+}
+#connexion p { margin: 0; color: var(--doux); }
+
+/* Tableau */
+#tableau { max-width: 1400px; margin: 0 auto; padding: 16px; display: grid; gap: 16px; }
+header { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+header .espace { flex: 1; }
+.badge { font-size: 12px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--bord); color: var(--doux); }
+.badge.vert { color: var(--vert); border-color: var(--vert); }
+.badge.rouge { color: var(--rouge); border-color: var(--rouge); }
+.badge.orange { color: var(--orange); border-color: var(--orange); }
+#bandeau { padding: 10px 14px; border-radius: var(--rayon); border: 1px solid var(--rouge); color: var(--rouge); }
+
+.carte { background: var(--carte); border: 1px solid var(--bord); border-radius: var(--rayon); padding: 16px; min-width: 0; }
+.grille2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+.tuiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.tuile { background: var(--carte); border: 1px solid var(--bord); border-radius: var(--rayon); padding: 12px 14px; }
+.tuile .libelle { color: var(--doux); font-size: 12px; }
+.tuile .valeur { font-size: 20px; font-weight: 650; font-variant-numeric: tabular-nums; margin-top: 2px; }
+.tuile .detail { color: var(--doux); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+.outils { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+.outils .espace { flex: 1; }
+.graphe { height: 360px; width: 100%; }
+#graphe-actif { height: 440px; }
+.legende { color: var(--doux); font-size: 12px; margin-top: 8px; }
+
+.defile { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th, td { text-align: right; padding: 7px 8px; border-bottom: 1px solid var(--bord); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { color: var(--doux); font-weight: 600; font-size: 12px; }
+td.gauche, th.gauche { text-align: left; }
+tr.cliquable { cursor: pointer; }
+tr.cliquable:hover, tr.choisi { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.vert { color: var(--vert); }
+.rouge { color: var(--rouge); }
+.orange { color: var(--orange); }
+.doux { color: var(--doux); }
+.note { display: inline-block; width: 60px; height: 6px; border-radius: 3px; background: var(--bord); vertical-align: middle; margin-right: 6px; }
+.note > i { display: block; height: 100%; border-radius: 3px; background: var(--accent); }
+
+.jauge { margin-bottom: 14px; }
+.jauge .haut { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px; }
+.jauge .piste { position: relative; height: 10px; border-radius: 5px; background: var(--bord); }
+.jauge .rempli { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; }
+.jauge .repere { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--texte); opacity: 0.6; }
+.jauge .bas { display: flex; justify-content: space-between; color: var(--doux); font-size: 11px; margin-top: 3px; }
+
+pre.message { white-space: pre-wrap; margin: 0; font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+details { border-bottom: 1px solid var(--bord); padding: 8px 0; }
+details summary { cursor: pointer; }
+.vide { color: var(--doux); font-style: italic; }
+
+@media (max-width: 640px) {
+  .graphe { height: 280px; }
+  #graphe-actif { height: 320px; }
+  .tuile .valeur { font-size: 17px; }
+}

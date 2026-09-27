@@ -56,6 +56,11 @@
   découvert, arrêts) ; en cas d'anomalie, aucun ordre et alerte Telegram.
 - **Krachs simulés** : `krachs_simules.py` (stress test de la v3, pour information) : krach d'une nuit sur chaque soir
   du backtest, et 3 krachs injectés au hasard (100 tirages). Krach type fixé d'après 1987 et mars 2020.
+- **Page de suivi en direct** (dossier `suivi/`, Vercel, racine `suivi`) : `index.html` + `app.js` + `logique.js` (calculs,
+  testés par `node --test tests/*.test.js`) + `api/` (fonctions Vercel : `compte`, `barres`, `config` ; connexion Supabase
+  obligatoire + e-mail `ALLOWED_EMAIL` ; Alpaca **paper** écrit en dur). Chaque soir, `robot_v3.py` écrit son rapport
+  dans la table Supabase `rapports` (`robot/suivi.py`, secrets `SUPABASE_URL`/`SUPABASE_SERVICE_KEY`, facultatifs).
+  Installation : `docs/PAGE_DE_SUIVI.md`. Étape 1 (lecture seule) faite ; étape 2 (pause, tout vendre, ordres manuels) à venir.
 - **Tableau de bord** : `tableau_de_bord.py` calcule backtest, jour par jour, Monte Carlo (2 000 avenirs de 10 ans,
   blocs d'un mois), expériences et graphe du cerveau, puis remplit `tableau/modele.html` (d3 via cdnjs).
   GitHub Actions l'envoie comme fichier `tableau-de-bord`. Le résumé `JOURNAL` est à mettre à jour après chaque expérience.

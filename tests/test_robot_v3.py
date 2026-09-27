@@ -64,6 +64,8 @@ def messages(monkeypatch):
     envoyes = []
     monkeypatch.setattr(robot_v3, "envoyer_alerte", envoyes.append)
     monkeypatch.delenv("ROBOT_V3_DEPART", raising=False)
+    monkeypatch.delenv("SUPABASE_URL", raising=False)          # jamais de vrai envoi pendant les tests
+    monkeypatch.delenv("SUPABASE_SERVICE_KEY", raising=False)
     return envoyes
 
 
@@ -162,3 +164,25 @@ def test_achats_limites_au_cash_reel_et_reportes(messages):
     achats = [o for o in courtier.ordres if o.side.value == "buy"]
     assert sum(float(o.notional or 0) for o in achats) <= 100
     assert "reportés à demain" in messages[-1]
+
+
+def test_rapport_du_soir_envoye_a_la_page_de_suivi(messages, monkeypatch):
+    envoyes = []
+    monkeypatch.setattr(robot_v3, "envoyer_rapport", lambda r: envoyes.append(r))
+    courtier = FauxCourtier()
+    robot_v3.main(courtier, chargeur())
+    (rapport,) = envoyes
+    assert rapport["statut"] == "ordres transmis" and rapport["seance"] == str(SEANCE)
+    assert {a["symbole"] for a in rapport["actifs"]} == set(SYMBOLES)
+    assert len(rapport["ordres"]) == len(courtier.ordres) and rapport["message"] == messages[-1]
+
+
+def test_une_panne_de_la_page_de_suivi_n_arrete_pas_le_robot(messages, monkeypatch):
+    def panne(*args):
+        raise RuntimeError("calcul impossible")
+
+    monkeypatch.setattr(robot_v3, "regimes_du_jour", panne)
+    monkeypatch.setattr(robot_v3, "envoyer_rapport", lambda r: "Supabase injoignable")
+    courtier = FauxCourtier()
+    robot_v3.main(courtier, chargeur())
+    assert courtier.ordres and "Robot v3" in messages[-1]

@@ -23,6 +23,7 @@ from robot.decision import (
 )
 from robot.donnees import charger
 from robot.portefeuille import est_crypto
+from robot.suivi import envoyer_rapport, rapport_du_soir, regimes_du_jour
 
 DEPART_PAR_DEFAUT = "2026-09-28"   # le sommet du compte n'est compté qu'à partir de cette date
 
@@ -109,8 +110,11 @@ def main(client=None, chargeur=charger):
     # 5. Veto final : une sécurité indépendante revérifie le plan. Au moindre doute, AUCUN ordre ne part
     problemes = controle_final(ordres, positions, capital, cash, securite, compter_ventes=False)
     if problemes:
-        envoyer_alerte("🛑 ROBOT v3 : AUCUN ORDRE, le veto final a bloqué le plan du soir :\n- "
-                       + "\n- ".join(problemes) + "\nC'est probablement un bug : vérifie le journal GitHub.")
+        texte = ("🛑 ROBOT v3 : AUCUN ORDRE, le veto final a bloqué le plan du soir :\n- "
+                 + "\n- ".join(problemes) + "\nC'est probablement un bug : vérifie le journal GitHub.")
+        envoyer_alerte(texte)
+        journaliser(donnees, seance, "bloqué par le veto final", capital, cash, securite, multiplicateur, decision,
+                    [], exclus, problemes, texte)
         return
 
     # 6. Transmission des ordres (une erreur sur un actif n'empêche pas les autres)
@@ -126,7 +130,24 @@ def main(client=None, chargeur=charger):
                          "(exécutées à l'ouverture).".replace(",", " "))
     if exclus:
         remarques.append("⚠️ Données douteuses : " + ", ".join(sorted(exclus)) + " (voir le journal GitHub).")
-    envoyer_alerte(message(seance, capital, securite, multiplicateur, decision, transmis, exclus, remarques))
+    texte = message(seance, capital, securite, multiplicateur, decision, transmis, exclus, remarques)
+    envoyer_alerte(texte)
+    journaliser(donnees, seance, "ordres transmis" if transmis else "aucun ordre nécessaire", capital, cash, securite,
+                multiplicateur, decision, transmis, exclus, remarques, texte)
+
+
+def journaliser(donnees, seance, statut, capital, cash, securite, multiplicateur, decision, ordres, exclus, remarques,
+                texte):
+    """Rapport du soir pour la page de suivi (Supabase). Ne peut jamais arrêter le robot."""
+    try:
+        regimes = regimes_du_jour(donnees.clotures)
+    except Exception as e:
+        print(f"Régimes du jour non calculés : {type(e).__name__} : {e}")
+        regimes = None
+    erreur = envoyer_rapport(rapport_du_soir(seance, statut, capital, cash, securite, multiplicateur, decision, ordres,
+                                             exclus, remarques, texte, regimes))
+    if erreur:
+        print(f"⚠️ Page de suivi : {erreur}")
 
 
 if __name__ == "__main__":

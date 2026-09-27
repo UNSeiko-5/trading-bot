@@ -37,6 +37,9 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           ROBOT_V3_DEPART: ${{ vars.ROBOT_V3_DEPART }}
+          # Page de suivi (facultatif) : sans ces secrets, le robot fonctionne pareil, sans rapport
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: python robot_v3.py
 
       - name: Alerte Telegram si une étape a échoué
