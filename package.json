@@ -1,0 +1,13 @@
+{
+  "name": "clap",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tableau de bord cinéphile à partir de ton profil et de ton export Letterboxd",
+  "scripts": {
+    "dev": "node dev-server.js",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

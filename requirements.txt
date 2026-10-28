@@ -1,9 +1,0 @@
-# Versions figées : le robot utilise toujours exactement les mêmes bibliothèques.
-# Pour mettre à jour : changer un numéro ici, lancer les tests, puis valider.
-alpaca-py==0.44.0
-yfinance==1.7.0
-pandas==3.0.6
-numpy==2.4.6
-requests==2.34.2
-python-dotenv==1.2.3
-pytest==9.1.1
