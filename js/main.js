@@ -9,11 +9,13 @@ import { tip } from './charts.js';
 import { $, $$, h, icon, relTime, toast, typo } from './util.js';
 import { compare } from './views/compare.js';
 import { dashboard } from './views/dashboard.js';
+import { discover } from './views/discover.js';
 import { filmModal } from './views/film.js';
 import { goalsView } from './views/goals.js';
 import { help, SHORTCUTS } from './views/help.js';
 import { journal } from './views/journal.js';
 import { recap } from './views/recap.js';
+import { retroView } from './views/retro.js';
 import { settings } from './views/settings.js';
 import { statsView } from './views/stats.js';
 import { tasteView } from './views/taste.js';
@@ -27,6 +29,8 @@ const ROUTES = {
   profil: { label: 'Mon profil', icon: 'user', group: 'Analyse', view: tasteView, sub: () => 'Tes goûts en indices sur 100' },
   comparer: { label: 'Comparer', icon: 'trend', group: 'Analyse', view: compare, sub: () => 'Deux périodes côte à côte' },
   avoir: { label: 'À voir', icon: 'bookmark', group: 'Découvrir', view: watchlist, sub: () => 'Ta liste, classée selon tes goûts' },
+  decouvertes: { label: 'Découvertes', short: 'Découvertes', icon: 'dice', group: 'Découvrir', view: discover, sub: () => 'Le saviez-tu ? Des faits sur ton cinéma' },
+  retro: { label: 'Rétrospective', icon: 'star', group: 'Découvrir', view: retroView, sub: () => 'Ton année en films, à partager' },
   objectifs: { label: 'Objectifs', icon: 'target', group: 'Découvrir', view: goalsView, sub: () => 'Films de l’année, défis et trophées' },
   reglages: { label: 'Réglages', icon: 'sliders', group: 'Compte', view: settings, sub: () => 'Profil, import et données' },
   aide: { label: 'Aide', icon: 'help', group: 'Compte', view: help, sub: () => 'Prise en main, glossaire et raccourcis' },
@@ -76,10 +80,10 @@ function landing(error = '') {
           h('div', { class: 'import-alt' }, h('p', { class: 'muted' }, 'Pour tout ton historique : importe l’export de tes données Letterboxd.'), importButton({ label: 'Importer mon export' })),
           h('div', { class: 'trust' }, h('span', { html: `${icon('lock', 15)}Aucun mot de passe` }), h('span', { html: `${icon('eye', 15)}Profil public en lecture` }), h('span', { html: `${icon('shield', 15)}Données gardées dans ton navigateur` }))),
         h('div', { class: 'feat' },
-          feat('film', 'Statistiques complètes', 'Genres, réalisateurs, acteurs, pays, décennies, durées, records et heures de cinéma.'),
+          feat('film', 'Statistiques complètes', 'Genres, réalisateurs, pays et continents, rythme, évolution, croisements, records et heures de cinéma.'),
           feat('user', 'Profil de goût', 'Huit indices sur 100 : diversité, cinéma du monde, classiques, sévérité de tes notes…'),
           feat('bookmark', 'À voir, classé pour toi', 'Ta liste d’envies triée par affinité, et « que regarder ce soir ? » en un clic.'),
-          feat('target', 'Objectifs et trophées', 'Films de l’année, tour du monde, voyage dans le temps, séries de visionnages.')),
+          feat('star', 'Découvertes et rétrospective', 'Des dizaines de faits sur ton cinéma, et ton année en films à partager en image.')),
         h('p', { style: 'text-align:center;font-size:12px;margin-top:18px', class: 'muted' }, 'Clap n’est pas affilié à Letterboxd. Données de films : TMDB et Wikidata.'))));
   if (new URLSearchParams(location.search).get('u')) go.click();
 }
@@ -242,7 +246,7 @@ function reload() {
 function onEnrich() {
   updateStatus();
   const e = state.enrichment;
-  if (e && e.state === 'done' && ['stats', 'profil', 'avoir', 'objectifs', 'comparer', ''].includes(baseRoute)) (closeModal ? (dirty = true) : render());
+  if (e && e.state === 'done' && ['stats', 'profil', 'avoir', 'objectifs', 'comparer', 'decouvertes', 'retro', ''].includes(baseRoute)) (closeModal ? (dirty = true) : render());
 }
 
 async function resync() {
@@ -275,7 +279,7 @@ async function start() {
 }
 
 // ---------- Clavier ----------
-const GO = { d: '', j: 'journal', b: 'bilans', s: 'stats', p: 'profil', c: 'comparer', v: 'avoir', o: 'objectifs', r: 'reglages', h: 'aide' };
+const GO = { d: '', j: 'journal', b: 'bilans', s: 'stats', p: 'profil', c: 'comparer', v: 'avoir', f: 'decouvertes', y: 'retro', o: 'objectifs', r: 'reglages', h: 'aide' };
 let goPending = 0;
 let shortcutsOpen = false;
 
