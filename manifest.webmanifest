@@ -1,0 +1,24 @@
+{
+  "id": "/",
+  "name": "Clap — Ton cinéma en chiffres",
+  "short_name": "Clap",
+  "description": "Statistiques, profil de goût et objectifs à partir de ton journal de films",
+  "lang": "fr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f6f5f3",
+  "theme_color": "#7c5cff",
+  "categories": ["entertainment", "lifestyle"],
+  "icons": [
+    { "src": "assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Journal", "url": "/#/journal" },
+    { "name": "À voir", "url": "/#/avoir" },
+    { "name": "Statistiques", "url": "/#/stats" }
+  ]
+}

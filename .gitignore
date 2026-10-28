@@ -1,16 +1,6 @@
-# Secrets : ne JAMAIS envoyer sur GitHub
+node_modules/
 .env
-
-# Fichiers générés automatiquement par Python
-__pycache__/
-.pytest_cache/
-.venv/
-venv/
-
-# Tableau de bord : construit par GitHub Actions à partir des vraies données
-tableau/donnees.json
-tableau/tableau_de_bord.html
-
-# Réglages personnels d'Obsidian (chaque appareil garde les siens)
-.obsidian/
-tableau/rejeu.html
+.env.*
+!.env.example
+.vercel/
+.DS_Store
