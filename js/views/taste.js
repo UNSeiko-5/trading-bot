@@ -1,13 +1,15 @@
 // Mon profil : indices de goût sur 100, ce que tu aimes, écart avec le grand public et pistes à explorer.
-import { filmHref, starsEl } from '../film-ui.js';
+import { filmHref, starsEl, tile } from '../film-ui.js';
 import { byDecade, byDirector, byGenre, mean } from '../stats.js';
 import { metaOf, state } from '../state.js';
 import { profile } from '../taste.js';
 import { card, empty, labelWithHelp, progress, ring } from '../ui.js';
 import { h, put } from '../util.js';
+import { radarChart } from '../viz.js';
 import { num } from './dashboard.js';
 
 const LEVELS = ['Faible', 'Modéré', 'Marqué', 'Fort', 'Très fort'];
+const SHORT = { volume: 'Volume', regularity: 'Régularité', severity: 'Sévérité', diversity: 'Diversité', world: 'Monde', classics: 'Classiques', obscure: 'Pépites', rewatch: 'Revoir' };
 const STYLES = {
   world: ['Explorateur du monde', 'Tu voyages bien au-delà d’Hollywood.'],
   classics: ['Cinéphile classique', 'Tu fréquentes les grands films du passé.'],
@@ -54,6 +56,9 @@ export function tasteView(root) {
   const divergent = [...gap].sort((a, b) => b.d - a.d);
   const rowFilm = (x, up) => h('a', { class: 'item', href: filmHref(x.f.key), style: 'padding:8px 0' }, h('div', null, h('div', { class: 't', style: 'font-size:13.5px' }, x.f.title), h('div', { class: 's' }, `${x.f.year || ''} · toi ${num(x.f.rating, 1)} · public ${num(x.m.avg / 2, 1)}`)), h('div', { class: 'r' }, h('b', { style: `color:var(--${up ? 'good' : 'bad'}-text)` }, `${x.d > 0 ? '+' : ''}${num(x.d, 1)}`)));
 
+  const fives = rated.filter((f) => f.rating === 5).sort((a, b) => Number(b.liked) - Number(a.liked) || b.last - a.last);
+  const fame = fives.slice(0, 12);
+  const flops = rated.filter((f) => f.rating <= 1.5).sort((a, b) => a.rating - b.rating || b.last - a.last).slice(0, 8);
   const dirsToFollow = dirs.filter((d) => d.count <= 3 && d.avg >= 4.5).slice(0, 6);
   const decades = byDecade(fs, metaOf).filter((d) => d.rated >= 3).sort((a, b) => b.adjusted - a.adjusted)[0];
 
@@ -65,15 +70,18 @@ export function tasteView(root) {
         h('h2', { class: 'hello' }, lead[0]),
         h('p', { class: 'hero-sub' }, `${lead[1]} ${top[1] ? `${STYLES[top[1].id][1]} ` : ''}Profil établi sur ${num(fs.length)} films dont ${num(rated.length)} notés${avg ? `, note moyenne ${num(avg, 2)} / 5` : ''}.`),
         h('div', { class: 'lv-chips' }, ready.length < idx.length ? h('span', { class: 'pill warn' }, `${idx.length - ready.length} indice${idx.length - ready.length > 1 ? 's' : ''} en attente de données`) : null))),
+    card('Ton empreinte', 'Les huit indices en un coup d’œil : plus la forme est large, plus l’indice est élevé', h('div', { class: 'radar-wrap' }, radarChart({ axes: idx.map((x) => ({ label: SHORT[x.id] || x.label, value: x.ready ? x.score : null })), label: 'Empreinte de goût' }))),
     card('Tes indices', 'Chaque indice va de 0 à 100 ; le texte dit ce qu’il mesure', h('div', { class: 'stack lv-rows' }, ...idx.map(gauge))),
     h('div', { class: 'grid cols-2' },
       card(labelWithHelp('Ce que tu aimes', 'adjusted'), 'Genres les mieux notés (au moins 3 films notés)', list(loves)),
       card('Ce qui te plaît moins', 'Genres notés en dessous de ta moyenne', list(hates))),
     meanGap != null ? card('Toi face au grand public', `Écart entre ta note et celle de TMDB (ramenée sur 5), sur ${gap.length} films`,
       h('p', { style: 'margin-bottom:12px;font-size:14px' }, meanGap > 0.15 ? `Tu notes plus généreusement que le public : ${num(meanGap, 2)} point de plus en moyenne.` : meanGap < -0.15 ? `Tu es plus sévère que le public : ${num(Math.abs(meanGap), 2)} point de moins en moyenne.` : 'Tes notes suivent de près celles du public.'),
-      h('div', { class: 'grid cols-2' }, h('div', null, h('h3', { class: 'sub-h' }, 'Tes coups de cœur incompris'), ...divergent.slice(0, 5).map((x) => rowFilm(x, true))), h('div', null, h('h3', { class: 'sub-h' }, 'Les films que tu aimes moins que tout le monde'), ...divergent.slice(-5).reverse().map((x) => rowFilm(x, false))))) : null,
+      h('div', { class: 'grid cols-2 gap-lg' }, h('div', null, h('h3', { class: 'sub-h' }, 'Tes coups de cœur incompris'), ...divergent.slice(0, 5).map((x) => rowFilm(x, true))), h('div', null, h('h3', { class: 'sub-h' }, 'Les films que tu aimes moins que tout le monde'), ...divergent.slice(-5).reverse().map((x) => rowFilm(x, false))))) : null,
     card('À approfondir', 'Réalisateurs dont tu as adoré 1 à 3 films (note moyenne de 4,5 et plus) : le reste de leur filmographie t’attend',
       dirsToFollow.length ? h('div', { class: 'rank' }, dirsToFollow.map((d) => h('div', { class: 'rank-row' }, h('div', { class: 'rank-name' }, d.name), h('div', { class: 'rank-n' }, `${d.count} film${d.count > 1 ? 's' : ''}`), h('div', { class: 'rank-avg' }, starsEl(Math.round(d.avg * 2) / 2), h('small', null, num(d.avg, 1)))))) : empty('Pas encore assez de réalisateurs suivis : les métadonnées se chargent.'),
       decades ? h('p', { class: 'muted', style: 'font-size:13px;margin-top:10px' }, `Ta décennie préférée : les années ${decades.name.slice(0, 4)} (${num(decades.adjusted, 1)} / 5 en note ajustée).`) : null),
+    fame.length ? card('Panthéon', `Tes films à 5 ★${fives.length > fame.length ? ` (${fives.length} au total, les ♥ d’abord)` : ''}`, h('div', { class: 'tiles' }, fame.map((f) => tile(f)))) : null,
+    flops.length ? card('Les plus bas', 'Tes films notés 1,5 ★ ou moins', h('div', { class: 'tiles' }, flops.map((f) => tile(f)))) : null,
     h('p', { class: 'muted', style: 'font-size:12.5px' }, 'Ces indices décrivent tes habitudes ; ce ne sont pas des jugements de goût. Les barèmes sont des repères choisis pour être lisibles, pas des statistiques de population.'));
 }

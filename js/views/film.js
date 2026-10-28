@@ -101,7 +101,7 @@ export function filmModal(key, close) {
         h('p', { class: 'muted' }, info || ' '),
         h('div', { class: 'film-chips' }, (m.genres || []).map(chip), (m.countries || []).slice(0, 3).map(chip), (m.languages || []).slice(0, 1).map(chip)),
         mine,
-        aff && h('p', { class: 'film-aff' }, h('b', null, `${aff.score} % d’affinité`), aff.reasons.length ? ` : ${aff.reasons.map((r) => `${r.label} « ${r.name} » (${r.avg ? r.avg.toFixed(1).replace('.', ',') : '—'})`).join(', ')}` : ''),
+        aff && h('p', { class: 'film-aff' }, h('b', null, `${aff.score} % d’affinité`), aff.predicted ? ` · note prévue ≈ ${String(aff.predicted).replace('.', ',')} / 5` : '', aff.reasons.length ? ` : ${aff.reasons.map((r) => `${r.label} « ${r.name} » (${r.avg ? r.avg.toFixed(1).replace('.', ',') : '—'})`).join(', ')}` : ''),
         link && h('a', { class: 'strava-link', href: link, target: '_blank', rel: 'noopener' }, 'Voir sur Letterboxd ↗'))),
     h('div', { class: 'stack', style: 'margin-top:18px' }, entries, about, sims));
   document.body.append(back);

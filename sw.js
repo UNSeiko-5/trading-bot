@@ -1,5 +1,5 @@
 // Service worker minimal : l'interface reste disponible hors ligne (réseau d'abord, cache en secours).
-const CACHE = 'clap-v1';
+const CACHE = 'clap-v2';
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) =>

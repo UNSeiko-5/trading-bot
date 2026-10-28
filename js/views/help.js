@@ -13,6 +13,8 @@ export const SHORTCUTS = [
   [['g', 's'], 'Aller aux statistiques'],
   [['g', 'p'], 'Aller à mon profil'],
   [['g', 'v'], 'Aller à la liste à voir'],
+  [['g', 'f'], 'Aller aux découvertes (le saviez-tu ?)'],
+  [['g', 'y'], 'Aller à la rétrospective'],
   [['g', 'o'], 'Aller aux objectifs'],
   [['g', 'c'], 'Aller à la comparaison'],
   [['g', 'r'], 'Aller aux réglages'],

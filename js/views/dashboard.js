@@ -3,8 +3,10 @@ import { tile } from '../film-ui.js';
 import { HOW_TO, importButton } from '../import-ui.js';
 import { byGenre, dated, histogram, perMonth, streaks, totals } from '../stats.js';
 import { metaOf, state } from '../state.js';
+import { dailyFact } from '../insights.js';
 import { card, delta, empty, kpi, topo } from '../ui.js';
 import { addDays, dayKey, fmtDate, h, put, startOfWeek } from '../util.js';
+import { computeFacts, factCard, onThisDayCard } from './discover.js';
 
 export const hm = (min) => (min >= 60 ? `${Math.floor(min / 60)} h ${String(Math.round(min % 60)).padStart(2, '0')}` : `${Math.round(min)} min`);
 export const num = (n, d = 0) => Number(n).toLocaleString('fr-FR', { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -40,6 +42,17 @@ function onboarding() {
   return card('Retrouve tout ton historique', 'Le flux RSS public ne contient que tes ~100 derniers films. Importe ton export Letterboxd pour les statistiques complètes.',
     h('p', { class: 'muted', style: 'font-size:13.5px;margin-bottom:12px' }, HOW_TO),
     importButton({ label: 'Importer mon export', primary: true }));
+}
+
+function teasers() {
+  const now = new Date();
+  const fact = state.entries.length >= 10 ? dailyFact(computeFacts(), now) : null;
+  const retroYear = now.getMonth() === 11 ? now.getFullYear() : now.getMonth() === 0 ? now.getFullYear() - 1 : 0;
+  return [
+    retroYear ? h('section', { class: 'callout good' }, h('b', null, `Ta rétrospective ${retroYear} est prête`), h('span', { style: 'font-size:13.5px' }, 'Les chiffres, les coups de cœur et une image à partager.'), h('div', null, h('a', { class: 'btn sm primary', href: '#/retro' }, 'Voir ma rétrospective'))) : null,
+    fact ? h('section', { class: 'card fact-hero' }, h('div', { class: 'eyebrow' }, 'Le saviez-tu ?'), factCard(fact, true), h('div', { class: 'more' }, h('a', { class: 'btn sm', href: '#/decouvertes' }, 'Toutes les découvertes'))) : null,
+    onThisDayCard(4),
+  ];
 }
 
 export function dashboard(root) {
@@ -81,6 +94,7 @@ export function dashboard(root) {
   put(root,
     hero(entries, tot),
     onboarding(),
+    ...teasers(),
     h('div', { class: 'grid cols-4' },
       kpi({ label: 'Films vus', value: num(tot.films), sub: h('span', { class: 'muted' }, `${num(tot.views)} visionnages dont ${tot.rewatches} revus`) }),
       kpi({ label: '30 derniers jours', value: String(last30), sub: delta(last30, prev30, 'vs 30 j précédents') }),

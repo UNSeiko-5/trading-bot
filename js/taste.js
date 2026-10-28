@@ -109,8 +109,9 @@ export function affinity(model, meta, year) {
   take(model.decades, year ? [decadeOf(year)] : [], 0.1, 'décennie');
   if (meta && meta.avg > 0) parts.push({ w: 0.08, s: (meta.avg - 6.8) / 1.2, reason: null }); // notoriété critique TMDB (sur 10)
   const wsum = parts.reduce((s, p) => s + p.w, 0);
-  if (!wsum) return { score: null, reasons: [] };
+  if (!wsum) return { score: null, reasons: [], predicted: null };
   const z = parts.reduce((s, p) => s + p.w * clamp(p.s, -2, 2), 0) / wsum;
   const reasons = parts.filter((p) => p.reason).sort((a, b) => Math.abs(b.w * b.s) - Math.abs(a.w * a.s)).slice(0, 2).map((p) => p.reason);
-  return { score: Math.round(clamp(50 + z * 35, 1, 99)), reasons };
+  // note prévue : ta moyenne, décalée de 0,6 écart-type par unité de z (on ne prédit jamais aux extrêmes)
+  return { score: Math.round(clamp(50 + z * 35, 1, 99)), reasons, predicted: Math.round(clamp(model.g + z * model.sd * 0.6, 0.5, 5) * 10) / 10 };
 }
