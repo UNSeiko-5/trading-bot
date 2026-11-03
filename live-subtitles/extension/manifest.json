@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "Sous-titres FR en direct",
+  "version": "0.1.0",
+  "description": "Traduit en français, en direct, l'audio de l'onglet courant.",
+  "minimum_chrome_version": "116",
+  "permissions": ["tabCapture", "offscreen", "activeTab", "storage"],
+  "host_permissions": [
+    "https://api.deepl.com/*",
+    "https://api-free.deepl.com/*",
+    "https://translation.googleapis.com/*"
+  ],
+  "background": { "service_worker": "background.js", "type": "module" },
+  "action": { "default_title": "Sous-titres FR : activer / désactiver" },
+  "options_page": "options.html",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "all_frames": true,
+      "match_about_blank": true,
+      "run_at": "document_idle"
+    }
+  ]
+}
